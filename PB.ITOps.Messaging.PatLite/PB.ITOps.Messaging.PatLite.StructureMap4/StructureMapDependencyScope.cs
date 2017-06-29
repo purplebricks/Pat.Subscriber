@@ -4,7 +4,7 @@ using System.Linq;
 using PB.ITOps.Messaging.PatLite.IoC;
 using StructureMap;
 
-namespace TestSubscriber.IoC
+namespace PB.ITOps.Messaging.PatLite.StructureMap4
 {
     public class StructureMapDependencyScope : IMessageDependencyScope
     {

@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B40358A6-19E6-438C-9571-AA8FF74A892E}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>TestSubscriber</RootNamespace>
-    <AssemblyName>TestSubscriber</AssemblyName>
+    <ProjectGuid>{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PB.ITOps.Messaging.PatLite.StructureMap4</RootNamespace>
+    <AssemblyName>PB.ITOps.Messaging.PatLite.StructureMap4</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -32,14 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PB.ITOps.Messaging.PatSender">
-      <HintPath>..\..\pb-itops-messaging-patsender\PB.ITOps.Messaging.PatSender\PB.ITOps.Messaging.PatSender\bin\Debug\PB.ITOps.Messaging.PatSender.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="StructureMap, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StructureMap.4.5.0\lib\net45\StructureMap.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,28 +46,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DependencyResolution\IoC.cs" />
-    <Compile Include="DependencyResolution\StructureMapDependencyResolver.cs" />
-    <Compile Include="DependencyResolution\StructureMapDependencyScope.cs" />
-    <Compile Include="MyEvent1.cs" />
-    <Compile Include="MyEvent2.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="PatLiteRegistry.cs" />
+    <Compile Include="StructureMapDependencyResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RightmoveHandler.cs" />
+    <Compile Include="StructureMapDependencyScope.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj">
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.csproj">
       <Project>{8be4d60e-65ae-4872-af04-c78a0cea79a9}</Project>
       <Name>PB.ITOps.Messaging.PatLite</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj">
-      <Project>{6d2e3ef0-76d5-4206-84fc-735eac75bb27}</Project>
-      <Name>PB.ITOps.Messaging.PatLite.StructureMap4</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

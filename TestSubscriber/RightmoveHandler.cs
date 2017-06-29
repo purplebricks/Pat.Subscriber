@@ -27,13 +27,4 @@ namespace TestSubscriber
             return Task.CompletedTask;
         }
     }
-
-    public class RightmoveDerivedHandler : IHandleEvent<MyDerivedEvent2>
-    {
-        public Task HandleAsync(MyDerivedEvent2 message)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-
 }

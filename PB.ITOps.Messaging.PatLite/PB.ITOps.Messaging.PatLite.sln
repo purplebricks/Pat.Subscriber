@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSubscriber", "..\TestSu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.UnitTests", "..\PB.ITOps.Messaging.PatLite.UnitTests\PB.ITOps.Messaging.PatLite.UnitTests.csproj", "{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.StructureMap4", "PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj", "{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

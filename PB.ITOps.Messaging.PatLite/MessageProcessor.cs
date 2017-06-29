@@ -8,7 +8,7 @@ using PB.ITOps.Messaging.PatLite.MessageMapping;
 
 namespace PB.ITOps.Messaging.PatLite
 {
-    public class MessageProcessor
+    public class MessageProcessor: IMessageProcessor
     {
         private readonly IMessageDependencyResolver _messageDependencyResolver;
 
@@ -45,7 +45,6 @@ namespace PB.ITOps.Messaging.PatLite
                         //log
                         message.Complete();
                         //SendResultToStatsD(_subscriberName, messageType, result.Status.ToString());
-                        //_messageProcessingPolicy.Complete(message);
                     }
                     catch (Exception exception)
                     {

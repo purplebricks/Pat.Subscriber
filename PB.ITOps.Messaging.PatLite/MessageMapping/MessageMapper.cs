@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -26,6 +27,11 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
         public static MessageTypeMapping GetHandlerForMessageType(string messageType)
         {
             return _messageTypeMappings.Single(x => x.MessageTypeName == messageType);
+        }
+
+        public static IEnumerable<Type> GetHandledTypes()
+        {
+            return _messageTypeMappings.Select(m => m.MessageType);
         }
     }
 }

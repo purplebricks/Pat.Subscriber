@@ -1,0 +1,14 @@
+﻿{
+  "dependencies": {
+    "log4net": "2.0.8",
+    "StructureMap": "4.5.0",
+    "WindowsAzure.ServiceBus": "4.1.2"
+  },
+  "frameworks": {
+    "net462": {}
+  },
+  "runtimes": {
+    "win-anycpu": {},
+    "win": {}
+  }
+}

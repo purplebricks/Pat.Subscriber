@@ -1,5 +1,6 @@
 ﻿using log4net;
 using PB.ITOps.Messaging.PatLite.IoC;
+using PB.ITOps.Messaging.PatLite.Policy;
 using StructureMap;
 
 namespace PB.ITOps.Messaging.PatLite.StructureMap4
@@ -13,10 +14,11 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
                 scanner.WithDefaultConventions();
                 scanner.AssemblyContainingType<IMessageContext>();
             });
-
+            
             For<IMessageDependencyResolver>().Use<StructureMapDependencyResolver>();
             For<SubscriberConfig>().Use(config);
             For<ILog>().AlwaysUnique().Use(s => LogManager.GetLogger(s.RootType));
+            For<ISubscriberPolicy>().Use<StandardPolicy>();
         }
     }
 }

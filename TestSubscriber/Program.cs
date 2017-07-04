@@ -26,7 +26,8 @@ namespace TestSubscriber
                 ConnectionStrings = new[] { connection },
                 TopicName = topicName,
                 UsePartitioning = true,
-                SubscriberName = "Rightmove"
+                SubscriberName = "Rightmove",
+                BatchSize = 1
             };
             var patSenderConfig = new PatSenderSettings
             {
@@ -36,6 +37,11 @@ namespace TestSubscriber
             var container = new Container(x =>
             {
                 x.AddRegistry(new PatLiteRegistry(config));
+                x.Scan(scanner =>
+                {
+                    scanner.WithDefaultConventions();
+                    scanner.AssemblyContainingType<IMessagePublisher>();
+                });
                 x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>().Is((context) => context.GetInstance<IMessageContext>().CorrelationId);
                 x.For<PatSenderSettings>().Use(patSenderConfig);
             });

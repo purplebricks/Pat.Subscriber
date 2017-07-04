@@ -5,6 +5,7 @@ using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
+using PB.ITOps.Messaging.PatLite.Policy;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -17,7 +18,7 @@ namespace PB.ITOps.Messaging.PatLite
             _messageDependencyResolver = messageDependencyResolver;
         }
 
-        public async Task  ProcessMessage(BrokeredMessage message)
+        public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy policy)
         {
             using (message)
             {
@@ -43,27 +44,12 @@ namespace PB.ITOps.Messaging.PatLite
                         await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
 
                         //log
-                        message.Complete();
+                        policy.OnComplete(message);
                         //SendResultToStatsD(_subscriberName, messageType, result.Status.ToString());
                     }
-                    catch (Exception exception)
+                    catch (Exception ex)
                     {
-                        //message.SendResultToStatsD(_subscriberName, messageTypeString, "UnhandledException");
-                        if (exception is TargetInvocationException && exception.InnerException != null)
-                        {
-                            exception = exception.InnerException;
-                        }
-
-                        var aggregateException = exception as AggregateException;
-                        if (aggregateException != null)
-                        {
-                            var flattened = aggregateException.Flatten();
-                            exception = flattened.InnerException ?? flattened;
-                        }
-
-                        //_messageProcessingPolicy.Fail(exception, message);
-
-                        //message.LogException(_log, _subscriber.SubscriberName, _logFullMessageBody, messageBody, exception);
+                        policy.OnFailure(message, ex);
                     }
                 }
             }

@@ -52,12 +52,16 @@
     <Compile Include="IoC\MessageContext.cs" />
     <Compile Include="MessageProcessor.cs" />
     <Compile Include="MessageMapping\MessageTypeMapping.cs" />
+    <Compile Include="Policy\BasePolicy.cs" />
+    <Compile Include="Policy\ISubscriberPolicy.cs" />
+    <Compile Include="Policy\StandardPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="SubscriberConfig.cs" />
     <Compile Include="SubscriptionBuilder.cs" />
     <Compile Include="SubscriptionClientBuilder.cs" />
     <Compile Include="MessageMapping\TypeExtensions.cs" />
+    <Compile Include="SubscriptionHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

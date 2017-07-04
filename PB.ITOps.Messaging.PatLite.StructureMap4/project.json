@@ -1,0 +1,15 @@
+﻿{
+  "dependencies": {
+    "log4net": "2.0.8",
+    "PB.ITOps.Messaging.PatLite": "0.1.7",
+    "PB.ITOps.Messaging.PatLite.MonitoringPolicy": "0.1.7",
+    "StructureMap": "4.5.0"
+  },
+  "frameworks": {
+    "net462": {}
+  },
+  "runtimes": {
+    "win-anycpu": {},
+    "win": {}
+  }
+}

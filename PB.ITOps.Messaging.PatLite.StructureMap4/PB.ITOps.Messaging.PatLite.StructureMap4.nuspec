@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+    <metadata>
+        <id>PB.ITOps.Messaging.PatLite.StructureMap4</id>
+        <title>PatLite StructureMap4</title>
+        <version>0.1.0</version>
+    <authors>Purplebricks</authors>
+    <owners>Purplebricks</owners>
+    <projectUrl>https://purplebricks.visualstudio.com/Purplebricks/_git/pb-itops-messaging-patlite</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Purplebricks message subscriber infrastructure: StructureMap4</description>
+    <copyright>Copyright 2017</copyright>
+   <dependencies>
+      <group targetFramework="dotnet">        
+		<dependency id="log4net" version="2.0.8" />
+		<dependency id="PB.ITOps.Messaging.PatLite" version="0.1.7" />
+		<dependency id="PB.ITOps.Messaging.PatLite.MonitoringPolicy" version="0.1.7" />
+		<dependency id="StructureMap" version="4.5.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\PB.ITOps.Messaging.PatLite.StructureMap4.dll" target="lib\net462" />
+  </files>
+</package>

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+    <metadata>
+        <id>PB.ITOps.Messaging.PatLite</id>
+        <title>PatLite</title>
+        <version>0.1.0</version>
+    <authors>Purplebricks</authors>
+    <owners>Purplebricks</owners>
+    <projectUrl>https://purplebricks.visualstudio.com/Purplebricks/_git/pb-itops-messaging-patlite</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Purplebricks message subscriber infrastructure</description>
+    <copyright>Copyright 2017</copyright>
+    <dependencies>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="PB.ITOps.Messaging.PatLite\bin\Release\net461\PB.ITOps.Messaging.PatLite.dll" target="lib\net461" />
+  </files>
+</package>

@@ -60,6 +60,10 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj">
+      <Project>{e6eeaace-2358-47f6-aec7-d7f0884ba356}</Project>
+      <Name>PB.ITOps.Messaging.PatLite.MonitoringPolicy</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj">
       <Project>{8be4d60e-65ae-4872-af04-c78a0cea79a9}</Project>
       <Name>PB.ITOps.Messaging.PatLite</Name>

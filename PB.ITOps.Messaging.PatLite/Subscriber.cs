@@ -46,7 +46,7 @@ namespace PB.ITOps.Messaging.PatLite
             tokenSource = tokenSource ?? new CancellationTokenSource();
             while (!tokenSource.Token.IsCancellationRequested)
             {
-                _policy.Execute(() =>
+                _policy.ProcessMessageBatch(() =>
                 {
                     var messages = clients.GetMessages(_config.BatchSize);
                     if (messages.Any())

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading.Tasks;
+using log4net;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 using PB.ITOps.Messaging.PatLite.IoC;
@@ -24,17 +24,17 @@ namespace PB.ITOps.Messaging.PatLite
             {
                 using (var scope = _messageDependencyResolver.BeginScope())
                 {
-                    var messageTypeString = "";
-                    var messageBody = "";
                     try
                     {
-                        messageTypeString = message.Properties["MessageType"].ToString();
-                        messageBody = message.GetBody<string>();
-
+                        var messageTypeString = message.Properties["MessageType"].ToString();
+                        var messageBody = message.GetBody<string>();
+                        
                         var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
-                        ctx.CorrelationId = message.Properties.ContainsKey("PBCorrelationId")
+                        var correlationId = message.Properties.ContainsKey("PBCorrelationId")
                             ? message.Properties["PBCorrelationId"].ToString()
                             : Guid.NewGuid().ToString();
+                        ctx.CorrelationId = correlationId;
+                        LogicalThreadContext.Properties["CorrelationId"] = correlationId;
 
                         var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
                         var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
@@ -43,9 +43,7 @@ namespace PB.ITOps.Messaging.PatLite
 
                         await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
 
-                        //log
                         policy.OnComplete(message);
-                        //SendResultToStatsD(_subscriberName, messageType, result.Status.ToString());
                     }
                     catch (Exception ex)
                     {

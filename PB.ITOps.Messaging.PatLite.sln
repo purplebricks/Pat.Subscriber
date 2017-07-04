@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.StructureMap4", "PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj", "{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.MonitoringPolicy", "PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj", "{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

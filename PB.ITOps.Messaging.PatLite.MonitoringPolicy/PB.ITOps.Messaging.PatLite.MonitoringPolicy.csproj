@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}</ProjectGuid>
+    <ProjectGuid>{E6EEAACE-2358-47F6-AEC7-D7F0884BA356}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PB.ITOps.Messaging.PatLite.StructureMap4</RootNamespace>
-    <AssemblyName>PB.ITOps.Messaging.PatLite.StructureMap4</AssemblyName>
+    <RootNamespace>PB.ITOps.Messaging.PatLite.MonitoringPolicy</RootNamespace>
+    <AssemblyName>PB.ITOps.Messaging.PatLite.MonitoringPolicy</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,14 +30,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.2\lib\net45\Microsoft.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="StructureMap, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\StructureMap.4.5.0\lib\net45\StructureMap.dll</HintPath>
+    <Reference Include="StatsdClient, Version=3.0.86.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StatsdClient.3.0.86\lib\net45\StatsdClient.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,23 +48,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PatLiteRegistry.cs" />
-    <Compile Include="StructureMapDependencyResolver.cs" />
+    <Compile Include="MonitoringConfig.cs" />
+    <Compile Include="MonitoringPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StructureMapDependencyScope.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj">
-      <Project>{e6eeaace-2358-47f6-aec7-d7f0884ba356}</Project>
-      <Name>PB.ITOps.Messaging.PatLite.MonitoringPolicy</Name>
-    </ProjectReference>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj">
       <Project>{8be4d60e-65ae-4872-af04-c78a0cea79a9}</Project>
       <Name>PB.ITOps.Messaging.PatLite</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

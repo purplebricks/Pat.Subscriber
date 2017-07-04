@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
 
 namespace PB.ITOps.Messaging.PatLite.Policy
@@ -8,25 +9,53 @@ namespace PB.ITOps.Messaging.PatLite.Policy
     {
         public ISubscriberPolicy PreviousPolicy { get; set; }
 
-        public void Execute(Action action, CancellationTokenSource tokenSource)
+        public async Task ProcessMessage(Func<BrokeredMessage, Task> action, BrokeredMessage message)
         {
             if (PreviousPolicy != null)
             {
-                PreviousPolicy.Execute(() => DoAction(action, tokenSource), tokenSource);
+                await PreviousPolicy.ProcessMessage((msg) => DoProcessMessage(action, msg), message);
             }
             else
             {
-                DoAction(action, tokenSource);
+                await DoProcessMessage(action, message);
             }
         }
 
-        public abstract void OnComplete(BrokeredMessage message);
+        public void ProcessMessageBatch(Action action, CancellationTokenSource tokenSource)
+        {
+            if (PreviousPolicy != null)
+            {
+                PreviousPolicy.ProcessMessageBatch(() => DoProcessMessageBatch(action, tokenSource), tokenSource);
+            }
+            else
+            {
+                DoProcessMessageBatch(action, tokenSource);
+            }
+        }
 
-        public abstract void OnFailure(BrokeredMessage message, Exception ex);
+        public virtual void OnComplete(BrokeredMessage message)
+        {
+            PreviousPolicy?.OnComplete(message);
+        }
 
-        protected virtual void DoAction(Action action, CancellationTokenSource tokenSource)
+        public virtual void OnFailure(BrokeredMessage message, Exception ex)
+        {
+            PreviousPolicy?.OnFailure(message, ex);
+        }
+        public ISubscriberPolicy ChainPolicy(ISubscriberPolicy previousPolicy)
+        {
+            PreviousPolicy = previousPolicy;
+            return this;
+        }
+
+        protected virtual void DoProcessMessageBatch(Action action, CancellationTokenSource tokenSource)
         {
             action();
+        }
+
+        protected virtual async Task DoProcessMessage(Func<BrokeredMessage, Task> action, BrokeredMessage message)
+        {
+            await action(message);
         }
     }
 }

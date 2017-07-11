@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using System;
+using log4net;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.Policy;
@@ -8,20 +9,29 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
 {
     public class PatLiteRegistry : Registry
     {
-        public PatLiteRegistry(SubscriberConfig subscriberConfig)
+        private void CommonRegistrySetup()
         {
             Scan(scanner =>
             {
                 scanner.WithDefaultConventions();
                 scanner.AssemblyContainingType<IMessageContext>();
             });
-            
+
             For<IMessageDependencyResolver>().Use<StructureMapDependencyResolver>();
-            For<SubscriberConfig>().Use(subscriberConfig);
             For<ILog>().AlwaysUnique().Use(s => LogManager.GetLogger(s.RootType));
             For<ISubscriberPolicy>().Use(c =>
                 c.GetInstance<StandardPolicy>().ChainPolicy(c.GetInstance<MonitoringPolicy.MonitoringPolicy>())
             );
+        }
+        public PatLiteRegistry()
+        {
+            CommonRegistrySetup();
+        }
+
+        public PatLiteRegistry(SubscriberConfig subscriberConfig)
+        {
+            CommonRegistrySetup();
+            For<SubscriberConfig>().Use(subscriberConfig);
         }
     }
 }

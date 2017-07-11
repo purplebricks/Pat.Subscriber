@@ -28,8 +28,8 @@ namespace PB.ITOps.Messaging.PatLite
         {
             MessageMapper.MapMessageTypesToHandlers();
             var builder = new SubscriptionBuilder(_log, _config);
-            builder.Build(builder.SubscriptionRule(MessageMapper.GetHandledTypes().Select(t => t.FullName)),
-                builder.CommonSubscriptionDescription());
+            var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
+            builder.Build(builder.CommonSubscriptionDescription(), messagesTypes);
         }
         private void ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
         {

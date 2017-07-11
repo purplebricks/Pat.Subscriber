@@ -45,10 +45,9 @@ namespace TestSubscriber
             var patSenderConfig = new PatSenderSettings
             {
                 PrimaryConnection = connection,
-                TopicName = topicName
+                TopicName = topicName,
+                UseDevelopmentTopic = false
             };
-
-            patSenderConfig.TopicName += Environment.MachineName;
 
             StatsDConfiguration.Initialize(new StatsDConfiguration.Settings
             {

@@ -52,6 +52,7 @@
     <Compile Include="Events\Eventv2.cs" />
     <Compile Include="Handlers\DerivedEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RuleBuilderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

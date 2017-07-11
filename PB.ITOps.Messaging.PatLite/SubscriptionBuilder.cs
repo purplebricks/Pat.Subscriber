@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using PB.ITOps.Messaging.PatLite.SubscriberRules;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -13,16 +11,14 @@ namespace PB.ITOps.Messaging.PatLite
     {
         private readonly ILog _log;
         private readonly SubscriberConfig _config;
-        private readonly Version _version;
 
         public SubscriptionBuilder(ILog log, SubscriberConfig config)
         {
             _log = log;
             _config = config;
-            _version = Assembly.GetExecutingAssembly().GetName().Version;
         }
 
-        public void Build(RuleDescription rule, SubscriptionDescription subscriptionDescription)
+        public void Build(SubscriptionDescription subscriptionDescription, string[] messagesTypes)
         {
             var clientIndex = 1;
             foreach (var connectionString in _config.ConnectionStrings)
@@ -30,7 +26,7 @@ namespace PB.ITOps.Messaging.PatLite
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.Info($"Buiding subscription {clientIndex}...");
-                    BuildSubscription(connectionString, rule, subscriptionDescription);
+                    BuildSubscription(connectionString, subscriptionDescription, messagesTypes);
                 }
                 else
                 {
@@ -39,19 +35,6 @@ namespace PB.ITOps.Messaging.PatLite
             }
         }
         
-        public RuleDescription SubscriptionRule(IEnumerable<string> messagesTypeFilters)
-        {
-            var specificSubscriberOrAllRule = $"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{_config.SubscriberName}')";
-            var customMessageTypeRule = $"MessageType IN ('{string.Join("','", messagesTypeFilters)}')";
-            var combinedRules = $"({customMessageTypeRule}) AND {specificSubscriberOrAllRule}";
-
-            var rule = new RuleDescription($"{_config.SubscriberName}_{_version.Major}_{_version.Minor}_{_version.Build}")
-            {
-                Filter = new SqlFilter(combinedRules)
-            };
-
-            return rule;
-        }
         public SubscriptionDescription CommonSubscriptionDescription()
         {
             return new SubscriptionDescription(_config.TopicName, _config.SubscriberName)
@@ -60,7 +43,7 @@ namespace PB.ITOps.Messaging.PatLite
             };
         }
 
-        private void BuildSubscription(string connectionString, RuleDescription rule, SubscriptionDescription subscriptionDescription)
+        private void BuildSubscription(string connectionString, SubscriptionDescription subscriptionDescription, string[] messagesTypes)
         {
             var topicName = _config.TopicName;
 
@@ -74,42 +57,21 @@ namespace PB.ITOps.Messaging.PatLite
                 });
             }
 
+            var client = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
+            RuleBuilder ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), new RuleVersionResolver(), _config.SubscriberName);
+
+            var newRule = ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+
             if (!namespaceManager.SubscriptionExists(topicName, _config.SubscriberName))
             {
-                namespaceManager.CreateSubscription(subscriptionDescription, rule);
+                namespaceManager.CreateSubscription(subscriptionDescription, newRule);
             }
             else
             {
-                var existingRules = namespaceManager.GetRules(topicName, _config.SubscriberName);
-
-                SubscriptionClient subscriptionClient = null;
-                if (!existingRules.Any())
-                {
-                    _log.Info($"Creating rule {rule.Name} for subscriber {_config.SubscriberName}, as it currently does not have any rules");
-                    subscriptionClient = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
-                    subscriptionClient.AddRule(rule);
-                }
-                if (existingRules.Count() == 1)
-                {
-                    var existingRule = existingRules.First();
-                    var existingFilter = (SqlFilter)existingRule.Filter;
-
-                    var versionData = existingRule.Name.Equals("$Default") ? new [] { "$Default", "0", "0", "0"} : existingRule.Name.Split('_');
-                    var existingVersion = new Version(int.Parse(versionData[1]), int.Parse(versionData[2]), int.Parse(versionData[3]));
-
-                    var newRule = (SqlFilter)rule.Filter;
-                    newRule.Validate();
-                    if (existingFilter.SqlExpression != newRule.SqlExpression && existingVersion < _version)
-                    {
-                        subscriptionClient = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
-                        _log.Info($"Deleting rule {existingRule.Name} for subscriber {_config.SubscriberName}, as it has been superceded by a newer version");
-                        subscriptionClient.RemoveRule(existingRule.Name);
-
-                        _log.Info($"Creating rule {rule.Name} for subscriber {_config.SubscriberName}, as it is a newer version than the one currently on the subscriber");
-                        subscriptionClient.AddRule(rule);
-                    }
-                }
+                var existingRules = namespaceManager.GetRules(topicName, _config.SubscriberName).ToArray();
+                ruleBuilder.BuildRules(newRule, existingRules, messagesTypes);
             }
+        
         }
     }
 }

@@ -3,7 +3,7 @@
     <metadata>
         <id>PB.ITOps.Messaging.PatLite</id>
         <title>PatLite</title>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     <authors>Purplebricks</authors>
     <owners>Purplebricks</owners>
     <projectUrl>https://purplebricks.visualstudio.com/Purplebricks/_git/pb-itops-messaging-patlite</projectUrl>

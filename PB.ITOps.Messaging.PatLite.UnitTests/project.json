@@ -1,0 +1,17 @@
+﻿{
+  "dependencies": {
+    "xunit": "2.2.0",
+    "xunit.abstractions": "2.0.1",
+    "xunit.assert": "2.2.0",
+    "xunit.core": "2.2.0",
+    "xunit.extensibility.core": "2.2.0",
+    "xunit.extensibility.execution": "2.2.0"
+  },
+  "frameworks": {
+    "net462": {}
+  },
+  "runtimes": {
+    "win-anycpu": {},
+    "win": {}
+  }
+}

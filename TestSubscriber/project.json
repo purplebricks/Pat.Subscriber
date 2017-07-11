@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
     "log4net": "2.0.8",
+    "PB.ITOps.Messaging.PatSender": "0.2.0.4",
     "StructureMap": "4.5.0",
     "WindowsAzure.ServiceBus": "4.1.2"
   },

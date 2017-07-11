@@ -8,7 +8,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
 {
     public class PatLiteRegistry : Registry
     {
-        public PatLiteRegistry(SubscriberConfig subscriberConfig, MonitoringConfig monitoringConfig)
+        public PatLiteRegistry(SubscriberConfig subscriberConfig)
         {
             Scan(scanner =>
             {
@@ -18,7 +18,6 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             
             For<IMessageDependencyResolver>().Use<StructureMapDependencyResolver>();
             For<SubscriberConfig>().Use(subscriberConfig);
-            For<MonitoringConfig>().Use(monitoringConfig);
             For<ILog>().AlwaysUnique().Use(s => LogManager.GetLogger(s.RootType));
             For<ISubscriberPolicy>().Use(c =>
                 c.GetInstance<StandardPolicy>().ChainPolicy(c.GetInstance<MonitoringPolicy.MonitoringPolicy>())

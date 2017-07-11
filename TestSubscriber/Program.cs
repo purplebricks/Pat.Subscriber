@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
+using Purplebricks.StatsD.Client;
 using StructureMap;
 
 namespace TestSubscriber
@@ -13,6 +15,15 @@ namespace TestSubscriber
         static void Main()
         {
             var container = Initialize();
+
+            var messagePublisher = container.GetInstance<IMessagePublisher>();
+
+            var myEvents = new List<object>
+            {
+                new MyEvent1(),
+                new MyDerivedEvent2()
+            };
+            messagePublisher.PublishEvents(myEvents);
 
             var subscriber = container.GetInstance<Subscriber>();
             subscriber.Run();
@@ -29,22 +40,26 @@ namespace TestSubscriber
                 TopicName = topicName,
                 UsePartitioning = true,
                 SubscriberName = "Rightmove",
-                BatchSize = 1
+                BatchSize = 100
             };
             var patSenderConfig = new PatSenderSettings
             {
                 PrimaryConnection = connection,
                 TopicName = topicName
             };
-            var monitoringConfig = new MonitoringConfig
+
+            patSenderConfig.TopicName += Environment.MachineName;
+
+            StatsDConfiguration.Initialize(new StatsDConfiguration.Settings
             {
+                Environment = "local",
                 StatsDHost = "statsd-statsd-monitoring-tm-we-pb.trafficmanager.net",
-                StatsDPort = 8125,
-                Environment = "local"
-            };
+                Tenant = "uk"
+            });
+
             var container = new Container(x =>
             {
-                x.AddRegistry(new PatLiteRegistry(subscriberConfig, monitoringConfig));
+                x.AddRegistry(new PatLiteRegistry(subscriberConfig));
             });
 
             container.Configure(x =>
@@ -54,7 +69,7 @@ namespace TestSubscriber
                     scanner.WithDefaultConventions();
                     scanner.AssemblyContainingType<IMessagePublisher>();
                 });
-                x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>().Is((context) => context.GetInstance<IMessageContext>().CorrelationId);
+                x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
                 x.For<PatSenderSettings>().Use(patSenderConfig);
             });
 

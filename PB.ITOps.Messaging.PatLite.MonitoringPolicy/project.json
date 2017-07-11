@@ -1,8 +1,7 @@
 ﻿{
   "dependencies": {
-    "WindowsAzure.ServiceBus": "4.1.2",
-    "PB.ITOps.Messaging.PatLite": "0.1.6",
-    "StatsdClient":  "3.0.86" 
+    "PurplebricksStatsdClient": "5.1.16",
+    "WindowsAzure.ServiceBus": "4.1.2"
   },
   "frameworks": {
     "net462": {}

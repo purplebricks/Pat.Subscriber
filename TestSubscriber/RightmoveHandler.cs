@@ -19,7 +19,7 @@ namespace TestSubscriber
 
         public async Task HandleAsync(MyEvent1 message)
         {
-            await _messagePublisher.Publish(new EventToPublish());
+            await _messagePublisher.PublishEvent(new EventToPublish());
         }
 
         public Task HandleAsync(MyEvent2 message)

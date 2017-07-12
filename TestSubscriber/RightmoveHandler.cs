@@ -8,7 +8,7 @@ namespace TestSubscriber
     {
         
     }
-    public class RightmoveHandler : IHandleEvent<MyEvent1>, IHandleEvent<MyEvent2>
+    public class RightmoveHandler : IHandleEvent<MyEvent1>, IHandleEvent<MyEvent2>, IHandleEvent<MyEvent1AllNew>
     {
         private readonly IMessagePublisher _messagePublisher;
 
@@ -25,6 +25,16 @@ namespace TestSubscriber
         public Task HandleAsync(MyEvent2 message)
         {
             return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(MyDerivedEvent2 message)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task HandleAsync(MyEvent1AllNew message)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

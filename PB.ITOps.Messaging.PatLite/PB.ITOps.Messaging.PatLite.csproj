@@ -43,6 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IMessageProcessor.cs" />
+    <Compile Include="SubscriberRules\IRuleApplier.cs" />
+    <Compile Include="SubscriberRules\IRuleVersionResolver.cs" />
+    <Compile Include="SubscriberRules\RuleVersionResolver.cs" />
     <Compile Include="MessageMapping\MessageMapper.cs" />
     <Compile Include="MessageMapping\AssemblyScanner.cs" />
     <Compile Include="IHandleEvent.cs" />
@@ -56,6 +59,8 @@
     <Compile Include="Policy\ISubscriberPolicy.cs" />
     <Compile Include="Policy\StandardPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SubscriberRules\RuleApplier.cs" />
+    <Compile Include="SubscriberRules\RuleBuilder.cs" />
     <Compile Include="Subscriber.cs" />
     <Compile Include="SubscriberConfig.cs" />
     <Compile Include="SubscriptionBuilder.cs" />

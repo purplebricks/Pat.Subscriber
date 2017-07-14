@@ -24,8 +24,8 @@ namespace PB.ITOps.Messaging.PatLite
         /// </summary>
         public string TopicName
         {
-            get => _topicName;
-            set => _topicName = UseDevelopmentTopic ? value : value + Environment.MachineName;
+            get => UseDevelopmentTopic ? _topicName + Environment.MachineName : _topicName;
+            set => _topicName = value;
         }
 
         /// <summary>
@@ -33,15 +33,18 @@ namespace PB.ITOps.Messaging.PatLite
         /// In production this should be true for resiliency, for dev thi will usually be false
         /// </summary>
         public bool UsePartitioning { get; set; }
+
         /// <summary>
         /// Name of the subscriber / subscription queue that the subscriber will connect to
         /// Will be created if it does not exist
         /// </summary>
         public string SubscriberName { get; set; }
+
         /// <summary>
         /// Number of messages the subscriber will attempt to receive and process in one batch.
         /// </summary>
         public int BatchSize { get; set; }
+
         /// <summary>
         /// If set to true, the machine name will be appended to the topic name
         /// Should be set to true for local development.

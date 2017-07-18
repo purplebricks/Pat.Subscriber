@@ -1,0 +1,14 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Extensions.DependencyInjection": "1.1.1",
+    "PB.ITOps.Messaging.PatLite": "0.2.12",
+    "PB.ITOps.Messaging.PatLite.MonitoringPolicy": "0.2.12"
+  },
+  "frameworks": {
+    "net462": {}
+  },
+  "runtimes": {
+    "win-anycpu": {},
+    "win": {}
+  }
+}

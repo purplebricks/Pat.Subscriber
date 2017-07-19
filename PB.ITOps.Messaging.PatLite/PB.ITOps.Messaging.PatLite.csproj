@@ -62,7 +62,7 @@
     <Compile Include="SubscriberRules\RuleApplier.cs" />
     <Compile Include="SubscriberRules\RuleBuilder.cs" />
     <Compile Include="Subscriber.cs" />
-    <Compile Include="SubscriberConfig.cs" />
+    <Compile Include="SubscriberConfiguration.cs" />
     <Compile Include="SubscriptionBuilder.cs" />
     <Compile Include="SubscriptionClientBuilder.cs" />
     <Compile Include="MessageMapping\TypeExtensions.cs" />

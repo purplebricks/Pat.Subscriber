@@ -8,9 +8,9 @@ namespace PB.ITOps.Messaging.PatLite.Policy
     public class StandardPolicy : BasePolicy
     {
         private readonly ILog _log;
-        private readonly SubscriberConfig _config;
+        private readonly SubscriberConfiguration _config;
 
-        public StandardPolicy(ILog log, SubscriberConfig config)
+        public StandardPolicy(ILog log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;

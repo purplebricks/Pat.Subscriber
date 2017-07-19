@@ -34,7 +34,7 @@ namespace TestSubscriber
             var connection = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=***REMOVED***";
             var topicName = "pat" + Environment.MachineName; 
 
-            var subscriberConfig = new SubscriberConfig
+            var subscriberConfig = new SubscriberConfiguration
             {
                 ConnectionStrings = new[] { connection },
                 TopicName = topicName,

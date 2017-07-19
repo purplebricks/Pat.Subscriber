@@ -28,10 +28,10 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             CommonRegistrySetup();
         }
 
-        public PatLiteRegistry(SubscriberConfig subscriberConfig)
+        public PatLiteRegistry(SubscriberConfiguration subscriberConfig)
         {
             CommonRegistrySetup();
-            For<SubscriberConfig>().Use(subscriberConfig);
+            For<SubscriberConfiguration>().Use(subscriberConfig);
         }
     }
 }

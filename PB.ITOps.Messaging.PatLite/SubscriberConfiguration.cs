@@ -2,9 +2,9 @@ using System;
 
 namespace PB.ITOps.Messaging.PatLite
 {
-    public class SubscriberConfig
+    public class SubscriberConfiguration
     {
-        public SubscriberConfig()
+        public SubscriberConfiguration()
         {
             TopicName = "pat";
             UseDevelopmentTopic = true;
@@ -24,8 +24,13 @@ namespace PB.ITOps.Messaging.PatLite
         /// </summary>
         public string TopicName
         {
-            get => UseDevelopmentTopic ? _topicName + Environment.MachineName : _topicName;
+            get => _topicName;
             set => _topicName = value;
+        }
+
+        public string EffectiveTopicName
+        {
+            get => UseDevelopmentTopic ? _topicName + Environment.MachineName : _topicName;
         }
 
         /// <summary>

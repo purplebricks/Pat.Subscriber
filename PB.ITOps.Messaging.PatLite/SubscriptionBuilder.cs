@@ -10,9 +10,9 @@ namespace PB.ITOps.Messaging.PatLite
     public class SubscriptionBuilder
     {
         private readonly ILog _log;
-        private readonly SubscriberConfig _config;
+        private readonly SubscriberConfiguration _config;
 
-        public SubscriptionBuilder(ILog log, SubscriberConfig config)
+        public SubscriptionBuilder(ILog log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
@@ -37,7 +37,7 @@ namespace PB.ITOps.Messaging.PatLite
         
         public SubscriptionDescription CommonSubscriptionDescription()
         {
-            return new SubscriptionDescription(_config.TopicName, _config.SubscriberName)
+            return new SubscriptionDescription(_config.EffectiveTopicName, _config.SubscriberName)
             {
                 DefaultMessageTimeToLive = new TimeSpan(30, 0, 0, 0)
             };
@@ -45,7 +45,7 @@ namespace PB.ITOps.Messaging.PatLite
 
         private void BuildSubscription(string connectionString, SubscriptionDescription subscriptionDescription, string[] messagesTypes)
         {
-            var topicName = _config.TopicName;
+            var topicName = _config.EffectiveTopicName;
 
             var namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
 

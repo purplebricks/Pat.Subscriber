@@ -7,9 +7,9 @@ namespace PB.ITOps.Messaging.PatLite
     public class SubscriptionClientBuilder
     {
         private readonly ILog _log;
-        private readonly SubscriberConfig _config;
+        private readonly SubscriberConfiguration _config;
 
-        public SubscriptionClientBuilder(ILog log, SubscriberConfig config)
+        public SubscriptionClientBuilder(ILog log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
@@ -39,7 +39,7 @@ namespace PB.ITOps.Messaging.PatLite
       
         private SubscriptionClient BuildClient(string connectionString, string subscriberName)
         {
-            return SubscriptionClient.CreateFromConnectionString(connectionString, _config.TopicName, subscriberName);
+            return SubscriptionClient.CreateFromConnectionString(connectionString, _config.EffectiveTopicName, subscriberName);
         }
     }
 }

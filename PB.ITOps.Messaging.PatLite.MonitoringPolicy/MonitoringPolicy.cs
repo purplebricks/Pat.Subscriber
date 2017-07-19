@@ -8,9 +8,9 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
 {
     public class MonitoringPolicy: BasePolicy
     {
-        private readonly SubscriberConfig _config;
+        private readonly SubscriberConfiguration _config;
 
-        public MonitoringPolicy(SubscriberConfig config)
+        public MonitoringPolicy(SubscriberConfiguration config)
         {
             _config = config;
         }

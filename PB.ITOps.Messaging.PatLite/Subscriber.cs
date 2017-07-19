@@ -14,9 +14,9 @@ namespace PB.ITOps.Messaging.PatLite
         private readonly ILog _log;
         private readonly IMessageProcessor _messageProcessor;
         private readonly ISubscriberPolicy _policy;
-        private readonly SubscriberConfig _config;
+        private readonly SubscriberConfiguration _config;
 
-        public Subscriber(ILog log, IMessageProcessor messageProcessor, ISubscriberPolicy policy, SubscriberConfig config)
+        public Subscriber(ILog log, IMessageProcessor messageProcessor, ISubscriberPolicy policy, SubscriberConfiguration config)
         {
             _log = log;
             _messageProcessor = messageProcessor;

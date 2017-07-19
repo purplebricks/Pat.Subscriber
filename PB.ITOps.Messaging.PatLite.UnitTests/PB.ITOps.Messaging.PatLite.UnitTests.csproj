@@ -53,6 +53,7 @@
     <Compile Include="Handlers\DerivedEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RuleBuilderTests.cs" />
+    <Compile Include="SubscriberConfigurationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

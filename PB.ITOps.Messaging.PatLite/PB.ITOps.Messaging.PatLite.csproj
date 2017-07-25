@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IMessageProcessor.cs" />
+    <Compile Include="Policy\CircuitBreakerPolicy.cs" />
     <Compile Include="SubscriberRules\IRuleApplier.cs" />
     <Compile Include="SubscriberRules\IRuleVersionResolver.cs" />
     <Compile Include="SubscriberRules\RuleVersionResolver.cs" />

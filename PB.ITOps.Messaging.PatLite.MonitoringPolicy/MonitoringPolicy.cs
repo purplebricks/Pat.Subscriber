@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
-using PB.ITOps.Messaging.PatLite.Policy;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using Purplebricks.StatsD.Client;
 
 namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
@@ -48,16 +48,16 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
                 fullTime);
         }
 
-        public override void OnComplete(BrokeredMessage message)
+        protected override Task<bool> MessageHandlerCompleted(BrokeredMessage message, string body)
         {
-            base.OnComplete(message);
             SendResultToStatsD(message, "Success");
+            return Task.FromResult(true);
         }
 
-        public override void OnFailure(BrokeredMessage message, Exception ex)
+        protected override Task<bool> MessageHandlerFailed(BrokeredMessage message, string body, Exception ex)
         {
-            base.OnFailure(message, ex);
             SendResultToStatsD(message, "Failed");
+            return Task.FromResult(true);
         }
     }
 }

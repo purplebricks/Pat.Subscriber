@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
 
-namespace PB.ITOps.Messaging.PatLite.Policy
+namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
 {
     public abstract class CircuitBreakerPolicy : BasePolicy
     {
@@ -59,29 +59,30 @@ namespace PB.ITOps.Messaging.PatLite.Policy
             CircuitTest?.Invoke(this, e);
         }
 
-        protected override void DoProcessMessageBatch(Action action, CancellationTokenSource tokenSource)
+        protected override Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
         {
             if (State == CircuitState.Closed)
             {
-                action();
+                return action();
             }
             else
             {
                 Task.Delay(_circuitTestInterval, tokenSource.Token).Wait();
-                TestCircuit(action);
+                return TestCircuit(action);
             }
         }
 
-        public override void OnComplete(BrokeredMessage message)
+        protected override Task<bool> MessageHandlerCompleted(BrokeredMessage message, string body)
         {
-            base.OnComplete(message);
             if (State == CircuitState.HalfOpen)
             {
                 CloseCircuit();
             }
+
+            return Task.FromResult(true);
         }
 
-        public override void OnFailure(BrokeredMessage message, Exception ex)
+        protected override Task<bool> MessageHandlerFailed(BrokeredMessage message, string body, Exception ex)
         {
             if (ShouldCircuitBreak(ex))
             {
@@ -91,6 +92,8 @@ namespace PB.ITOps.Messaging.PatLite.Policy
             {
                 CloseCircuit();
             }
+
+            return Task.FromResult(true);
         }
 
         protected abstract bool ShouldCircuitBreak(Exception exception);
@@ -109,12 +112,12 @@ namespace PB.ITOps.Messaging.PatLite.Policy
             OnCircuitReset(EventArgs.Empty);
         }
 
-        public void TestCircuit(Action action)
+        public Task<int> TestCircuit(Func<Task<int>> action)
         {
             OnCircuitTest(EventArgs.Empty);
             _log.Info($"Subscriber circuit breaker: testing circuit for subscriber '{_config.SubscriberName}'");
             State = CircuitState.HalfOpen;
-            action();
+            return action();
         }
     }
 }

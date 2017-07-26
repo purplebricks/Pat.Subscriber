@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
 
-namespace PB.ITOps.Messaging.PatLite.Policy
+namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
 {
     public class StandardPolicy : BasePolicy
     {
@@ -15,11 +16,11 @@ namespace PB.ITOps.Messaging.PatLite.Policy
             _log = log;
             _config = config;
         }
-        protected override void DoProcessMessageBatch(Action action, CancellationTokenSource tokenSource)
+        protected override Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
         {
             try
             {
-                action();
+                return action();
             }
             catch (AggregateException ae)
             {
@@ -51,19 +52,8 @@ namespace PB.ITOps.Messaging.PatLite.Policy
                 _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler", exception);
                 tokenSource.Cancel();
             }
-        }
 
-        public override void OnComplete(BrokeredMessage message)
-        {
-            base.OnComplete(message);
-            _log.Info($"{_config.SubscriberName} Success Handling Message {message.SequenceNumber}: {message.ContentType}");
-            message.Complete();
-        }
-
-        public override void OnFailure(BrokeredMessage message, Exception ex)
-        {
-            base.OnFailure(message, ex);
-            _log.Info($"Message {message.SequenceNumber} failed", ex);
+            return Task.FromResult(0);
         }
     }
 

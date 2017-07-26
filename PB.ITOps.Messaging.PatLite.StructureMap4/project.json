@@ -1,8 +1,8 @@
 ﻿{
   "dependencies": {
     "log4net": "2.0.8",
-    "PB.ITOps.Messaging.PatLite": "0.1.7",
-    "PB.ITOps.Messaging.PatLite.MonitoringPolicy": "0.1.7",
+    "PB.ITOps.Messaging.PatLite": "0.3.18",
+    "PB.ITOps.Messaging.PatLite.MonitoringPolicy": "0.3.18",
     "StructureMap": "4.5.0"
   },
   "frameworks": {

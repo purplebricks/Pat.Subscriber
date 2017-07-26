@@ -56,5 +56,4 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
             return Task.FromResult(0);
         }
     }
-
 }

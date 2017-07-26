@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B40358A6-19E6-438C-9571-AA8FF74A892E}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>TestSubscriber</RootNamespace>
-    <AssemblyName>TestSubscriber</AssemblyName>
+    <ProjectGuid>{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PB.ITOps.Messaging.PatLite.RateLimiterPolicy</RootNamespace>
+    <AssemblyName>PB.ITOps.Messaging.PatLite.RateLimiterPolicy</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,10 +31,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,34 +43,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyEvent1.cs" />
-    <Compile Include="MyEvent2.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="IThrottler.cs" />
+    <Compile Include="RateLimiterPolicy.cs" />
+    <Compile Include="RateLimiterBuilder.cs" />
+    <Compile Include="DefaultThrottler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RightmoveHandler.cs" />
+    <Compile Include="ITimer.cs" />
+    <Compile Include="RateLimiterPolicyConfiguration.cs" />
+    <Compile Include="RateLimiterPolicyOptions.cs" />
+    <Compile Include="StopWatchWrapper.cs" />
+    <Compile Include="ThrottlingEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj">
-      <Project>{e6eeaace-2358-47f6-aec7-d7f0884ba356}</Project>
-      <Name>PB.ITOps.Messaging.PatLite.MonitoringPolicy</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.RateLimiterPolicy\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.csproj">
-      <Project>{ecca1b7d-d294-49cd-948b-eaf1afee5805}</Project>
-      <Name>PB.ITOps.Messaging.PatLite.RateLimiterPolicy</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj">
-      <Project>{8be4d60e-65ae-4872-af04-c78a0cea79a9}</Project>
-      <Name>PB.ITOps.Messaging.PatLite</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj">
-      <Project>{6d2e3ef0-76d5-4206-84fc-735eac75bb27}</Project>
-      <Name>PB.ITOps.Messaging.PatLite.StructureMap4</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -3,7 +3,7 @@
     <metadata>
         <id>PB.ITOps.Messaging.PatLite.MonitoringPolicy</id>
         <title>PatLite MonitoringPolicy</title>
-        <version>0.1.0</version>
+        <version>0.3.0</version>
     <authors>Purplebricks</authors>
     <owners>Purplebricks</owners>
     <projectUrl>https://purplebricks.visualstudio.com/Purplebricks/_git/pb-itops-messaging-patlite</projectUrl>
@@ -13,7 +13,7 @@
    <dependencies>
       <group targetFramework="dotnet">        
 		<dependency id="WindowsAzure.ServiceBus" version="4.1.2" />
-		<dependency id="PB.ITOps.Messaging.PatLite" version="0.1.6" />
+		<dependency id="PB.ITOps.Messaging.PatLite" version="0.3.18" />
 		<dependency id="StatsdClient" version="3.0.86" />
       </group>
     </dependencies>

@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution", "PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution\PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.csproj", "{601C8FBD-1DFE-4635-9FFA-50CA18209A3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.RateLimiterPolicy", "PB.ITOps.Messaging.PatLite.RateLimiterPolicy\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.csproj", "{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{601C8FBD-1DFE-4635-9FFA-50CA18209A3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{601C8FBD-1DFE-4635-9FFA-50CA18209A3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{601C8FBD-1DFE-4635-9FFA-50CA18209A3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECCA1B7D-D294-49CD-948B-EAF1AFEE5805}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

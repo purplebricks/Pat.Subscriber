@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.Policy;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 
 namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 {
-    public class PatLitePolicyBuilder
+    public class PatLiteGlobalPolicyBuilder
     {
         private readonly ICollection<Type> _policies;
 
-        public PatLitePolicyBuilder()
+        public PatLiteGlobalPolicyBuilder()
         {
             _policies = new Collection<Type>();
         }
 
-        public PatLitePolicyBuilder AddPolicy<T>() where T : ISubscriberPolicy
+        public PatLiteGlobalPolicyBuilder AddPolicy<T>() where T : ISubscriberPolicy
         {
             _policies.Add(typeof(T));
             return this;
@@ -44,7 +44,7 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                 }
                 else
                 {
-                    currentPolicy.ChainPolicy(previousPolicy);
+                    currentPolicy.AppendInnerPolicy(previousPolicy);
                     currentPolicy = previousPolicy;
                 }
             }

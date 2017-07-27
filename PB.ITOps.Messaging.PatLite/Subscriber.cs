@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
-using PB.ITOps.Messaging.PatLite.Policy;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -31,9 +31,10 @@ namespace PB.ITOps.Messaging.PatLite
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes);
         }
-        private void ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
+        private async Task<int> ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
         {
-            Task.WaitAll(messages.Select(msg => _messageProcessor.ProcessMessage(msg, policy)).ToArray());
+            await Task.WhenAll(messages.Select(msg => _messageProcessor.ProcessMessage(msg, policy)).ToArray());
+            return messages.Count;
         }
 
         public void Run(CancellationTokenSource tokenSource = null)
@@ -51,9 +52,10 @@ namespace PB.ITOps.Messaging.PatLite
                     var messages = clients.GetMessages(_config.BatchSize);
                     if (messages.Any())
                     {
-                        ProcessMessages(messages, _policy);
+                        return ProcessMessages(messages, _policy);
                     }
-                }, tokenSource);
+                    return Task.FromResult(0);
+                }, tokenSource).Wait();
             }
         }
     }

@@ -32,7 +32,7 @@ namespace TestSubscriber
         public static IContainer Initialize()
         {
             var connection = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=***REMOVED***";
-            var topicName = "pat" + Environment.MachineName; 
+            var topicName = "pat"; 
 
             var subscriberConfig = new SubscriberConfiguration
             {

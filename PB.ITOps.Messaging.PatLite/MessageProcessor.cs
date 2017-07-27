@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
-using PB.ITOps.Messaging.PatLite.Policy;
+using PB.ITOps.Messaging.PatLite.MessageProcessingPolicy;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -18,36 +20,40 @@ namespace PB.ITOps.Messaging.PatLite
             _messageDependencyResolver = messageDependencyResolver;
         }
 
-        public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy policy)
+        public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy globalPolicy)
         {
             using (message)
             {
                 using (var scope = _messageDependencyResolver.BeginScope())
                 {
-                    try
-                    {
-                        var messageTypeString = message.Properties["MessageType"].ToString();
-                        var messageBody = message.GetBody<string>();
+                    var messageTypeString = message.Properties["MessageType"].ToString();
+                    var messageBody = message.GetBody<string>();
                         
-                        var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
-                        var correlationId = message.Properties.ContainsKey("PBCorrelationId")
-                            ? message.Properties["PBCorrelationId"].ToString()
-                            : Guid.NewGuid().ToString();
-                        ctx.CorrelationId = correlationId;
-                        LogicalThreadContext.Properties["CorrelationId"] = correlationId;
+                    var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
+                    var correlationId = message.Properties.ContainsKey("PBCorrelationId")
+                        ? message.Properties["PBCorrelationId"].ToString()
+                        : Guid.NewGuid().ToString();
+                    ctx.CorrelationId = correlationId;
+                    LogicalThreadContext.Properties["CorrelationId"] = correlationId;
 
-                        var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
-                        var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
+                    var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
 
-                        var typedMessage = JsonConvert.DeserializeObject(messageBody, handlerForMessageType.MessageType);
+                    var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
+                    var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
 
+                    var typedMessage = JsonConvert.DeserializeObject(messageBody, handlerForMessageType.MessageType);
+
+                    try
+                    { 
                         await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
-
-                        policy.OnComplete(message);
+                        
+                        await messageProcessingPolicy.OnMessageHandlerCompleted(message, messageBody);
+                        await globalPolicy.OnMessageHandlerCompleted(message, messageBody);
                     }
                     catch (Exception ex)
                     {
-                        policy.OnFailure(message, ex);
+                        await messageProcessingPolicy.OnMessageHandlerFailed(message, messageBody, ex);
+                        await globalPolicy.OnMessageHandlerFailed(message, messageBody, ex);
                     }
                 }
             }

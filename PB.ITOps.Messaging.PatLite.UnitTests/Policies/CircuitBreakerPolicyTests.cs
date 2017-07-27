@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.Policy;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using Xunit;
 
 namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
@@ -56,109 +57,123 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         }
 
         [Fact]
-        public void WhenMessageSucceeds_ThenCircuitRemainsClosed()
+        public async Task WhenMessageSucceeds_ThenCircuitRemainsClosed()
         {
-            var action = new Action(() => { _circuitBreakerPolicy.OnComplete(new BrokeredMessage()); });
-
-            using (var cancellationTokenSource = new CancellationTokenSource())
+            var action = new Func<Task<int>>(async () => 
             {
-                _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
-            }
-
-            _events.DidNotReceiveWithAnyArgs().Broken(null, null);
-        }
-
-        [Fact]
-        public void WhenMessageFailsWithNonCircuitBreakingException_ThenBreakCircuitIsNotCalled()
-        {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(false);
-            var action = new Action(() => { _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), new Exception("Non circuit breaking")); });
-
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
-                _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
-            }
-
-            _events.DidNotReceiveWithAnyArgs().Broken(null, null);
-        }
-
-        [Fact]
-        public void WhenMessageFailsWithCircuitBreakingException_ThenBreakCircuitIsCalled()
-        {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
-            var action = new Action(() =>
-            {
-                _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), new Exception());
+                await _circuitBreakerPolicy.OnMessageHandlerCompleted(new BrokeredMessage(), null);
+                return 1;
             });
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
+            }
+
+            _events.DidNotReceiveWithAnyArgs().Broken(null, null);
+        }
+
+        [Fact]
+        public async Task WhenMessageFailsWithNonCircuitBreakingException_ThenBreakCircuitIsNotCalled()
+        {
+            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(false);
+            var action = new Func<Task<int>>(async () =>
+            {
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception("Non circuit breaking"));
+                return 1;
+            });
+
+            using (var cancellationTokenSource = new CancellationTokenSource())
+            {
+                await _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
+            }
+
+            _events.DidNotReceiveWithAnyArgs().Broken(null, null);
+        }
+
+        [Fact]
+        public async Task WhenMessageFailsWithCircuitBreakingException_ThenBreakCircuitIsCalled()
+        {
+            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
+            var action = new Func<Task<int>>(async () =>
+            {
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());
+                return 1;
+            });
+
+            using (var cancellationTokenSource = new CancellationTokenSource())
+            {
+                await _circuitBreakerPolicy.ProcessMessageBatch(action, cancellationTokenSource);
             }
 
             _events.ReceivedWithAnyArgs(1).Broken(null, null);
         }
 
         [Fact]
-        public void WhenCircuitBroken_OnNextMessage_ThenCircuitIsTested()
+        public async Task WhenCircuitBroken_OnNextMessage_ThenCircuitIsTested()
         {
             _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
-            var actionFailure = new Action(() =>
+            var actionFailure = new Func<Task<int>>(async () =>
             {
-                _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), new Exception());
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());
+                return 1;
             });
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
-                _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
             }
 
             _events.ReceivedWithAnyArgs(1).TestCircuit(null, null);
         }
 
         [Fact]
-        public void WhenCircuitBroken_AndNextMessageFailesWithNoCircuitBreakingError_ThenCircuitIsReset()
+        public async Task WhenCircuitBroken_AndNextMessageFailesWithNoCircuitBreakingError_ThenCircuitIsReset()
         {
             var nonCircuitBreakingException = new Exception("Non circuit breaking");
             _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Is<Exception>(e => e == nonCircuitBreakingException)).Returns(false);
-            var actionFailure = new Action(() =>
+            var actionFailure = new Func<Task<int>>(async () =>
             {
-                _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), nonCircuitBreakingException);
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, nonCircuitBreakingException);
+                return 1;
             });
             var circuitBreakingException = new Exception("Circuit breaking");
             _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Is<Exception>(e => e == circuitBreakingException)).Returns(true);
-            var actionFailureAndBreakCircuit = new Action(() =>
+            var actionFailureAndBreakCircuit = new Func<Task<int>>(async () =>
             {
-                _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), circuitBreakingException);
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, circuitBreakingException);
+                return 1;
             });
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                _circuitBreakerPolicy.ProcessMessageBatch(actionFailureAndBreakCircuit, cancellationTokenSource);
-                _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionFailureAndBreakCircuit, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
             }
 
             _events.ReceivedWithAnyArgs(1).Reset(null, null);
         }
 
         [Fact]
-        public void WhenCircuitBroken_AndNextMessageCompletesSuccessfully_ThenCircuitIsReset()
+        public async Task WhenCircuitBroken_AndNextMessageCompletesSuccessfully_ThenCircuitIsReset()
         {
             _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
-            var actionFailure = new Action(() =>
+            var actionFailure = new Func<Task<int>>(async () =>
             {
-                _circuitBreakerPolicy.OnFailure(new BrokeredMessage(), new Exception());
+                await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());
+                return 1;
             });
-            var actionSuccess = new Action(() =>
+            var actionSuccess = new Func<Task<int>>(async () =>
             {
-                _circuitBreakerPolicy.OnComplete(new BrokeredMessage());
+                await _circuitBreakerPolicy.OnMessageHandlerCompleted(new BrokeredMessage(), null);
+                return 1;
             });
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
-                _circuitBreakerPolicy.ProcessMessageBatch(actionSuccess, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionFailure, cancellationTokenSource);
+                await _circuitBreakerPolicy.ProcessMessageBatch(actionSuccess, cancellationTokenSource);
             }
 
             _events.ReceivedWithAnyArgs(1).Reset(null, null);

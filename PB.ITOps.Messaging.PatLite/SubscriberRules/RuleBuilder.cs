@@ -52,38 +52,44 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             if (!existingRules.Any())
             {
                 _ruleApplier.AddRule(newRule);
+                return;
             }
-            else
+
+            var newVersion = new Version(_version.Major, _version.Minor, _version.Build);
+
+            var oldRulesToRemove = existingRules.Where(r =>
             {
-                var newVersion = new Version(_version.Major, _version.Minor, _version.Build);
+                var filterIsDifferent = ((SqlFilter) r.Filter).SqlExpression != ((SqlFilter) newRule.Filter).SqlExpression;
+                var versionData = r.Name.Equals("$Default") ? new[] {"$Default", "0", "0", "0"} : r.Name.Split('_');
 
-                var oldRulesToRemove = existingRules.Where(r =>
+                if (versionData.Length < 4)
                 {
-                    var filterIsDifferent = ((SqlFilter) r.Filter).SqlExpression != ((SqlFilter) newRule.Filter).SqlExpression;
-                    var versionData = r.Name.Equals("$Default") ? new[] {"$Default", "0", "0", "0"} : r.Name.Split('_');
-                    var existingVersion = new Version(int.Parse(versionData[1]), int.Parse(versionData[2]),
-                        int.Parse(versionData[3]));
-                    var isOldVersion = existingVersion < newVersion;
-                    return filterIsDifferent && isOldVersion;
-                }).ToArray();
-
-                var rulesToRemain = existingRules.Except(oldRulesToRemove).ToArray();
-                if (rulesToRemain.Any())
-                {
-                    ValidateRules(messagesTypes, rulesToRemain);
+                    throw new InvalidOperationException(
+                        $"Could not parse the subscription rule version number for rule {r.Name}. The existing subscription may have been created using old Pat which uses a different version number format. Please manually review the subscription and delete it if an upgrade is safe and messages will not be lost.");
                 }
 
-                if (oldRulesToRemove.Any())
-                {
-                    if (!rulesToRemain.Any())
-                    {
-                        _ruleApplier.AddRule(newRule);
-                    }
+                var existingVersion = new Version(int.Parse(versionData[1]), int.Parse(versionData[2]),
+                    int.Parse(versionData[3]));
+                var isOldVersion = existingVersion < newVersion;
+                return filterIsDifferent && isOldVersion;
+            }).ToArray();
 
-                    foreach (var oldRule in oldRulesToRemove)
-                    {
-                        _ruleApplier.RemoveRule(oldRule);
-                    }
+            var rulesToRemain = existingRules.Except(oldRulesToRemove).ToArray();
+            if (rulesToRemain.Any())
+            {
+                ValidateRules(messagesTypes, rulesToRemain);
+            }
+
+            if (oldRulesToRemove.Any())
+            {
+                if (!rulesToRemain.Any())
+                {
+                    _ruleApplier.AddRule(newRule);
+                }
+
+                foreach (var oldRule in oldRulesToRemove)
+                {
+                    _ruleApplier.RemoveRule(oldRule);
                 }
             }
         }

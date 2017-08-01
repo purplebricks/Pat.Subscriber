@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.RateLimiterPolicy;
+using PB.ITOps.Messaging.PatLite.Serialiser;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
 using Purplebricks.StatsD.Client;
@@ -22,7 +22,10 @@ namespace TestSubscriber
 
             var myEvents = new List<object>
             {
-                new MyEvent1(),
+                new MyEvent1
+                {
+                    Message = "Test encryption"
+                },
                 new MyDerivedEvent2()
             };
             messagePublisher.PublishEvents(myEvents);
@@ -48,7 +51,7 @@ namespace TestSubscriber
             {
                 PrimaryConnection = connection,
                 TopicName = topicName,
-                UseDevelopmentTopic = false
+                UseDevelopmentTopic = true
             };
 
             StatsDConfiguration.Initialize(new StatsDConfiguration.Settings
@@ -77,12 +80,13 @@ namespace TestSubscriber
                             RateLimit = 100
                         })
                     );
-                x.For<ISubscriberPolicy>().Use(c =>
+                 x.For<ISubscriberPolicy>().Use(c =>
                     c.GetInstance<RateLimiterPolicy>()
                         .AppendInnerPolicy(c.GetInstance<StandardPolicy>())
                         .AppendInnerPolicy(c.GetInstance<MonitoringPolicy>())
                 );
                 x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
+                x.For<IMessageDeserialiser>().Use(ctx => new NewtonsoftMessageDeserialiser());
                 x.For<PatSenderSettings>().Use(patSenderConfig);
             });
 

@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
-using Newtonsoft.Json;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
 using PB.ITOps.Messaging.PatLite.MessageProcessingPolicy;
+using PB.ITOps.Messaging.PatLite.Serialiser;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -33,15 +32,20 @@ namespace PB.ITOps.Messaging.PatLite
                     var correlationId = message.Properties.ContainsKey("PBCorrelationId")
                         ? message.Properties["PBCorrelationId"].ToString()
                         : Guid.NewGuid().ToString();
+                    var encrypted = message.Properties.ContainsKey("Encrypted")
+                        ? bool.Parse(message.Properties["Encrypted"].ToString())
+                        : false;
                     ctx.CorrelationId = correlationId;
+                    ctx.MessageEncrypted = encrypted;
                     LogicalThreadContext.Properties["CorrelationId"] = correlationId;
 
                     var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
+                    var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));
 
                     var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
                     var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
 
-                    var typedMessage = JsonConvert.DeserializeObject(messageBody, handlerForMessageType.MessageType);
+                    var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
 
                     try
                     { 

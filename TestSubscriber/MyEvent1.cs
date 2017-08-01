@@ -6,6 +6,6 @@ namespace TestSubscriber
     }
     public class MyEvent1
     {
-
+        public string Message { get; set; }
     }
 }

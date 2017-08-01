@@ -3,5 +3,6 @@
     public interface IMessageContext
     {
         string CorrelationId { get; set; }
+        bool MessageEncrypted { get; set; }
     }
 }

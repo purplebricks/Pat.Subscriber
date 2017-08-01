@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "PurplebricksStatsdClient": "5.1.16",
+    "Nito.Collections.Deque": "1.0.0",
     "WindowsAzure.ServiceBus": "4.1.2",
     "PB.ITOps.Messaging.PatLite": "0.3.18"
   },

@@ -44,8 +44,9 @@
   <ItemGroup>
     <Compile Include="AssemblyScanner.cs" />
     <Compile Include="PatLiteDependencyHelper.cs" />
+    <Compile Include="PatLiteMessagePolicyBuilder.cs" />
     <Compile Include="PatLiteOptions.cs" />
-    <Compile Include="PatLitePolicyBuilder.cs" />
+    <Compile Include="PatLiteGlobalPolicyBuilder.cs" />
     <Compile Include="MessageDependencyResolver.cs" />
     <Compile Include="MessageDependencyScope.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

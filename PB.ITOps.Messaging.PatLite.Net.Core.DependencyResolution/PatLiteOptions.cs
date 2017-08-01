@@ -2,8 +2,9 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 {
     public class PatLiteOptions
     {
-        public SubscriberConfig SubscriberConfig { get; set; }
-        public PatLitePolicyBuilder PolicyBuilder { get; set; }
+        public SubscriberConfiguration SubscriberConfiguration { get; set; }
+        public PatLiteGlobalPolicyBuilder GlobalPolicyBuilder { get; set; }
         public AssemblyScanner AssemblyScanner { get; set; }
+        public PatLiteMessagePolicyBuilder MessagePolicyBuilder { get; set; }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite;
+using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
+using PB.ITOps.Messaging.PatLite.RateLimiterPolicy;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
 using Purplebricks.StatsD.Client;
@@ -68,6 +70,18 @@ namespace TestSubscriber
                     scanner.WithDefaultConventions();
                     scanner.AssemblyContainingType<IMessagePublisher>();
                 });
+                x.For<RateLimiterPolicyOptions>().Use(
+                    new RateLimiterPolicyOptions(
+                        new RateLimiterPolicyConfiguration
+                        {
+                            RateLimit = 100
+                        })
+                    );
+                x.For<ISubscriberPolicy>().Use(c =>
+                    c.GetInstance<RateLimiterPolicy>()
+                        .AppendInnerPolicy(c.GetInstance<StandardPolicy>())
+                        .AppendInnerPolicy(c.GetInstance<MonitoringPolicy>())
+                );
                 x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
                 x.For<PatSenderSettings>().Use(patSenderConfig);
             });

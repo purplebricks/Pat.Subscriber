@@ -1,82 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8BE4D60E-65AE-4872-AF04-C78A0CEA79A9}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PB.ITOps.Messaging.PatLite</RootNamespace>
-    <AssemblyName>PB.ITOps.Messaging.PatLite</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net462</TargetFramework>
+    <PackageId>PB.ITOps.Messaging.PatLite</PackageId>
+    <Description>Purplebricks message subscriber infrastructure</Description>
+    <Company>Purplebricks</Company>
+    <buildCounter Condition=" '$(buildCounter)' == '' ">0</buildCounter>
+    <Version>0.4.$(buildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="IHandleEvent.cs" />
-    <Compile Include="IMessageProcessor.cs" />
-    <Compile Include="MessageProcessingPolicy\BaseMessageProcessingPolicy.cs" />
-    <Compile Include="MessageProcessingPolicy\DefaultMessageProcessingPolicy.cs" />
-    <Compile Include="GlobalSubscriberPolicy\CircuitBreakerPolicy.cs" />
-    <Compile Include="MessageProcessingPolicy\IMessageProcessingPolicy.cs" />
-    <Compile Include="SubscriberRules\IRuleApplier.cs" />
-    <Compile Include="SubscriberRules\IRuleVersionResolver.cs" />
-    <Compile Include="SubscriberRules\RuleVersionResolver.cs" />
-    <Compile Include="MessageMapping\MessageMapper.cs" />
-    <Compile Include="MessageMapping\AssemblyScanner.cs" />
-    <Compile Include="IoC\IMessageDependencyScope.cs" />
-    <Compile Include="IoC\IMessageDependencyResolver.cs" />
-    <Compile Include="IoC\IMessageContext.cs" />
-    <Compile Include="IoC\MessageContext.cs" />
-    <Compile Include="MessageProcessor.cs" />
-    <Compile Include="MessageMapping\MessageTypeMapping.cs" />
-    <Compile Include="GlobalSubscriberPolicy\BasePolicy.cs" />
-    <Compile Include="GlobalSubscriberPolicy\ISubscriberPolicy.cs" />
-    <Compile Include="GlobalSubscriberPolicy\StandardPolicy.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SubscriberRules\RuleApplier.cs" />
-    <Compile Include="SubscriberRules\RuleBuilder.cs" />
-    <Compile Include="Subscriber.cs" />
-    <Compile Include="SubscriberConfiguration.cs" />
-    <Compile Include="SubscriptionBuilder.cs" />
-    <Compile Include="SubscriptionClientBuilder.cs" />
-    <Compile Include="MessageMapping\TypeExtensions.cs" />
-    <Compile Include="SubscriptionHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Policy\" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

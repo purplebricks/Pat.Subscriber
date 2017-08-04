@@ -5,7 +5,7 @@
     <Description>Purplebricks message subscriber infrastructure: MonitoringPolicy</Description>
     <Company>Purplebricks</Company>
     <buildCounter Condition=" '$(buildCounter)' == '' ">0</buildCounter>
-    <Version>0.4.$(buildCounter)</Version>
+    <Version>0.5.$(buildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />

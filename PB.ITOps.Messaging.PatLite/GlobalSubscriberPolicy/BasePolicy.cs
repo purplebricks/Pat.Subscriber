@@ -14,7 +14,6 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
             if (InnerPolicy != null)
             {
                 await DoProcessMessage(msg => InnerPolicy.ProcessMessage(action, message), message);
-                await InnerPolicy.ProcessMessage((msg) => DoProcessMessage(action, msg), message);
             }
             else
             {

@@ -5,9 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.1" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="0.3.13" />
+    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="0.3.15" />
     <PackageReference Include="PurplebricksStatsdClient" Version="5.1.16" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="1.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.RateLimiterPolicy\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.csproj" />

@@ -9,8 +9,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="PB.ITOps.Messaging.PatLite" Version="0.3.18" />
-    <PackageReference Include="PB.ITOps.Messaging.PatLite.MonitoringPolicy" Version="0.3.18" />
     <PackageReference Include="StructureMap" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj" />
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
   </ItemGroup>
 </Project>

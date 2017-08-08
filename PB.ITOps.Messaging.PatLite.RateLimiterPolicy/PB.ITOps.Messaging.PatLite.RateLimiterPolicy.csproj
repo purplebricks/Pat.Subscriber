@@ -9,8 +9,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />
-    <PackageReference Include="PB.ITOps.Messaging.PatLite" Version="0.3.18" />
     <PackageReference Include="Nito.Collections.Deque" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />

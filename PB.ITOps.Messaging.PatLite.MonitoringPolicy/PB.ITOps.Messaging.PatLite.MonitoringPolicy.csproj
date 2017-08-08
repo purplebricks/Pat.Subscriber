@@ -9,7 +9,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />
-    <PackageReference Include="PB.ITOps.Messaging.PatLite" Version="0.3.18" />
     <PackageReference Include="PurplebricksStatsdClient" Version="5.1.16" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
   </ItemGroup>
 </Project>

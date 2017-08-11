@@ -1,42 +1,12 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.RateLimiterPolicy;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
+namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
 {
-    public class TestTimer : ITimer
-    {
-        private long _elapsedTime = -1;
-
-        public void AddElapsedSeconds(int value)
-        {
-            _elapsedTime += value * 1000;
-        }
-
-        public void AddElapsedMilliseconds(int value)
-        {
-            _elapsedTime += value;
-        }
-
-        public void Start()
-        {
-            if (_elapsedTime == -1)
-            {
-                _elapsedTime = 0;
-            }
-        }
-
-        public long ElapsedMilliseconds
-        {
-            get => _elapsedTime; set => _elapsedTime = value;
-        }
-    }
-
-    
     public class RateLimiterPolicyTests
     {
         private readonly TestTimer _timer;
@@ -156,7 +126,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         {
             var batchSize = 1;
             var policy = _policyBuilder
-                .WithGroupingIntervalInMilliseconds(1000*60)//1 minute
+                .WithGroupingIntervalInMilliseconds(1000 * 60)//1 minute
                 .WithRollingIntervals(4)//consider 4 previous intervals when calculating rate
                 .WithRateLimitPerMinute(15).Build();
 
@@ -171,7 +141,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
                 //simulate processing 60 messages in a minute
                 for (int i = 0; i < 60; i++)
                 {
-                    await policy.ProcessMessageBatch(batchProcessedIn1Second, cancellationTokenSource); 
+                    await policy.ProcessMessageBatch(batchProcessedIn1Second, cancellationTokenSource);
                 }
             }
 
@@ -211,9 +181,9 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
             var batchSize = 4;
             var policy = _policyBuilder
                 .WithRateLimitPerMinute(2).Build();
-            
+
             var batchProcessedIn30Seconds = new Func<Task<int>>(() => {
-                _timer.AddElapsedMilliseconds(30*1000);
+                _timer.AddElapsedMilliseconds(30 * 1000);
                 return Task.FromResult(batchSize);
             });
 
@@ -223,5 +193,4 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
             }
         }
     }
-
 }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.PatLite;
 using PB.ITOps.Messaging.PatSender;
+using Purplebricks.StatsD.Client;
 
 namespace TestSubscriber
 {

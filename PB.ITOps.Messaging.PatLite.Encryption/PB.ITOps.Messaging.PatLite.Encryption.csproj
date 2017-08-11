@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.1" />
+    <PackageReference Include="PB.ITOps.Messaging.PatLite" Version="0.5.21" />
+  </ItemGroup>
+</Project>

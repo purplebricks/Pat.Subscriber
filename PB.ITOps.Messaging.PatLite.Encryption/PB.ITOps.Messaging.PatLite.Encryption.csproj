@@ -4,6 +4,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.1" />
-    <PackageReference Include="PB.ITOps.Messaging.PatLite" Version="0.5.21" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
   </ItemGroup>
 </Project>

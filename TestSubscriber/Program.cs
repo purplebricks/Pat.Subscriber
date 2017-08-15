@@ -50,6 +50,14 @@ namespace TestSubscriber
                 SubscriberName = "Rightmove",
                 BatchSize = 100
             };
+            var options = new PatLiteOptions
+            {
+                SubscriberConfiguration = subscriberConfig,
+                GlobalPolicyBuilder = new PatLiteGlobalPolicyBuilder()
+                    .AddPolicy<RateLimiterPolicy>()
+                    .AddPolicy<StandardPolicy>()
+                    .AddPolicy<MonitoringPolicy>()
+            };
             var patSenderConfig = new PatSenderSettings
             {
                 PrimaryConnection = connection,
@@ -69,7 +77,7 @@ namespace TestSubscriber
 
                 var container = new Container(x =>
                 {
-                    x.AddRegistry(new PatLiteRegistry(subscriberConfig));
+                    x.AddRegistry(new PatLiteRegistry(options));
                 });
 
                 container.Configure(x =>
@@ -85,11 +93,6 @@ namespace TestSubscriber
                             {
                                 RateLimit = 100
                             })
-                    );
-                    x.For<ISubscriberPolicy>().Use(c =>
-                        c.GetInstance<RateLimiterPolicy>()
-                            .AppendInnerPolicy(c.GetInstance<StandardPolicy>())
-                            .AppendInnerPolicy(c.GetInstance<MonitoringPolicy>())
                     );
                     x.For<DataProtectionConfiguration>().Use(new DataProtectionConfiguration
                     {

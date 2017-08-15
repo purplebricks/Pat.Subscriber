@@ -11,39 +11,17 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
 {
     public class CircuitBreakerPolicyTests
     {
-        private readonly TestCircuitBreakerPolicy _circuitBreakerPolicy;
+        private readonly CircuitBreakerPolicy _circuitBreakerPolicy;
         private readonly ICircuitBreakerEvents _events;
-
-        public class TestCircuitBreakerPolicy : CircuitBreakerPolicy {
-            public TestCircuitBreakerPolicy(ILog log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions) : base(log, config, circuitBreakerOptions)
-            {
-            }
-
-            protected override bool ShouldCircuitBreak(Exception exception)
-            {
-                return SubstituteShouldCircuitBreak(exception);
-            }
-
-            public virtual bool SubstituteShouldCircuitBreak(Exception exception)
-            {
-                throw new NotImplementedException();
-            }
-    }
-
 
         public CircuitBreakerPolicyTests()
         {
-            var args = new object[]
+            var config = new SubscriberConfiguration
             {
-                Substitute.For<ILog>(),
-                new SubscriberConfiguration
-                {
-                    SubscriberName = "TestSubscriber"
-                },
-                new CircuitBreakerPolicy.CircuitBreakerOptions(1)
+                SubscriberName = "TestSubscriber"
             };
             _events = Substitute.For<ICircuitBreakerEvents>();
-            _circuitBreakerPolicy = Substitute.ForPartsOf<TestCircuitBreakerPolicy>(args);
+            _circuitBreakerPolicy = new CircuitBreakerPolicy(Substitute.For<ILog>(), config, new CircuitBreakerPolicy.CircuitBreakerOptions(1, exception => false));
             _circuitBreakerPolicy.CircuitBroken += _events.Broken;
             _circuitBreakerPolicy.CircuitReset += _events.Reset;
             _circuitBreakerPolicy.CircuitTest += _events.TestCircuit;
@@ -76,7 +54,8 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         [Fact]
         public async Task WhenMessageFailsWithNonCircuitBreakingException_ThenBreakCircuitIsNotCalled()
         {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(false);
+            _circuitBreakerPolicy.ShouldCircuitBreak = exception => false;
+
             var action = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception("Non circuit breaking"));
@@ -94,7 +73,8 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         [Fact]
         public async Task WhenMessageFailsWithCircuitBreakingException_ThenBreakCircuitIsCalled()
         {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
+            _circuitBreakerPolicy.ShouldCircuitBreak = exception => true;
+
             var action = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());
@@ -112,7 +92,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         [Fact]
         public async Task WhenCircuitBroken_OnNextMessage_ThenCircuitIsTested()
         {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
+            _circuitBreakerPolicy.ShouldCircuitBreak = exception => true;
             var actionFailure = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());
@@ -132,14 +112,13 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         public async Task WhenCircuitBroken_AndNextMessageFailesWithNoCircuitBreakingError_ThenCircuitIsReset()
         {
             var nonCircuitBreakingException = new Exception("Non circuit breaking");
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Is<Exception>(e => e == nonCircuitBreakingException)).Returns(false);
+            var circuitBreakingException = new Exception("Circuit breaking");
+            _circuitBreakerPolicy.ShouldCircuitBreak = exception => exception == circuitBreakingException;
             var actionFailure = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, nonCircuitBreakingException);
                 return 1;
             });
-            var circuitBreakingException = new Exception("Circuit breaking");
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Is<Exception>(e => e == circuitBreakingException)).Returns(true);
             var actionFailureAndBreakCircuit = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, circuitBreakingException);
@@ -158,7 +137,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
         [Fact]
         public async Task WhenCircuitBroken_AndNextMessageCompletesSuccessfully_ThenCircuitIsReset()
         {
-            _circuitBreakerPolicy.SubstituteShouldCircuitBreak(Arg.Any<Exception>()).ReturnsForAnyArgs(true);
+            _circuitBreakerPolicy.ShouldCircuitBreak = exception => true;
             var actionFailure = new Func<Task<int>>(async () =>
             {
                 await _circuitBreakerPolicy.OnMessageHandlerFailed(new BrokeredMessage(), null, new Exception());

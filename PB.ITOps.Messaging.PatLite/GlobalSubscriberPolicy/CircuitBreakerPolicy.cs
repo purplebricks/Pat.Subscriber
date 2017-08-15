@@ -6,16 +6,18 @@ using Microsoft.ServiceBus.Messaging;
 
 namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
 {
-    public abstract class CircuitBreakerPolicy : BasePolicy
+    public class CircuitBreakerPolicy : BasePolicy
     {
         public class CircuitBreakerOptions
         {
-            public CircuitBreakerOptions(int circuitTestInterval)
+            public CircuitBreakerOptions(int circuitTestInterval, Func<Exception, bool> shouldCircuitBreak)
             {
+                ShouldCircuitBreak = shouldCircuitBreak;
                 CircuitTestInterval = circuitTestInterval;
             }
 
-            public int CircuitTestInterval { get; private set; }
+            public int CircuitTestInterval { get; }
+            public Func<Exception, bool> ShouldCircuitBreak { get; }
         }
 
         public delegate void CircuitBrokenHandler(object sender, EventArgs e);
@@ -32,29 +34,31 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
         private readonly ILog _log;
         private readonly SubscriberConfiguration _config;
         private readonly int _circuitTestInterval;
+        public Func<Exception, bool> ShouldCircuitBreak { get; set; }
         public event CircuitBrokenHandler CircuitBroken;
         public event CircuitResetHandler CircuitReset;
         public event CircuitResetHandler CircuitTest;
 
-        protected CircuitBreakerPolicy(ILog log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
+        public CircuitBreakerPolicy(ILog log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
         {
             _log = log;
             _config = config;
+            ShouldCircuitBreak = circuitBreakerOptions.ShouldCircuitBreak;
             _circuitTestInterval = circuitBreakerOptions.CircuitTestInterval;
             State = CircuitState.Closed;
         }
 
-        protected virtual void OnCircuitBroken(EventArgs e)
+        private void OnCircuitBroken(EventArgs e)
         {
             CircuitBroken?.Invoke(this, e);
         }
 
-        protected virtual void OnCircuitReset(EventArgs e)
+        private void OnCircuitReset(EventArgs e)
         {
             CircuitReset?.Invoke(this, e);
         }
 
-        protected virtual void OnCircuitTest(EventArgs e)
+        private void OnCircuitTest(EventArgs e)
         {
             CircuitTest?.Invoke(this, e);
         }
@@ -95,8 +99,6 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
 
             return Task.FromResult(true);
         }
-
-        protected abstract bool ShouldCircuitBreak(Exception exception);
 
         public void BreakCircuit()
         {

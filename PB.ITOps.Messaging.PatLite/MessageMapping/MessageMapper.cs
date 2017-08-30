@@ -9,9 +9,9 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
     {
         private static MessageTypeMapping[] _messageTypeMappings;
 
-        public static void MapMessageTypesToHandlers()
+        public static void MapMessageTypesToHandlers(Assembly[] handlerAssemblies)
         {
-            var allTypes = AssemblyScanner.AllTypesInAssemblies(new[] {Assembly.GetEntryAssembly()}).ToArray();
+            var allTypes = AssemblyScanner.AllTypesInAssemblies(handlerAssemblies).ToArray();
             _messageTypeMappings = AssemblyScanner
                 .AddDerivedTypeMappings(AssemblyScanner.MessageHandlerMappingsIn(allTypes), allTypes).ToArray();
 

@@ -1,11 +1,12 @@
-﻿using System.Collections.Concurrent;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using log4net;
+﻿using log4net;
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -24,9 +25,9 @@ namespace PB.ITOps.Messaging.PatLite
             _config = config;
         }
 
-        private void BootStrap()
+        private void BootStrap(Assembly[] handlerAssemblies)
         {
-            MessageMapper.MapMessageTypesToHandlers();
+            MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
             var builder = new SubscriptionBuilder(_log, _config);
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes);
@@ -39,9 +40,14 @@ namespace PB.ITOps.Messaging.PatLite
             return messages.Count;
         }
 
-        public void Run(CancellationTokenSource tokenSource = null)
+        public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
-            BootStrap();
+            if (handlerAssemblies == null)
+            {
+                handlerAssemblies = new Assembly[] { Assembly.GetCallingAssembly() };
+            }
+
+            BootStrap(handlerAssemblies);
 
             var builder = new SubscriptionClientBuilder(_log, _config);
             var clients = builder.CreateClients(_config.SubscriberName);

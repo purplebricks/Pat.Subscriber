@@ -32,9 +32,7 @@ namespace PB.ITOps.Messaging.PatLite
                     var correlationId = message.Properties.ContainsKey("PBCorrelationId")
                         ? message.Properties["PBCorrelationId"].ToString()
                         : Guid.NewGuid().ToString();
-                    var encrypted = message.Properties.ContainsKey("Encrypted")
-                        ? bool.Parse(message.Properties["Encrypted"].ToString())
-                        : false;
+                    var encrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
                     ctx.CorrelationId = correlationId;
                     ctx.MessageEncrypted = encrypted;
                     LogicalThreadContext.Properties["CorrelationId"] = correlationId;

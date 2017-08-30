@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.1" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="0.3.15" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender.Encryption" Version="0.1.15" />
+    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="0.5.22" />
+    <PackageReference Include="PB.ITOps.Messaging.PatSender.Encryption" Version="0.1.22" />
     <PackageReference Include="PurplebricksStatsdClient" Version="5.1.16" />
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
@@ -22,7 +23,34 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
                 $"MessageType={message.Properties["MessageType"]}," +
                 "CoreMessage=FALSE"))
             {
-                await action(message);
+                try
+                {
+                    await action(message);
+                }
+                catch (Exception ex)
+                {
+                    StatsDSender.Increment("ProcessMessageInfrastructureException", 
+                        $"Client=PatLite.{_config.SubscriberName}," +
+                        $"MessageType={message.Properties["MessageType"]}," +
+                        "CoreMessage=FALSE" + 
+                        $"ExceptionType={ex.GetType()}");
+                    throw;
+                }
+            }
+        }
+
+        protected override Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
+        {
+            try
+            {
+                return action();
+            }
+            catch (Exception ex)
+            {
+                StatsDSender.Increment("ProcessBatchInfrastructureException",
+                    $"Client=PatLite.{_config.SubscriberName}," +
+                    $"ExceptionType={ex.GetType()}");
+                throw;
             }
         }
 

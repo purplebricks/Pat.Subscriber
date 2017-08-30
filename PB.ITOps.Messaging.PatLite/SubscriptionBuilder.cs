@@ -4,6 +4,7 @@ using log4net;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
+using System.Reflection;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -11,11 +12,13 @@ namespace PB.ITOps.Messaging.PatLite
     {
         private readonly ILog _log;
         private readonly SubscriberConfiguration _config;
+        private readonly IRuleVersionResolver _subscriptionRuleVersionResolver;
 
-        public SubscriptionBuilder(ILog log, SubscriberConfiguration config)
+        public SubscriptionBuilder(ILog log, SubscriberConfiguration config, IRuleVersionResolver subscriptionRuleVersionResolver)
         {
             _log = log;
             _config = config;
+            _subscriptionRuleVersionResolver = subscriptionRuleVersionResolver;
         }
 
         public void Build(SubscriptionDescription subscriptionDescription, string[] messagesTypes)
@@ -58,7 +61,7 @@ namespace PB.ITOps.Messaging.PatLite
             }
 
             var client = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
-            RuleBuilder ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), new RuleVersionResolver(), _config.SubscriberName);
+            RuleBuilder ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), _subscriptionRuleVersionResolver, _config.SubscriberName);
 
             var newRule = ruleBuilder.GenerateSubscriptionRule(messagesTypes);
 

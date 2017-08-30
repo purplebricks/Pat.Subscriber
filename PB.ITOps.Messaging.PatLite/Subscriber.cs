@@ -2,6 +2,7 @@
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
+using PB.ITOps.Messaging.PatLite.SubscriberRules;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
@@ -28,7 +29,7 @@ namespace PB.ITOps.Messaging.PatLite
         private void BootStrap(Assembly[] handlerAssemblies)
         {
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
-            var builder = new SubscriptionBuilder(_log, _config);
+            var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes);
         }

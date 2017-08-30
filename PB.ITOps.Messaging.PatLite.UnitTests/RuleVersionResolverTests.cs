@@ -7,11 +7,6 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
 {
     public class RuleVersionResolverTests
     {
-        public RuleVersionResolverTests()
-        {
-
-        }
-
         [Fact]
         public void ReturnHighestAssemblyVersionNumberWhenEntryAssemblyIsNull()
         {

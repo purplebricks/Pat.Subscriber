@@ -45,10 +45,10 @@ namespace PB.ITOps.Messaging.PatLite
                     var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
                     var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
 
-                    var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
-
                     try
-                    { 
+                    {
+                        var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
+
                         await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
                         
                         await messageProcessingPolicy.OnMessageHandlerCompleted(message, messageBody);

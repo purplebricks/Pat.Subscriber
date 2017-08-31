@@ -35,8 +35,13 @@ namespace PB.ITOps.Messaging.PatLite
         }
         private async Task<int> ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
         {
-            await Task.WhenAll(messages.Select(msg =>
-                policy.ProcessMessage(m => _messageProcessor.ProcessMessage(m, policy), msg)
+            await Task.WhenAll(messages.Select(msg => 
+            {
+                using (msg)
+                {
+                    return policy.ProcessMessage(m => _messageProcessor.ProcessMessage(m, policy), msg);
+                }
+            }
             ).ToArray());
             return messages.Count;
         }

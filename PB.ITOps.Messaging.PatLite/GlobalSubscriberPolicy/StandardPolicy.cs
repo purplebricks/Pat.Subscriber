@@ -35,11 +35,11 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
             }
         }
 
-        protected override Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
+        protected override async Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
         {
             try
             {
-                return action();
+                return await action();
             }
             catch (AggregateException ae)
             {
@@ -69,7 +69,7 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
                 tokenSource.Cancel();
             }
 
-            return Task.FromResult(0);
+            return 0;
         }
     }
 }

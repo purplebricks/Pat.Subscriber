@@ -21,42 +21,39 @@ namespace PB.ITOps.Messaging.PatLite
 
         public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy globalPolicy)
         {
-            using (message)
+            using (var scope = _messageDependencyResolver.BeginScope())
             {
-                using (var scope = _messageDependencyResolver.BeginScope())
+                var messageTypeString = message.Properties["MessageType"].ToString();
+                var messageBody = message.GetBody<string>();
+                        
+                var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
+                var correlationId = message.Properties.ContainsKey("PBCorrelationId")
+                    ? message.Properties["PBCorrelationId"].ToString()
+                    : Guid.NewGuid().ToString();
+                var encrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
+                ctx.CorrelationId = correlationId;
+                ctx.MessageEncrypted = encrypted;
+                LogicalThreadContext.Properties["CorrelationId"] = correlationId;
+
+                var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
+                var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));
+
+                var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
+                var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
+
+                try
                 {
-                    var messageTypeString = message.Properties["MessageType"].ToString();
-                    var messageBody = message.GetBody<string>();
+                    var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
+
+                    await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
                         
-                    var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
-                    var correlationId = message.Properties.ContainsKey("PBCorrelationId")
-                        ? message.Properties["PBCorrelationId"].ToString()
-                        : Guid.NewGuid().ToString();
-                    var encrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
-                    ctx.CorrelationId = correlationId;
-                    ctx.MessageEncrypted = encrypted;
-                    LogicalThreadContext.Properties["CorrelationId"] = correlationId;
-
-                    var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
-                    var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));
-
-                    var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
-                    var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
-
-                    try
-                    {
-                        var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
-
-                        await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
-                        
-                        await messageProcessingPolicy.OnMessageHandlerCompleted(message, messageBody);
-                        await globalPolicy.OnMessageHandlerCompleted(message, messageBody);
-                    }
-                    catch (Exception ex)
-                    {
-                        await messageProcessingPolicy.OnMessageHandlerFailed(message, messageBody, ex);
-                        await globalPolicy.OnMessageHandlerFailed(message, messageBody, ex);
-                    }
+                    await messageProcessingPolicy.OnMessageHandlerCompleted(message, messageBody);
+                    await globalPolicy.OnMessageHandlerCompleted(message, messageBody);
+                }
+                catch (Exception ex)
+                {
+                    await messageProcessingPolicy.OnMessageHandlerFailed(message, messageBody, ex);
+                    await globalPolicy.OnMessageHandlerFailed(message, messageBody, ex);
                 }
             }
         }

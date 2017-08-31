@@ -20,8 +20,8 @@ namespace TestSubscriber
         static void Main()
         {
             var container = Initialize();
-
-            var messagePublisher = container.GetInstance<IEncryptedMessagePublisher>();
+            
+            var messagePublisher = container.GetInstance<IMessagePublisher>();
 
             var myEvents = new List<object>
             {
@@ -101,10 +101,11 @@ namespace TestSubscriber
                             "***REMOVED***",
                         Thumbprint = "***REMOVED***"
                     });
-                    x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>().Ctor<string>()
-                        .Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
-                    x.For<IMessagePublisher>().Use<MessagePublisher>().Ctor<string>()
-                        .Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
+                    x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
+                    .Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
+                    x.For<IMessagePublisher>().Use<MessagePublisher>()
+                        .Ctor<IDictionary<string, string>>().Is(c => null)
+                        .Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
                     x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<IMessageContext>().MessageEncrypted
                         ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
                         : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());

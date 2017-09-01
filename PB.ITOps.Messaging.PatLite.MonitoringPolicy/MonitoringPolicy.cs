@@ -39,11 +39,11 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
             }
         }
 
-        protected override Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
+        protected override async Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)
         {
             try
             {
-                return action();
+                return await action();
             }
             catch (Exception ex)
             {

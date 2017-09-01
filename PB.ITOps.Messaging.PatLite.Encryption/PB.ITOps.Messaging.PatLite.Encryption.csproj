@@ -5,10 +5,10 @@
     <Description>Purplebricks message subscriber infrastructure: Encryption</Description>
     <Company>Purplebricks</Company>
     <buildCounter Condition=" '$(buildCounter)' == '' ">0</buildCounter>
-    <Version>0.5.$(buildCounter)</Version>
+    <Version>0.6.$(buildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.1" />
+    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />

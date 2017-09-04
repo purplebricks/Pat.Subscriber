@@ -28,6 +28,18 @@ namespace PB.ITOps.Messaging.PatLite
             }
         }
 
+        public static string RetrieveServiceBusAddress(this string connectionString)
+        {
+            var endpointPrefix = "Endpoint=sb://";
+            var startIndex = connectionString.IndexOf(endpointPrefix, StringComparison.InvariantCultureIgnoreCase);
+            var endIndex = connectionString.IndexOf(";", StringComparison.InvariantCultureIgnoreCase);
+            if (startIndex >= 0 && endIndex > startIndex)
+            {
+                return connectionString.Substring(startIndex + endpointPrefix.Length, endIndex - endpointPrefix.Length);
+            }
+            return String.Empty;
+        }
+
         public static string RetrieveServiceBusAddress(this BrokeredMessage message)
         {
             return message.Properties.ContainsKey(AddressKey) ? message.Properties[AddressKey].ToString() : null;

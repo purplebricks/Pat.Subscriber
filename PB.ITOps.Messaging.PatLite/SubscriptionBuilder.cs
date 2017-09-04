@@ -4,7 +4,6 @@ using log4net;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
-using System.Reflection;
 
 namespace PB.ITOps.Messaging.PatLite
 {
@@ -28,7 +27,7 @@ namespace PB.ITOps.Messaging.PatLite
             {
                 if (!string.IsNullOrEmpty(connectionString))
                 {
-                    _log.Info($"Buiding subscription {clientIndex}...");
+                    _log.Info($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
                     BuildSubscription(connectionString, subscriptionDescription, messagesTypes);
                 }
                 else
@@ -54,6 +53,7 @@ namespace PB.ITOps.Messaging.PatLite
 
             if (!namespaceManager.TopicExists(topicName))
             {
+                _log.Info($"Topic '{topicName}' does not exist, creating topic...");
                 namespaceManager.CreateTopic(new TopicDescription(topicName)
                 {
                     EnablePartitioning = _config.UsePartitioning
@@ -67,10 +67,12 @@ namespace PB.ITOps.Messaging.PatLite
 
             if (!namespaceManager.SubscriptionExists(topicName, _config.SubscriberName))
             {
+                _log.Info($"Subscription '{_config.SubscriberName}' does not exist on topic '{topicName}', creating subscription...");
                 namespaceManager.CreateSubscription(subscriptionDescription, newRule);
             }
             else
             {
+                _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
                 var existingRules = namespaceManager.GetRules(topicName, _config.SubscriberName).ToArray();
                 ruleBuilder.BuildRules(newRule, existingRules, messagesTypes);
             }

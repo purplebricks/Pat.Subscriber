@@ -59,6 +59,8 @@ namespace PB.ITOps.Messaging.PatLite
             var builder = new SubscriptionClientBuilder(_log, _config);
             var clients = builder.CreateClients(_config.SubscriberName);
 
+            _log.Info("Listening for messages...");
+
             tokenSource = tokenSource ?? new CancellationTokenSource();
             while (!tokenSource.Token.IsCancellationRequested)
             {

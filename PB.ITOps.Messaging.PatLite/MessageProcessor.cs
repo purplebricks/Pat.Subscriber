@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
@@ -26,13 +27,17 @@ namespace PB.ITOps.Messaging.PatLite
                 var messageTypeString = message.Properties["MessageType"].ToString();
                 var messageBody = message.GetBody<string>();
                         
-                var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
                 var correlationId = message.Properties.ContainsKey("PBCorrelationId")
                     ? message.Properties["PBCorrelationId"].ToString()
                     : Guid.NewGuid().ToString();
                 var encrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
+
+                var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
                 ctx.CorrelationId = correlationId;
                 ctx.MessageEncrypted = encrypted;
+
+                ProcessCustomProperties(message, ctx);
+
                 LogicalThreadContext.Properties["CorrelationId"] = correlationId;
 
                 var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
@@ -54,6 +59,21 @@ namespace PB.ITOps.Messaging.PatLite
                 {
                     await messageProcessingPolicy.OnMessageHandlerFailed(message, messageBody, ex);
                     await globalPolicy.OnMessageHandlerFailed(message, messageBody, ex);
+                }
+            }
+        }
+
+        private static void ProcessCustomProperties(BrokeredMessage message, IMessageContext ctx)
+        {
+            foreach (var messageProperty in message.Properties)
+            {
+                if (messageProperty.Key != "PBCorrelationId" && messageProperty.Key != "Encrypted")
+                {
+                    if (ctx.CustomProperties == null)
+                    {
+                        ctx.CustomProperties = new Dictionary<string, object>();
+                    }
+                    ctx.CustomProperties.Add(messageProperty.Key, messageProperty.Value);
                 }
             }
         }

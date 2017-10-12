@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
@@ -22,17 +23,34 @@ namespace PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy
             {
                 await action(message);
             }
+            catch (SerializationException ex)
+            {
+                var messageType = GetMessageType(message);
+                var correlationId = GetCollelationId(message);
+                _log.Warn($"Unable to deserialise message body, message deadlettered. `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.", ex);
+                await message.DeadLetterAsync();
+            }
             catch (Exception ex)
             {
-                var messageType = message.Properties.ContainsKey("MessageType")
-                    ? message.Properties["MessageType"]
-                    : "Unknown Message Type";
-                var correlationId = message.Properties.ContainsKey("PBCorrelationId")
-                    ? message.Properties["PBCorrelationId"].ToString()
-                    : "null";
+                var messageType = GetMessageType(message);
+                var correlationId = GetCollelationId(message);
                 _log.Fatal($"Unhandled infrastructure exception on processing message type `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.", ex);
                 throw;
             }
+        }
+
+        private static string GetMessageType(BrokeredMessage message)
+        {
+            return message.Properties.ContainsKey("MessageType")
+                ? message.Properties["MessageType"].ToString()
+                : "Unknown Message Type";
+        }
+
+        private static string GetCollelationId(BrokeredMessage message)
+        {
+            return message.Properties.ContainsKey("PBCorrelationId")
+                ? message.Properties["PBCorrelationId"].ToString()
+                : "null";
         }
 
         protected override async Task<int> DoProcessMessageBatch(Func<Task<int>> action, CancellationTokenSource tokenSource)

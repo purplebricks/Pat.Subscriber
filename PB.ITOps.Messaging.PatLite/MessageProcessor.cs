@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.ServiceBus.Messaging;
@@ -72,15 +73,19 @@ namespace PB.ITOps.Messaging.PatLite
              * string payload. Once all versions of the PB.ITOps.Messaging.PatSender 
              * are on 1.5.28 or above this can be removed.
              */
-            using (var messageStream = message.GetBody<Stream>())
+            try
             {
-                using (var reader = new StreamReader(messageStream))
+                var clone = message.Clone();
+                return clone.GetBody<string>();
+            }
+            catch (SerializationException)
+            {
+                using (var messageStream = message.GetBody<Stream>())
                 {
-                    var payload = await reader.ReadToEndAsync();
-
-                    var start = payload.IndexOf("{", StringComparison.InvariantCultureIgnoreCase);
-                    var end = payload.LastIndexOf("}", StringComparison.InvariantCultureIgnoreCase) + 1;
-                    return payload.Substring(start, end - start);
+                    using (var reader = new StreamReader(messageStream))
+                    {
+                        return await reader.ReadToEndAsync();
+                    }
                 }
             }
         }

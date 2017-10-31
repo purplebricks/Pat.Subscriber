@@ -73,7 +73,7 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
                 "CoreMessage=False," +
                 $"Result={result}," +
                 $"Bus={bus},",
-                fullTime);
+                Math.Max(0, fullTime));
         }
 
         protected override Task<bool> MessageHandlerCompleted(BrokeredMessage message, string body)

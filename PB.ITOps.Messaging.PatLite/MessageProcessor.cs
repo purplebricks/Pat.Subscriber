@@ -45,11 +45,11 @@ namespace PB.ITOps.Messaging.PatLite
                 var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
                 var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));
 
-                var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
-                var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
-
                 try
                 {
+                    var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
+                    var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
+
                     var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
 
                     await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });

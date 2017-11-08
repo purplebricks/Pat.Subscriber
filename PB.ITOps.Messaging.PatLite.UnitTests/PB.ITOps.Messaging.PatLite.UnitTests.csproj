@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
+    <ProjectReference Include="..\TestSubscriber\TestSubscriber.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />

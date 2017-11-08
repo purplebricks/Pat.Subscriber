@@ -26,7 +26,12 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
 
         public static MessageTypeMapping GetHandlerForMessageType(string messageType)
         {
-            return _messageTypeMappings.Single(x => x.MessageTypeName == messageType);
+            var mapping = _messageTypeMappings.SingleOrDefault(x => x.MessageTypeName == messageType);
+            if (mapping == null)
+            {
+                throw new UnmappedMessageTypeException(messageType, _messageTypeMappings);
+            }
+            return mapping;
         }
 
         public static IEnumerable<Type> GetHandledTypes()

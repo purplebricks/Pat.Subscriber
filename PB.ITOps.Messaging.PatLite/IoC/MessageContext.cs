@@ -6,6 +6,8 @@ namespace PB.ITOps.Messaging.PatLite.IoC
     {
         public string CorrelationId { get; set; }
         public bool MessageEncrypted { get; set; }
+        public bool Synthetic { get; set; }
+        public string DomainUnderTest { get; set; }
         public IDictionary<string, object> CustomProperties { get; set; }
     }
 }

@@ -18,20 +18,6 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             _version = ruleVersionResolver.GetVersion();
         }
 
-        public RuleDescription GenerateSubscriptionRule(IEnumerable<string> messagesTypeFilters)
-        {
-            var specificSubscriberOrAllRule = $"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{_subscriberName}')";
-            var customMessageTypeRule = $"MessageType IN ('{string.Join("','", messagesTypeFilters)}')";
-            var combinedRules = $"({customMessageTypeRule}) AND {specificSubscriberOrAllRule}";
-
-            var rule = new RuleDescription($"{_subscriberName}_{_version.Major}_{_version.Minor}_{_version.Build}")
-            {
-                Filter = new SqlFilter(combinedRules)
-            };
-
-            return rule;
-        }
-
         private void ValidateRules(string[] messagesTypes, RuleDescription[] existingRules)
         {
             foreach (var messagesTypeFilter in messagesTypes)
@@ -45,6 +31,44 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
                     throw new InvalidOperationException($"subscriber {_subscriberName} does not have a filter for message type '{messagesTypeFilter}'");
                 }
             }
+        }
+
+        private static string GenerateSyntheticFilterRules(string handlerFullName)
+        {
+            var sythenticFilter = "";
+            if (handlerFullName != null)
+            {
+                sythenticFilter = $"'{handlerFullName}.' like DomainUnderTest +'%'";
+            }
+            return  $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true' OR {sythenticFilter} )";
+        }
+
+        private static string GenerateMessageTypeFilterRules(IEnumerable<string> messagesTypeFilters)
+        {
+            var typeFilters = messagesTypeFilters as string[] ?? messagesTypeFilters.ToArray();
+            var customMessageTypeRule = $"MessageType IN ('{string.Join("','", typeFilters)}')";
+            return customMessageTypeRule;
+        }
+
+        private static string GenerateSubsciberFilterRule(string subscriberName)
+        {
+            return $"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{subscriberName}')";
+        }
+
+        public RuleDescription GenerateSubscriptionRule(IEnumerable<string> messagesTypeFilters, string handlerFullName)
+        {
+            var specificSubscriberOrAllRule = GenerateSubsciberFilterRule(_subscriberName);
+            var customMessageTypeRule = GenerateMessageTypeFilterRules(messagesTypeFilters);
+            var sythenticFilter = GenerateSyntheticFilterRules(handlerFullName);
+
+            var combinedRules = $"({customMessageTypeRule}) AND {specificSubscriberOrAllRule} AND {sythenticFilter}";
+
+            var rule = new RuleDescription($"{_subscriberName}_{_version.Major}_{_version.Minor}_{_version.Build}")
+            {
+                Filter = new SqlFilter(combinedRules)
+            };
+
+            return rule;
         }
 
         public void BuildRules(RuleDescription newRule, RuleDescription[] existingRules, string[] messagesTypes)

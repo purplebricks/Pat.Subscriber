@@ -9,6 +9,7 @@ using PB.ITOps.Messaging.PatLite.RateLimiterPolicy;
 using PB.ITOps.Messaging.PatLite.Serialiser;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
+using PB.ITOps.Messaging.PatSender.Correlation;
 using PB.ITOps.Messaging.PatSender.Encryption;
 using Purplebricks.StatsD.Client;
 using StructureMap;
@@ -23,15 +24,14 @@ namespace TestSubscriber
             
             var messagePublisher = container.GetInstance<IMessagePublisher>();
 
-            var myEvents = new List<object>
+            messagePublisher.PublishEvent(new MyEvent1(), new MessageProperties("")
             {
-                new MyEvent1
+                CustomProperties = new Dictionary<string, string>
                 {
-                    Message = "Test encryption"
-                },
-                new MyDerivedEvent2()
-            };
-            messagePublisher.PublishEvents(myEvents);
+                    { "Synthetic", "true"},
+                    { "DomainUnderTest", "Offer." }
+                }
+            }).GetAwaiter().GetResult();
 
             var subscriber = container.GetInstance<Subscriber>();
             subscriber.Run();
@@ -47,7 +47,7 @@ namespace TestSubscriber
                 ConnectionStrings = new[] { connection },
                 TopicName = topicName,
                 UsePartitioning = true,
-                SubscriberName = "Rightmove",
+                SubscriberName = "PatLiteTestSubscriber",
                 BatchSize = 100
             };
             var options = new PatLiteOptions
@@ -101,6 +101,7 @@ namespace TestSubscriber
                             "***REMOVED***",
                         Thumbprint = "***REMOVED***"
                     });
+                    x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(""));
                     x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
                     .Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
                     x.For<IMessagePublisher>().Use<MessagePublisher>()

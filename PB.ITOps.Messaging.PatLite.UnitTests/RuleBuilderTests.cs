@@ -12,6 +12,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
     {
         private readonly RuleBuilder _ruleBuilder;
         private readonly IRuleApplier _ruleApplier;
+        private readonly string _handlerName = "PB.Domain.SubDomain.Handler";
 
         public RuleBuilderTests()
         {
@@ -25,7 +26,8 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         {
             var eventName = "TestEvent";
             var messagesTypes = new[] {eventName};
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+            
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
 
             var filter = ((SqlFilter) rule.Filter).SqlExpression;
             Assert.Contains($"'{eventName}'", filter);
@@ -41,7 +43,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
                 messagesTypes.Add($"TestEvent{i}");
             }
 
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
 
             var filter = ((SqlFilter)rule.Filter).SqlExpression;
             for (int i = 0; i < 10; i++)
@@ -54,7 +56,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         public void BuildRules_ExistingRuleIsUpToDate_DoesNotChangeRules()
         {
             var messagesTypes = new[] { "TestEvent" };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
             _ruleBuilder.BuildRules(rule, new [] { rule }, messagesTypes);
 
             _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(null);
@@ -65,7 +67,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         public void BuildRules_NoExistingRules_CallAddRule()
         {
             var messagesTypes = new[] { "TestEvent" };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
             _ruleBuilder.BuildRules(rule, new RuleDescription [] { }, messagesTypes);
 
             _ruleApplier.Received(1).AddRule(rule);
@@ -78,8 +80,8 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldMessageTypes = new[] { "TestEvent" };
             var newMessageTypes = oldMessageTypes.Union(new[] {"NewEvent"}).ToArray();
 
-            var existingRule = _ruleBuilder.GenerateSubscriptionRule(oldMessageTypes);
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes);
+            var existingRule = _ruleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
+            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
 
             Assert.Throws<InvalidOperationException>(
                 () => _ruleBuilder.BuildRules(newRule, new[] {existingRule}, newMessageTypes));
@@ -94,9 +96,9 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
             oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
             var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
-            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes);
+            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
 
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes);
+            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
 
             _ruleBuilder.BuildRules(newRule, new[] { existingRule }, newMessageTypes);
 
@@ -112,15 +114,37 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
             oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
             var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
-            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes);
+            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
 
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes);
+            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
 
             _ruleBuilder.BuildRules(newRule, new[] { existingRule }, newMessageTypes);
 
             _ruleApplier.Received(1).RemoveRule(existingRule);
         }
 
+        [Fact]
+        public void GenerateSubscriptionRule_ContainsSyntheticCheck()
+        {
+            var eventName = "TestEvent";
+            var messagesTypes = new[] { eventName };
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
 
+            var filter = ((SqlFilter)rule.Filter).SqlExpression;
+            Assert.Contains("(NOT EXISTS(Synthetic) OR Synthetic <> 'true' ", filter);
+        }
+
+        [Fact]
+        public void GenerateSubscriptionRule_ContainsDomainUnderTestComparisonBAseOnHandlerName()
+        {
+            var eventName = "TestEvent";
+            var handlerName = "PB.Offer.Sales.BuyerQualification.Handler";
+            var messagesTypes = new[] { eventName };
+            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, handlerName);
+
+            var filter = ((SqlFilter)rule.Filter).SqlExpression;
+            
+            Assert.Contains($"'{handlerName}.' like DomainUnderTest +'%'", filter);
+        }
     }
 }

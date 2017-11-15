@@ -20,7 +20,7 @@ namespace PB.ITOps.Messaging.PatLite
             _subscriptionRuleVersionResolver = subscriptionRuleVersionResolver;
         }
 
-        public void Build(SubscriptionDescription subscriptionDescription, string[] messagesTypes)
+        public void Build(SubscriptionDescription subscriptionDescription, string[] messagesTypes, string handlerFullName)
         {
             var clientIndex = 1;
             foreach (var connectionString in _config.ConnectionStrings)
@@ -28,7 +28,7 @@ namespace PB.ITOps.Messaging.PatLite
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.Info($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
-                    BuildSubscription(connectionString, subscriptionDescription, messagesTypes);
+                    BuildSubscription(connectionString, subscriptionDescription, messagesTypes, handlerFullName);
                 }
                 else
                 {
@@ -45,7 +45,7 @@ namespace PB.ITOps.Messaging.PatLite
             };
         }
 
-        private void BuildSubscription(string connectionString, SubscriptionDescription subscriptionDescription, string[] messagesTypes)
+        private void BuildSubscription(string connectionString, SubscriptionDescription subscriptionDescription, string[] messagesTypes, string handlerFullName)
         {
             var topicName = _config.EffectiveTopicName;
 
@@ -63,7 +63,7 @@ namespace PB.ITOps.Messaging.PatLite
             var client = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
             RuleBuilder ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), _subscriptionRuleVersionResolver, _config.SubscriberName);
 
-            var newRule = ruleBuilder.GenerateSubscriptionRule(messagesTypes);
+            var newRule = ruleBuilder.GenerateSubscriptionRule(messagesTypes, handlerFullName);
 
             if (!namespaceManager.SubscriptionExists(topicName, _config.SubscriberName))
             {

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite", "PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj", "{8BE4D60E-65AE-4872-AF04-C78A0CEA79A9}"
 EndProject
@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.Encryption", "PB.ITOps.Messaging.PatLite.Encryption\PB.ITOps.Messaging.PatLite.Encryption.csproj", "{12D1219A-9E30-4A18-B992-C60E1E0B7F1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests", "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests.csproj", "{52033F26-1FFE-44B6-9443-CCE0192DE687}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests", "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests.csproj", "{52033F26-1FFE-44B6-9443-CCE0192DE687}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.IntegrationTests", "PB.ITOps.Messaging.PatLite.IntegrationTests\PB.ITOps.Messaging.PatLite.IntegrationTests.csproj", "{36465E27-A860-43E7-93F9-C4D1F219B0DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{52033F26-1FFE-44B6-9443-CCE0192DE687}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52033F26-1FFE-44B6-9443-CCE0192DE687}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52033F26-1FFE-44B6-9443-CCE0192DE687}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

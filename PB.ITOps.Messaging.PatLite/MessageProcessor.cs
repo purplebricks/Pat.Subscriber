@@ -21,26 +21,25 @@ namespace PB.ITOps.Messaging.PatLite
         {
             _messageDependencyResolver = messageDependencyResolver;
         }
-
         public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy globalPolicy)
         {
             using (var scope = _messageDependencyResolver.BeginScope())
             {
                 var messageTypeString = message.Properties["MessageType"].ToString();
                 var messageBody = await GetMessageBody(message);
-                        
-                var correlationId = message.Properties.ContainsKey("PBCorrelationId")
-                    ? message.Properties["PBCorrelationId"].ToString()
-                    : Guid.NewGuid().ToString();
-                var encrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
 
                 var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
-                ctx.CorrelationId = correlationId;
-                ctx.MessageEncrypted = encrypted;
+
+                ctx.CorrelationId = message.Properties.ContainsKey("PBCorrelationId")
+                    ? message.Properties["PBCorrelationId"].ToString()
+                    : Guid.NewGuid().ToString();
+                ctx.MessageEncrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
+                ctx.Synthetic = message.Properties.ContainsKey("Synthetic") && bool.Parse(message.Properties["Synthetic"].ToString());
+                ctx.DomainUnderTest = message.Properties.ContainsKey("DomainUnderTest") ? message.Properties["DomainUnderTest"].ToString(): null;
 
                 ProcessCustomProperties(message, ctx);
 
-                LogicalThreadContext.Properties["CorrelationId"] = correlationId;
+                LogicalThreadContext.Properties["CorrelationId"] = ctx.CorrelationId;
 
                 var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
                 var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));

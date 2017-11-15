@@ -31,7 +31,18 @@ namespace PB.ITOps.Messaging.PatLite
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
             var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
-            builder.Build(builder.CommonSubscriptionDescription(), messagesTypes);
+
+            string handlerName = null;
+            if (messagesTypes.Length == 0)
+            {
+                _log.Warn("Subscriber does not handle any message types");
+            }
+            else
+            {
+                var handler = MessageMapper.GetHandlerForMessageType(messagesTypes.First()).HandlerType;
+                handlerName = handler.FullName;
+            }
+            builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
         }
         private async Task<int> ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
         {

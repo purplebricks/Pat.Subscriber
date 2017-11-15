@@ -1,5 +1,7 @@
+using System.ServiceModel;
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.PatLite;
+using PB.ITOps.Messaging.PatLite.IoC;
 using PB.ITOps.Messaging.PatSender;
 using Purplebricks.StatsD.Client;
 
@@ -9,13 +11,15 @@ namespace TestSubscriber
     {
         
     }
-    public class RightmoveHandler : IHandleEvent<MyEvent1>, IHandleEvent<MyEvent2>, IHandleEvent<MyEvent1AllNew>
+    public class PatLiteTestHandler //: IHandleEvent<MyEvent1>, IHandleEvent<MyEvent2>, IHandleEvent<MyEvent1AllNew>
     {
         private readonly IMessagePublisher _messagePublisher;
+        private readonly IMessageContext _messageContext;
 
-        public RightmoveHandler(IMessagePublisher messagePublisher)
+        public PatLiteTestHandler(IMessagePublisher messagePublisher, IMessageContext messageContext)
         {
             _messagePublisher = messagePublisher;
+            _messageContext = messageContext;
         }
 
         public async Task HandleAsync(MyEvent1 message)

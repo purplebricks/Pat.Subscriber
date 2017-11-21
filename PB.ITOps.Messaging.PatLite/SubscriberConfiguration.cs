@@ -55,5 +55,10 @@ namespace PB.ITOps.Messaging.PatLite
         /// Should be set to true for local development.
         /// </summary>
         public bool UseDevelopmentTopic { get; set; }
+
+        /// <summary>
+        /// Number of batches the subscriber will use to receive messages.
+        /// </summary>
+        public int ConcurrentBatches { get; set; }
     }
 }

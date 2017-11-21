@@ -8,11 +8,13 @@
 
         private readonly ITimer _timer;
         private readonly IThrottler _throttler;
+        private readonly SubscriberConfiguration _subscriberConfiguration;
 
-        public RateLimiterBuilder(ITimer timer, IThrottler throttler)
+        public RateLimiterBuilder(ITimer timer, IThrottler throttler, SubscriberConfiguration subscriberConfiguration)
         {
             _timer = timer;
             _throttler = throttler;
+            _subscriberConfiguration = subscriberConfiguration;
         }
 
         public RateLimiterBuilder WithRateLimitPerMinute(int value)
@@ -35,16 +37,17 @@
 
         public RateLimiterPolicy Build()
         {
-            return new RateLimiterPolicy(new RateLimiterPolicyOptions(new RateLimiterPolicyConfiguration
-            {
-                IntervalInMilliSeconds = _groupingInterval,
-                RollingIntervals = _rollingIntervals,
-                RateLimit = _rateLimit
-            })
+            return new RateLimiterPolicy(new RateLimiterPolicyOptions(
+                new RateLimiterPolicyConfiguration
+                {
+                    IntervalInMilliSeconds = _groupingInterval,
+                    RollingIntervals = _rollingIntervals,
+                    RateLimit = _rateLimit
+                })
             {
                 Timer = _timer,
                 Throttler = _throttler
-            });
+            }, _subscriberConfiguration);
         }
     }
 }

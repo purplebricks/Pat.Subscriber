@@ -17,7 +17,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             _timer = new TestTimer();
             _throttler = Substitute.For<IThrottler>();
-            _policyBuilder = new RateLimiterBuilder(_timer, _throttler);
+            _policyBuilder = new RateLimiterBuilder(_timer, _throttler, new SubscriberConfiguration{ ConcurrentBatches = 1});
         }
 
         private Func<Task<int>> BatchProcessedInSeconds(int batchSize, int elapsedSeconds)

@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using System;
+using log4net;
 using Microsoft.ServiceBus.Messaging;
 using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
@@ -14,16 +15,16 @@ namespace PB.ITOps.Messaging.PatLite
     public class Subscriber
     {
         private readonly ILog _log;
-        private readonly IMessageProcessor _messageProcessor;
         private readonly ISubscriberPolicy _policy;
         private readonly SubscriberConfiguration _config;
+        private readonly IMessageProcessor _messageProcessor;
 
-        public Subscriber(ILog log, IMessageProcessor messageProcessor, ISubscriberPolicy policy, SubscriberConfiguration config)
+        public Subscriber(ILog log, ISubscriberPolicy policy, SubscriberConfiguration config, IMessageProcessor messageProcessor)
         {
             _log = log;
-            _messageProcessor = messageProcessor;
             _policy = policy;
             _config = config;
+            _messageProcessor = messageProcessor;
         }
 
         private void BootStrap(Assembly[] handlerAssemblies)
@@ -44,25 +45,12 @@ namespace PB.ITOps.Messaging.PatLite
             }
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
         }
-        private async Task<int> ProcessMessages(ConcurrentQueue<BrokeredMessage> messages, ISubscriberPolicy policy)
-        {
-            await Task.WhenAll(messages.Select(msg => ProcessMessage(msg, policy)).ToArray());
-            return messages.Count;
-        }
-
-        private async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy policy)
-        {
-            using (message)
-            {
-                await policy.ProcessMessage(m => _messageProcessor.ProcessMessage(m, policy), message);
-            }
-        }
 
         public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
             if (handlerAssemblies == null)
             {
-                handlerAssemblies = new Assembly[] { Assembly.GetCallingAssembly() };
+                handlerAssemblies = new [] { Assembly.GetCallingAssembly() };
             }
 
             BootStrap(handlerAssemblies);
@@ -73,17 +61,38 @@ namespace PB.ITOps.Messaging.PatLite
             _log.Info("Listening for messages...");
 
             tokenSource = tokenSource ?? new CancellationTokenSource();
-            while (!tokenSource.Token.IsCancellationRequested)
+            if (_config.ConcurrentBatches == 0)
             {
-                _policy.ProcessMessageBatch(() =>
+                _config.ConcurrentBatches = 1;
+            }
+
+            if (_config.ConcurrentBatches < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(_config.ConcurrentBatches), 
+                    $"Cannot support {_config.ConcurrentBatches} concurrent batches.");
+            }
+
+            var tasks = Enumerable.Range(0, _config.ConcurrentBatches)
+                .Select(_ => 
+                    Task.Run(async () => await ProcessBatchChain(clients, tokenSource, _), tokenSource.Token));
+
+            Task.WaitAll(tasks.ToArray());
+        }
+
+        private async Task ProcessBatchChain(ConcurrentQueue<SubscriptionClient> clients, CancellationTokenSource tokenSource, int batchIndex)
+        {
+            var processor = new BatchProcessor(_policy, _messageProcessor, _log, batchIndex);
+            while (!tokenSource.IsCancellationRequested)
+            {
+                try
                 {
-                    var messages = clients.GetMessages(_config.BatchSize);
-                    if (messages.Any())
-                    {
-                        return ProcessMessages(messages, _policy);
-                    }
-                    return Task.FromResult(0);
-                }, tokenSource).Wait();
+                    await processor.ProcessBatch(clients, tokenSource, _config.BatchSize);
+                }
+                catch (Exception exception)
+                {
+                    _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler from ProcessBatchChain.", exception);
+                    tokenSource.Cancel();
+                }
             }
         }
     }

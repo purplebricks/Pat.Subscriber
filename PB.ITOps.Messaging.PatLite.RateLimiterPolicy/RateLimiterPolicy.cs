@@ -26,8 +26,13 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
         public delegate void ThrottlingHandler(object sender, EventArgs e);
         public event ThrottlingHandler Throttling;
 
-        public RateLimiterPolicy(RateLimiterPolicyOptions options)
+        public RateLimiterPolicy(RateLimiterPolicyOptions options, SubscriberConfiguration configuration)
         {
+            if (configuration.ConcurrentBatches > 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(configuration.ConcurrentBatches), "Rate Limiter does not support concurrent batches.");
+            }
+
             _timer = options.Timer;
             _throttler = options.Throttler;
             _rateLimit = options.PolicyConfiguration.RateLimit;

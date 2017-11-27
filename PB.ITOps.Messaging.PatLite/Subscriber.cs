@@ -19,6 +19,8 @@ namespace PB.ITOps.Messaging.PatLite
         private readonly SubscriberConfiguration _config;
         private readonly IMessageProcessor _messageProcessor;
 
+        public event EventHandler SubscriptionSetupCompleted;
+
         public Subscriber(ILog log, ISubscriberPolicy policy, SubscriberConfiguration config, IMessageProcessor messageProcessor)
         {
             _log = log;
@@ -44,6 +46,8 @@ namespace PB.ITOps.Messaging.PatLite
                 handlerName = handler.FullName;
             }
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
+
+            SubscriptionSetupCompleted?.Invoke(this, new EventArgs());
         }
 
         public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)

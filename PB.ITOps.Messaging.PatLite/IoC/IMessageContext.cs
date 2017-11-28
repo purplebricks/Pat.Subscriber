@@ -22,5 +22,11 @@ namespace PB.ITOps.Messaging.PatLite.IoC
         /// </summary>
         string DomainUnderTest { get; set; }
         IDictionary<string, object> CustomProperties { get; set; }
+        /// <summary>
+        /// The identifier of the message. This is a user-defined value that
+        //  Service Bus can use to identify duplicate messages, if enabled.
+        /// <remarks>The services in PB.ITOps.Messaging.PatSender set this to a new Guid</remarks>
+        /// </summary>
+        string MessageId { get; set; }
     }
 }

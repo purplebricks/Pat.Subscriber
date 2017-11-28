@@ -36,6 +36,7 @@ namespace PB.ITOps.Messaging.PatLite
                 ctx.MessageEncrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
                 ctx.Synthetic = message.Properties.ContainsKey("Synthetic") && bool.Parse(message.Properties["Synthetic"].ToString());
                 ctx.DomainUnderTest = message.Properties.ContainsKey("DomainUnderTest") ? message.Properties["DomainUnderTest"].ToString(): null;
+                ctx.MessageId = message.MessageId;
 
                 ProcessCustomProperties(message, ctx);
 

@@ -9,5 +9,6 @@ namespace PB.ITOps.Messaging.PatLite.IoC
         public bool Synthetic { get; set; }
         public string DomainUnderTest { get; set; }
         public IDictionary<string, object> CustomProperties { get; set; }
+        public string MessageId { get; set; }
     }
 }

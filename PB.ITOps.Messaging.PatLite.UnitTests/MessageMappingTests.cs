@@ -8,7 +8,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         [Fact]
         public void UnmappedMessageType_ShouldThrowDetailedException()
         {
-            MessageMapper.MapMessageTypesToHandlers(new []{typeof(TestSubscriber.Program).Assembly});
+            MessageMapper.MapMessageTypesToHandlers(new []{typeof(TestSubscriber.PatLiteTestHandler).Assembly});
 
             Assert.Throws<UnmappedMessageTypeException>(() =>
                 MessageMapper.GetHandlerForMessageType("Invalid.Type, AssemblyNameHere"));

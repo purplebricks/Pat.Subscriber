@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite;
 using PB.ITOps.Messaging.PatLite.Encryption;
@@ -16,25 +19,33 @@ using StructureMap;
 
 namespace TestSubscriber
 {
-    public class Program
+    internal class Program
     {
-        static void Main()
+        private static async Task Main()
         {
+            var tokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, args) =>
+            {
+                Console.WriteLine("Subscriber Shutdown Requested");
+                args.Cancel = true;
+                tokenSource.Cancel();
+            };
+
             var container = Initialize();
             
             var messagePublisher = container.GetInstance<IMessagePublisher>();
 
-            messagePublisher.PublishEvent(new MyEvent1(), new MessageProperties("")
+            await messagePublisher.PublishEvent(new MyEvent1(), new MessageProperties("")
             {
                 CustomProperties = new Dictionary<string, string>
                 {
                     { "Synthetic", "true"},
-                    { "DomainUnderTest", "Offer." }
+                    { "DomainUnderTest", "TestSubscriber." }
                 }
-            }).GetAwaiter().GetResult();
+            });
 
             var subscriber = container.GetInstance<Subscriber>();
-            subscriber.Run();
+            subscriber.Run(tokenSource);
         }
 
         public static IContainer Initialize()
@@ -48,7 +59,8 @@ namespace TestSubscriber
                 TopicName = topicName,
                 UsePartitioning = true,
                 SubscriberName = "PatLiteTestSubscriber",
-                BatchSize = 100
+                BatchSize = 100,
+                UseDevelopmentTopic = true
             };
             var options = new PatLiteOptions
             {
@@ -74,7 +86,6 @@ namespace TestSubscriber
 
             using (StatsDSender.StartTimer("IocStartup", $"Client=PatLite.{subscriberConfig.SubscriberName}"))
             {
-
                 var container = new Container(x =>
                 {
                     x.AddRegistry(new PatLiteRegistry(options));
@@ -103,10 +114,7 @@ namespace TestSubscriber
                     });
                     x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(""));
                     x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
-                    .Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
-                    x.For<IMessagePublisher>().Use<MessagePublisher>()
-                        .Ctor<IDictionary<string, string>>().Is(c => null)
-                        .Ctor<string>().Is((c) => c.GetInstance<IMessageContext>().CorrelationId);
+                        .Ctor<string>().Is(ctx => ctx.GetInstance<IMessageContext>().CorrelationId);
                     x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<IMessageContext>().MessageEncrypted
                         ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
                         : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());

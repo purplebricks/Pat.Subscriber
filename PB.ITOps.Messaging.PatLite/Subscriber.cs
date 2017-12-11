@@ -19,8 +19,6 @@ namespace PB.ITOps.Messaging.PatLite
         private readonly SubscriberConfiguration _config;
         private readonly IMessageProcessor _messageProcessor;
 
-        public event EventHandler SubscriptionSetupCompleted;
-
         public Subscriber(ILog log, ISubscriberPolicy policy, SubscriberConfiguration config, IMessageProcessor messageProcessor)
         {
             _log = log;
@@ -29,8 +27,28 @@ namespace PB.ITOps.Messaging.PatLite
             _messageProcessor = messageProcessor;
         }
 
-        private void BootStrap(Assembly[] handlerAssemblies)
+        /// <summary>
+        /// Create subscriptions and process messages.
+        /// </summary>
+        /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
+        public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
+            Initialise(handlerAssemblies);
+
+            ListenForEvents(tokenSource);
+        }
+
+        /// <summary>
+        /// Creates relevant subscriptions.
+        /// </summary>
+        /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
+        public void Initialise(Assembly[] handlerAssemblies)
+        {
+            if (handlerAssemblies == null)
+            {
+                handlerAssemblies = new[] { Assembly.GetCallingAssembly() };
+            }
+
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
             var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
@@ -46,19 +64,13 @@ namespace PB.ITOps.Messaging.PatLite
                 handlerName = handler.FullName;
             }
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
-
-            SubscriptionSetupCompleted?.Invoke(this, new EventArgs());
         }
 
-        public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
+        /// <summary>
+        /// Process events, terminate once the cancellation token is cancelled.
+        /// </summary>
+        public void ListenForEvents(CancellationTokenSource tokenSource = null)
         {
-            if (handlerAssemblies == null)
-            {
-                handlerAssemblies = new [] { Assembly.GetCallingAssembly() };
-            }
-
-            BootStrap(handlerAssemblies);
-
             var builder = new SubscriptionClientBuilder(_log, _config);
             var clients = builder.CreateClients(_config.SubscriberName);
 
@@ -72,12 +84,12 @@ namespace PB.ITOps.Messaging.PatLite
 
             if (_config.ConcurrentBatches < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(_config.ConcurrentBatches), 
+                throw new ArgumentOutOfRangeException(nameof(_config.ConcurrentBatches),
                     $"Cannot support {_config.ConcurrentBatches} concurrent batches.");
             }
 
             var tasks = Enumerable.Range(0, _config.ConcurrentBatches)
-                .Select(_ => 
+                .Select(_ =>
                     Task.Run(async () => await ProcessBatchChain(clients, tokenSource, _), tokenSource.Token));
 
             Task.WaitAll(tasks.ToArray());

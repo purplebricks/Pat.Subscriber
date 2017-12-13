@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Threading.Tasks;
 using log4net;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.ServiceBus;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
 
 namespace PB.ITOps.Messaging.PatLite
@@ -20,7 +18,7 @@ namespace PB.ITOps.Messaging.PatLite
             _subscriptionRuleVersionResolver = subscriptionRuleVersionResolver;
         }
 
-        public void Build(SubscriptionDescription subscriptionDescription, string[] messagesTypes, string handlerFullName)
+        public async Task<bool> Build(string[] messagesTypes, string handlerFullName)
         {
             var clientIndex = 1;
             foreach (var connectionString in _config.ConnectionStrings)
@@ -28,42 +26,41 @@ namespace PB.ITOps.Messaging.PatLite
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.Info($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
-                    BuildSubscription(connectionString, subscriptionDescription, messagesTypes, handlerFullName);
+                    try
+                    {
+                        await BuildSubscription(connectionString, messagesTypes, handlerFullName);
+                    }
+                    catch (ServiceBusTimeoutException)
+                    {
+                        _log.Fatal($"Service bus timeout, probable cause is a missing servicebus subscription called '{_config.SubscriberName}'. Subcriber will terminate.");
+                        return false;
+                    }
+                    catch (MessagingEntityNotFoundException)
+                    {
+                        _log.Fatal($"Unable to find servicebus topic '{_config.EffectiveTopicName}' subscriber will terminate.");
+                        return false;
+                    }
                 }
                 else
                 {
                     _log.Info($"Skipping subscription {clientIndex}, connection string is null or empty");
                 }
             }
+            return true;
         }
         
-        public SubscriptionDescription CommonSubscriptionDescription()
-        {
-            return new SubscriptionDescription(_config.EffectiveTopicName, _config.SubscriberName)
-            {
-                DefaultMessageTimeToLive = new TimeSpan(30, 0, 0, 0)
-            };
-        }
-
-        private void BuildSubscription(string connectionString, SubscriptionDescription subscriptionDescription, string[] messagesTypes, string handlerFullName)
+        private async Task BuildSubscription(string connectionString, string[] messagesTypes, string handlerFullName)
         {
             var topicName = _config.EffectiveTopicName;
 
-            var namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+            var client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
 
-            if (!namespaceManager.TopicExists(topicName))
-            {
-                _log.Info($"Topic '{topicName}' does not exist, creating topic...");
-                namespaceManager.CreateTopic(new TopicDescription(topicName)
-                {
-                    EnablePartitioning = _config.UsePartitioning
-                });
-            }
+            var ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), _subscriptionRuleVersionResolver, _config.SubscriberName);
 
-            var client = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
             var ruleApplier = new RuleApplier(_log, client);
 
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
+            var existingRules = await client.GetRulesAsync();
 
             var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
 

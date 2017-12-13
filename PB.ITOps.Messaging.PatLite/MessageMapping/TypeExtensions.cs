@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 namespace PB.ITOps.Messaging.PatLite.MessageMapping
 {
@@ -6,7 +7,7 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
     {
         public static string SimpleQualifiedName(this Type t)
         {
-            return string.Concat(t.FullName, ", ", t.Assembly.GetName().Name);
+            return string.Concat(t.FullName, ", ", t.GetTypeInfo().Assembly.GetName().Name);
         }
     }
 }

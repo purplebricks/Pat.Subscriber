@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ServiceBus.Messaging;
+using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 
 namespace PB.ITOps.Messaging.PatLite.SubscriberRules
 {
@@ -103,7 +104,7 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             return rules;
         }
 
-        public void ApplyRuleChanges(RuleDescription[] newRules, RuleDescription[] existingRules, string[] messagesTypes)
+        public async Task BuildRules(RuleDescription[] newRules, RuleDescription[] existingRules, string[] messagesTypes)
         {
             var newRulesAlreadyPresent = new List<Rule>();
 

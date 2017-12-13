@@ -28,10 +28,7 @@ namespace PB.ITOps.Messaging.PatLite
             set => _topicName = value;
         }
 
-        public string EffectiveTopicName
-        {
-            get => UseDevelopmentTopic ? _topicName + Environment.MachineName : _topicName;
-        }
+        public string EffectiveTopicName => UseDevelopmentTopic ? _topicName + Environment.GetEnvironmentVariable("COMPUTERNAME") : _topicName;
 
         /// <summary>
         /// On bootstrapping, if the topic needs creating this determines if a partitioned topic should be created (no affect for existing topics).

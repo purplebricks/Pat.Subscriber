@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.DataProtection;
 using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Serialiser;
+using PB.ITOps.Messaging.PatLite.Deserialiser;
 using DataProtectionProvider = PB.ITOps.Messaging.DataProtection.DataProtectionProvider;
 
 namespace PB.ITOps.Messaging.PatLite.Encryption

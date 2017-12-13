@@ -1,5 +1,6 @@
+using System.Threading.Tasks;
 using log4net;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.ServiceBus;
 
 namespace PB.ITOps.Messaging.PatLite.SubscriberRules
 { 
@@ -14,18 +15,17 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             _client = client;
         }
 
-        public void RemoveRule(RuleDescription rule)
+        public async Task RemoveRule(RuleDescription rule)
         {
-            _log.Info($"Deleting rule {rule.Name} for subscriber {_client.Name}, as it has been superceded by a newer version");
-            _client.RemoveRule(rule.Name);
+            _log.Info($"Deleting rule {rule.Name} for subscriber {_client.SubscriptionName}, as it has been superceded by a newer version");
+            await _client.RemoveRuleAsync(rule.Name);
         }
 
-        public void AddRule(RuleDescription rule)
+        public async Task AddRule(RuleDescription rule)
         {
             var newRule = (SqlFilter)rule.Filter;
-            newRule.Validate();
-            _log.Info($"Creating rule {rule.Name} for subscriber {_client.Name}");
-            _client.AddRule(rule);
+            _log.Info($"Creating rule {rule.Name} for subscriber {_client.SubscriptionName}");
+            await _client.AddRuleAsync(rule);
         }
     }
 }

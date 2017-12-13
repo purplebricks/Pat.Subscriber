@@ -1,0 +1,35 @@
+﻿using System;
+using System.Collections.Generic;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using StructureMap;
+
+namespace PB.ITOps.Messaging.PatLite.StructureMap4
+{
+    public class BatchPipelineDependencyBuilder
+    {
+        private readonly ICollection<Type> _batchPipelineBehaviourTypes;
+
+        public BatchPipelineDependencyBuilder(ICollection<Type> batchPipelineBeviourTypes)
+        {
+            _batchPipelineBehaviourTypes = batchPipelineBeviourTypes;
+        }
+
+        public void RegisterTypes(Registry registry)
+        {
+            foreach (var batchPipelineBehaviourType in _batchPipelineBehaviourTypes)
+            {
+                registry.AddType(batchPipelineBehaviourType, batchPipelineBehaviourType);
+            }
+        }
+
+        public BatchProcessingBehaviourPipeline Build(IContext ctx)
+        {
+            var pipeline = new BatchProcessingBehaviourPipeline();
+            foreach (var batchPipelineBehaviourType in _batchPipelineBehaviourTypes)
+            {
+                pipeline.AddBehaviour((IBatchProcessingBehaviour)ctx.GetInstance(batchPipelineBehaviourType));
+            }
+            return pipeline;
+        }
+    }
+}

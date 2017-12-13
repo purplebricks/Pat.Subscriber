@@ -10,6 +10,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
     {
 
         protected readonly IContainer Container;
+
         public StructureMapDependencyScope(IContainer container)
         {
             if (container == null)

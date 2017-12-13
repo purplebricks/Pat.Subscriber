@@ -2,33 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using PB.ITOps.Messaging.PatSender;
 using Xunit;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
-    public class SubscriberTests
+    public class SubscriberTests: IClassFixture<SubscriberFixture>
     {
-        private static readonly IServiceProvider ServiceProvider;
+        private readonly IGenericServiceProvider _serviceProvider;
 
-        static SubscriberTests()
+        public SubscriberTests(SubscriberFixture subscriberFixture)
         {
-            var configurationBuilder = new ConfigurationBuilder()
-                .AddJsonFile(@"Configuration\appsettings.json");
-            var configuration = configurationBuilder.Build();
+            _serviceProvider = subscriberFixture.ServiceProvider;
+        }
 
-            ServiceProvider = IoC.Initialize(configuration);
-
-            var subscriber = ServiceProvider.GetService<Subscriber>();
-            Task.Run(() => subscriber.Run());
+        private T GetService<T>()
+        {
+            return _serviceProvider.GetService<T>();
         }
 
         [Fact]
         public async Task When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
-            var messagePublisher = ServiceProvider.GetService<IMessagePublisher>();
+            var messagePublisher = GetService<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
 
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
@@ -41,7 +37,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         [Fact]
         public async Task When_SynthenticMessagePublishedWithFullDomain_HandlerReceivesMessage()
         {
-            var messagePublisher = ServiceProvider.GetService<IMessagePublisher>();
+            var messagePublisher = GetService<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
 
             var domainUnderTest = "PB.ITOps.Messaging.PatLite.IntegrationTests.";
@@ -62,7 +58,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         [Fact]
         public async Task When_SynthenticMessagePublishedInDifferentDomain_HandlerDoesNotReceiveTheMessage()
         {
-            var messagePublisher = ServiceProvider.GetService<IMessagePublisher>();
+            var messagePublisher = GetService<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
 
             var domainUnderTest = "PB.Offers.";

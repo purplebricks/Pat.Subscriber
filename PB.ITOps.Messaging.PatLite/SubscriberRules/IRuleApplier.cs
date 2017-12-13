@@ -1,10 +1,11 @@
-﻿using Microsoft.ServiceBus.Messaging;
+﻿using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 
 namespace PB.ITOps.Messaging.PatLite.SubscriberRules
 {
     public interface IRuleApplier
     {
-        void RemoveRule(RuleDescription rule);
-        void AddRule(RuleDescription rule);
+        Task RemoveRule(RuleDescription rule);
+        Task AddRule(RuleDescription rule);
     }
 }

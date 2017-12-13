@@ -35,10 +35,10 @@
             return this;
         }
 
-        public RateLimiterPolicy Build()
+        public RateLimiterBehaviour Build()
         {
-            return new RateLimiterPolicy(new RateLimiterPolicyOptions(
-                new RateLimiterPolicyConfiguration
+            return new RateLimiterBehaviour(new RateLimiterPolicyOptions(
+                new RateLimiterConfiguration
                 {
                     IntervalInMilliSeconds = _groupingInterval,
                     RollingIntervals = _rollingIntervals,

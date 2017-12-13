@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.IoC;
-using PB.ITOps.Messaging.PatLite.MessageProcessingPolicy;
-using PB.ITOps.Messaging.PatLite.Serialiser;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 
 namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 {
@@ -24,12 +24,7 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 
             return serviceCollection
                 .AddSingleton(options.SubscriberConfiguration)
-                .RegisterPatLite(options.GlobalPolicyBuilder, options.MessagePolicyBuilder, options.MessageDeserialiser);
-        }
-
-        public static IServiceCollection AddPatLite(this IServiceCollection serviceCollection, PatLiteGlobalPolicyBuilder globalPolicyBuilder, PatLiteMessagePolicyBuilder messagePolicyBuilder)
-        {
-            return serviceCollection.RegisterPatLite(globalPolicyBuilder, messagePolicyBuilder, null);
+                .RegisterPatLite(options.BatchMessageProcessingBehaviourPipeline, options.MessageProcessingPipeline, options.MessageDeserialiser);
         }
 
         public static IServiceCollection AddPatLite(this IServiceCollection serviceCollection)
@@ -39,32 +34,29 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 
         private static IServiceCollection RegisterPatLite(
             this IServiceCollection serviceCollection,
-            PatLiteGlobalPolicyBuilder globalPolicyBuilder, 
-            PatLiteMessagePolicyBuilder messagePolicyBuilder,
+            BatchPipelineDependencyBuilder batchMessageProcessingBehaviourBuilder, 
+            MessagePipelineDependencyBuilder messagePipelineDependencyBuilder,
             Func<IServiceProvider, IMessageDeserialiser> messageDeserialiser)
         {
-            if (globalPolicyBuilder == null)
-            {
-                globalPolicyBuilder = new PatLiteGlobalPolicyBuilder()
-                    .AddPolicy<MonitoringPolicy.MonitoringPolicy>()
-                    .AddPolicy<StandardPolicy>();
-            }
 
-            if (messagePolicyBuilder == null)
-            {
-                messagePolicyBuilder = new PatLiteMessagePolicyBuilder()
-                    .AddPolicy<DefaultMessageProcessingPolicy>();
-            }
-
-            messagePolicyBuilder.RegisterPolicies(serviceCollection);
-            globalPolicyBuilder.RegisterPolicies(serviceCollection);
+            messagePipelineDependencyBuilder?.RegisterTypes(serviceCollection);
+            batchMessageProcessingBehaviourBuilder?.RegisterTypes(serviceCollection);
             var deserialisationResolver = messageDeserialiser ?? (provider => new NewtonsoftMessageDeserialiser());
 
             serviceCollection.AddTransient<IMessageDependencyResolver, MessageDependencyResolver>()
                 .AddTransient<IMessageProcessor, MessageProcessor>()
-                .AddScoped<IMessageContext, MessageContext>()
-                .AddTransient(globalPolicyBuilder.Build)
-                .AddScoped(messagePolicyBuilder.Build)
+                .AddScoped<DefaultMessageProcessingBehaviour>()
+                .AddScoped<InvokeHandlerBehaviour>()
+                .AddScoped(provider => provider.GetService<IMessageDependencyResolver>().BeginScope())
+                .AddScoped(provider => new MessageContext())
+                .AddSingleton(provider => batchMessageProcessingBehaviourBuilder != null ? batchMessageProcessingBehaviourBuilder.Build(provider) :
+                    new BatchProcessingBehaviourPipeline()
+                        .AddBehaviour<MonitoringPolicy.MonitoringBatchProcessingBehaviour>(provider)
+                        .AddBehaviour<DefaultBatchProcessingBehaviour>(provider))
+                .AddSingleton(provider => messagePipelineDependencyBuilder != null ? messagePipelineDependencyBuilder.Build(provider) :
+                    new MessageProcessingBehaviourPipeline()
+                        .AddBehaviour<DefaultMessageProcessingBehaviour>(provider)
+                        .AddBehaviour<InvokeHandlerBehaviour>(provider))
                 .AddScoped(deserialisationResolver)
                 .AddSingleton<Subscriber>();
 

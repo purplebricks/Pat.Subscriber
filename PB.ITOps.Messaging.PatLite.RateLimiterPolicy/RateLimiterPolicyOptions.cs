@@ -4,11 +4,11 @@
     {
         public IThrottler Throttler { get; set; } = new DefaultThrottler();
         public ITimer Timer { get; set; } = new StopWatchWrapper();
-        public RateLimiterPolicyConfiguration PolicyConfiguration { get; set; }
+        public RateLimiterConfiguration Configuration { get; set; }
 
-        public RateLimiterPolicyOptions(RateLimiterPolicyConfiguration policyConfiguration)
+        public RateLimiterPolicyOptions(RateLimiterConfiguration configuration)
         {
-            PolicyConfiguration = policyConfiguration;
+            Configuration = configuration;
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 
 namespace PB.ITOps.Messaging.PatLite
 {
     public interface IMessageProcessor
     {
-        Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy globalPolicy);
+        Task ProcessMessage(Message message, IMessageReceiver messageReceiver);
     }
 }

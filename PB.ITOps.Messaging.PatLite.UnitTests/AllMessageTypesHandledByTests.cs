@@ -42,7 +42,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         {
             var messageTypes = AssemblyScanner.AllMessageTypesHandledBy(typeof(BaseEventHandler)).ToArray();
 
-            Assert.Equal(1, messageTypes.Length);
+            Assert.Single(messageTypes);
             Assert.Contains(typeof(Eventv1), messageTypes);
         }
     }

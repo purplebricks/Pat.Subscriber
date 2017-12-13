@@ -24,7 +24,7 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
         }
 
         public static IEnumerable<Type> AllTypesInAssemblies(Assembly[] assembliesToScan)
-            => assembliesToScan.SelectMany(assembly => assembly.DefinedTypes);
+            => assembliesToScan.SelectMany(assembly => assembly.DefinedTypes.Select(x => x.AsType()));
 
         public static IEnumerable<Type> AllMessageTypesHandledBy(Type possibleHandlerType)
             => possibleHandlerType
@@ -33,7 +33,7 @@ namespace PB.ITOps.Messaging.PatLite.MessageMapping
                 .Select(handlesInterface => handlesInterface.GenericTypeArguments[0]);
 
         private static bool IsHandlerInterface(Type type)
-            => type.IsGenericType
+            => type.IsConstructedGenericType
                && type.GetGenericTypeDefinition() == typeof(IHandleEvent<>);
 
         public static IEnumerable<MessageTypeMapping> AddDerivedTypeMappings(IEnumerable<MessageTypeMapping> mappedMessageTypes, Type[] allTypes)

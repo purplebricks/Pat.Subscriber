@@ -5,10 +5,10 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="0.1.2" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="1.5.32" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender.Encryption" Version="0.1.22" />
-    <PackageReference Include="PurplebricksStatsdClient" Version="5.1.16" />
+    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="1.0.4" />
+    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="2.0.34" />
+    <PackageReference Include="PB.ITOps.Messaging.PatSender.Encryption" Version="2.0.34" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.Encryption\PB.ITOps.Messaging.PatLite.Encryption.csproj" />

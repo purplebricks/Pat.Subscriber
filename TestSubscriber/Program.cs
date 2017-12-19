@@ -32,7 +32,7 @@ namespace TestSubscriber
             };
 
             var container = Initialize();
-            
+
             var messagePublisher = container.GetInstance<IMessagePublisher>();
 
             await messagePublisher.PublishEvent(new MyEvent1(), new MessageProperties("")
@@ -51,7 +51,7 @@ namespace TestSubscriber
         public static IContainer Initialize()
         {
             var connection = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=***REMOVED***";
-            var topicName = "pat"; 
+            var topicName = "pat";
 
             var subscriberConfig = new SubscriberConfiguration
             {
@@ -80,7 +80,7 @@ namespace TestSubscriber
             StatsDConfiguration.Initialize(new StatsDConfiguration.Settings
             {
                 Environment = "local",
-                StatsDHost = "statsd-statsd-monitoring-tm-we-pb.trafficmanager.net",
+                StatsDHost = "***REMOVED***",
                 Tenant = "uk"
             });
 

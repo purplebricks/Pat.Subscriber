@@ -9,6 +9,7 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessingPolicy
         IMessageProcessingPolicy NextPolicy { get; }
         Task OnMessageHandlerCompleted(BrokeredMessage message, string body);
         Task OnMessageHandlerFailed(BrokeredMessage message, string body, Exception ex);
+        Task OnMessageHandlerStarted(BrokeredMessage message, string body);
         IMessageProcessingPolicy AppendPolicy(IMessageProcessingPolicy nextPolicy);
     }
 }

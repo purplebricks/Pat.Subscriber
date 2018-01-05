@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PB.ITOps.Messaging.PatLite.IoC
 {
@@ -28,5 +29,10 @@ namespace PB.ITOps.Messaging.PatLite.IoC
         /// <remarks>The services in PB.ITOps.Messaging.PatSender set this to a new Guid</remarks>
         /// </summary>
         string MessageId { get; set; }
+
+        /// <summary>
+        /// Indicates the time of message sent in UTC
+        /// </summary>
+        DateTime MessageEnqueuedTimeUtc { get; set; }
     }
 }

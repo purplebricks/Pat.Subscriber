@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PB.ITOps.Messaging.PatLite.IoC
 {
@@ -10,5 +11,6 @@ namespace PB.ITOps.Messaging.PatLite.IoC
         public string DomainUnderTest { get; set; }
         public IDictionary<string, object> CustomProperties { get; set; }
         public string MessageId { get; set; }
+        public DateTime MessageEnqueuedTimeUtc { get; set; }
     }
 }

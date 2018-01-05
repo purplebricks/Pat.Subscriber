@@ -45,6 +45,25 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessingPolicy
         /// <param name="ex"></param>
         /// <returns></returns>
         protected abstract Task<bool> MessageHandlerFailed(BrokeredMessage message, string body, Exception ex);
+       
+        public async Task OnMessageHandlerStarted(BrokeredMessage message, string body)
+        {
+            if (await MessageHandlerStarted(message, body))
+            {
+                var onStarted = NextPolicy?.OnMessageHandlerStarted(message, body);
+                if (onStarted != null) await onStarted;
+            }
+        }
+
+        /// <summary>
+        /// Action to take before message handling is started.
+        /// Return true to allow next policy in line to be called
+        /// Return false to short-circuit further processing
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        protected abstract Task<bool> MessageHandlerStarted(BrokeredMessage message, string body);
 
         public IMessageProcessingPolicy AppendPolicy(IMessageProcessingPolicy nextPolicy)
         {

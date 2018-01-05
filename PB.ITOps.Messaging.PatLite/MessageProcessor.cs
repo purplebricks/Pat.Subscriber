@@ -37,6 +37,7 @@ namespace PB.ITOps.Messaging.PatLite
                 ctx.Synthetic = message.Properties.ContainsKey("Synthetic") && bool.Parse(message.Properties["Synthetic"].ToString());
                 ctx.DomainUnderTest = message.Properties.ContainsKey("DomainUnderTest") ? message.Properties["DomainUnderTest"].ToString(): null;
                 ctx.MessageId = message.MessageId;
+                ctx.MessageEnqueuedTimeUtc = message.EnqueuedTimeUtc;
 
                 ProcessCustomProperties(message, ctx);
 
@@ -47,6 +48,8 @@ namespace PB.ITOps.Messaging.PatLite
 
                 try
                 {
+                    await messageProcessingPolicy.OnMessageHandlerStarted(message, messageBody);
+
                     var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
                     var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
 

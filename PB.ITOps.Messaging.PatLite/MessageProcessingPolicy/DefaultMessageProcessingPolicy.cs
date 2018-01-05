@@ -32,5 +32,11 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessingPolicy
             _log.Info($"Message {message.SequenceNumber} failed", ex);
             return Task.FromResult(true);
         }
+
+        protected override Task<bool> MessageHandlerStarted(BrokeredMessage message, string body)
+        {
+            _log.Info($"{_config.SubscriberName} Message Handling Started {message.SequenceNumber}: {message.ContentType}");
+            return Task.FromResult(true);
+        }
     }
 }

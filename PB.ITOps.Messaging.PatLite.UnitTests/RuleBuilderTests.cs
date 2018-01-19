@@ -25,11 +25,11 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         public void GenerateSubscriptionRule_ForSingleEvent()
         {
             var eventName = "TestEvent";
-            var messagesTypes = new[] {eventName};
-            
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
+            var messagesTypes = new[] { eventName };
 
-            var filter = ((SqlFilter) rule.Filter).SqlExpression;
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
+
+            var filter = ((SqlFilter)rules.First().Filter).SqlExpression;
             Assert.Contains($"'{eventName}'", filter);
         }
 
@@ -43,9 +43,9 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
                 messagesTypes.Add($"TestEvent{i}");
             }
 
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
 
-            var filter = ((SqlFilter)rule.Filter).SqlExpression;
+            var filter = ((SqlFilter)rules.First().Filter).SqlExpression;
             for (int i = 0; i < 10; i++)
             {
                 Assert.Contains($"'{messagesTypes[i]}'", filter);
@@ -53,98 +53,173 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         }
 
         [Fact]
-        public void BuildRules_ExistingRuleIsUpToDate_DoesNotChangeRules()
+        public void ApplyRuleChanges_ExistingRulesAreUpToDate_DoesNotChangeRules()
         {
             var messagesTypes = new[] { "TestEvent" };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
-            _ruleBuilder.BuildRules(rule, new [] { rule }, messagesTypes);
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName).ToArray();
+            _ruleBuilder.ApplyRuleChanges(rules, rules, messagesTypes);
 
             _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(null);
             _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
         }
 
         [Fact]
-        public void BuildRules_NoExistingRules_CallAddRule()
+        public void ApplyRuleChanges_NoExistingRules_CallAddRule()
         {
             var messagesTypes = new[] { "TestEvent" };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
-            _ruleBuilder.BuildRules(rule, new RuleDescription [] { }, messagesTypes);
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName).ToArray();
 
-            _ruleApplier.Received(1).AddRule(rule);
+            _ruleBuilder.ApplyRuleChanges(rules, new RuleDescription[] { }, messagesTypes);
+            _ruleApplier.Received(1).AddRule(rules.First());
             _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
-        }
-
-        [Fact]
-        public void BuildRules_ExistingRuleMissingNewEvent_WhenSameVersion_ThrowsException()
-        {
-            var oldMessageTypes = new[] { "TestEvent" };
-            var newMessageTypes = oldMessageTypes.Union(new[] {"NewEvent"}).ToArray();
-
-            var existingRule = _ruleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
-
-            Assert.Throws<InvalidOperationException>(
-                () => _ruleBuilder.BuildRules(newRule, new[] {existingRule}, newMessageTypes));
-        }
-
-        [Fact]
-        public void BuildRules_ExistingRuleMissingNewEvent_WhenNewVersion_AddsNewRule()
-        {
-            var oldMessageTypes = new[] { "TestEvent" };
-            var newMessageTypes = oldMessageTypes.Union(new[] { "NewEvent" }).ToArray();
-
-            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
-            oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
-            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
-            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
-
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
-
-            _ruleBuilder.BuildRules(newRule, new[] { existingRule }, newMessageTypes);
-
-            _ruleApplier.Received(1).AddRule(newRule);
-        }
-
-        [Fact]
-        public void BuildRules_ExistingRuleMissingNewEvent_WhenNewVersion_RemovesOldRule()
-        {
-            var oldMessageTypes = new[] { "TestEvent" };
-            var newMessageTypes = oldMessageTypes.Union(new[] { "NewEvent" }).ToArray();
-
-            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
-            oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
-            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
-            var existingRule = oldRuleBuilder.GenerateSubscriptionRule(oldMessageTypes, _handlerName);
-
-            var newRule = _ruleBuilder.GenerateSubscriptionRule(newMessageTypes, _handlerName);
-
-            _ruleBuilder.BuildRules(newRule, new[] { existingRule }, newMessageTypes);
-
-            _ruleApplier.Received(1).RemoveRule(existingRule);
         }
 
         [Fact]
         public void GenerateSubscriptionRule_ContainsSyntheticCheck()
         {
-            var eventName = "TestEvent";
-            var messagesTypes = new[] { eventName };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, _handlerName);
+            var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
 
-            var filter = ((SqlFilter)rule.Filter).SqlExpression;
-            Assert.Contains("(NOT EXISTS(Synthetic) OR Synthetic <> 'true' ", filter);
+            foreach (var rule in rules)
+            {
+                var filter = ((SqlFilter)rule.Filter).SqlExpression;
+                Assert.Contains("(NOT EXISTS(Synthetic) OR Synthetic <> 'true' ", filter);
+            }
         }
 
         [Fact]
-        public void GenerateSubscriptionRule_ContainsDomainUnderTestComparisonBAseOnHandlerName()
+        public void GenerateSubscriptionRule_ContainsDomainUnderTestComparisonBaseOnHandlerName()
         {
-            var eventName = "TestEvent";
             var handlerName = "PB.Offer.Sales.BuyerQualification.Handler";
-            var messagesTypes = new[] { eventName };
-            var rule = _ruleBuilder.GenerateSubscriptionRule(messagesTypes, handlerName);
+            var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerName);
 
-            var filter = ((SqlFilter)rule.Filter).SqlExpression;
-            
-            Assert.Contains($"'{handlerName}.' like DomainUnderTest +'%'", filter);
+            foreach (var rule in rules)
+            {
+                var filter = ((SqlFilter)rule.Filter).SqlExpression;
+                Assert.Contains($"'{handlerName}.' like DomainUnderTest +'%'", filter);
+            }
+        }
+
+        [Fact]
+        public void GeneratesMultipleSubscriptionRules_WhenMaximumRuleLengthExceeded()
+        {
+            var rules = _ruleBuilder.GenerateSubscriptionRules(CreateEnoughMessageTypesToSpanMultipleRules(), _handlerName);
+            Assert.Equal(rules.Count(), 3);
+        }
+
+        private List<string> CreateEnoughMessageTypesToSpanMultipleRules()
+        {
+            var countOfMessageTypes = 40;
+            var messageTypes = new List<string>(countOfMessageTypes);
+            for (var i = 0; i < countOfMessageTypes; i++)
+            {
+                messageTypes.Add($"TestNamespace.TestRuleName.TestEvent{i}");
+            }
+
+            return messageTypes;
+        }
+
+        private void WhenAssemblyVersionChangesOnMultipleRules()
+        {
+            var oldMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+            var newMessageTypes = oldMessageTypes.ToArray().Union(new[] { "NewEvent" }).ToArray();
+
+            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
+            oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
+
+            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
+            var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
+
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
+
+            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+        }
+
+        [Fact]
+        public void WhenAssemblyVersionChangesOnMultipleRules_NewRulesAdded()
+        {
+            WhenAssemblyVersionChangesOnMultipleRules();
+            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
+            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_1_0_0"));
+            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
+        }
+
+        [Fact]
+        public void WhenAssemblyVersionChangesOnMultipleRules_OldRulesRemoved()
+        {
+            WhenAssemblyVersionChangesOnMultipleRules();
+            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_0_1_0"));
+            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_0_1_0"));
+            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_0_1_0"));
+        }
+
+        [Fact]
+        public void WhenAssemblyVersionUnchanged_AndANewMessageTypeAdded_ExceptionIsThrown()
+        {
+            var expectedMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+
+            var existingRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes.Skip(1), _handlerName).ToArray();
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).ToArray();
+
+            Assert.Throws<InvalidOperationException>(
+                () => _ruleBuilder.ApplyRuleChanges(newRules, existingRules, expectedMessageTypes.ToArray()));
+
+            _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
+            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
+        }
+
+        [Fact]
+        public void WhenAssemblyVersionUnchanged_ButARuleFailedToDeployOnPreviousAttempt_MissingRuleIsAdded()
+        {
+            var expectedMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+
+            var existingRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).Take(2).ToArray();
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).ToArray();
+
+            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, expectedMessageTypes.ToArray());
+
+            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
+        }
+
+        [Fact]
+        public void WhenCurrentAssemblyVersionIsLowerThanExistingRulesVersion_NoRuleChangesAreMade()
+        {
+            var oldMessageTypes = new[] { "NewEvent" };
+            var newMessageTypes = new[] { "NewEvent" };
+
+            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
+            oldRuleVersionResolver.GetVersion().Returns(new Version(2, 0, 0));
+
+            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
+            var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
+
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
+            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+
+            _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
+            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
+        }
+
+        [Fact]
+        public void WhenRuleNameIsInOldFormatAndIsOlderVersion_NewRuleAddedAndOldRuleRemoved()
+        {
+            var oldMessageTypes = new[] { "NewEvent" };
+            var newMessageTypes = new[] { "NewEvent" };
+
+            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
+            oldRuleVersionResolver.GetVersion().Returns(new Version(0, 1, 0));
+
+            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
+            var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
+
+            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0";
+
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
+            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+
+            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
+            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
         }
     }
 }

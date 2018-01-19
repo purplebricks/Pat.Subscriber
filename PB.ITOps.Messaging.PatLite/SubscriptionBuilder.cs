@@ -61,22 +61,29 @@ namespace PB.ITOps.Messaging.PatLite
             }
 
             var client = SubscriptionClient.CreateFromConnectionString(connectionString, topicName, _config.SubscriberName);
-            RuleBuilder ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), _subscriptionRuleVersionResolver, _config.SubscriberName);
+            var ruleApplier = new RuleApplier(_log, client);
 
-            var newRule = ruleBuilder.GenerateSubscriptionRule(messagesTypes, handlerFullName);
+            var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
+
+            var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
 
             if (!namespaceManager.SubscriptionExists(topicName, _config.SubscriberName))
             {
                 _log.Info($"Subscription '{_config.SubscriberName}' does not exist on topic '{topicName}', creating subscription...");
-                namespaceManager.CreateSubscription(subscriptionDescription, newRule);
+                CreateSubscriptionReadyToReceiveRules(subscriptionDescription, namespaceManager);
             }
-            else
-            {
-                _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
-                var existingRules = namespaceManager.GetRules(topicName, _config.SubscriberName).ToArray();
-                ruleBuilder.BuildRules(newRule, existingRules, messagesTypes);
-            }
-        
+
+            _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
+            var rulesCurrentlyDefinedInServiceBus = namespaceManager.GetRules(topicName, _config.SubscriberName).ToArray();
+
+            ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus, messagesTypes);
+        }
+
+        private static void CreateSubscriptionReadyToReceiveRules(SubscriptionDescription subscriptionDescription, NamespaceManager namespaceManager)
+        {
+            // Create a temporary rule description because this API doesn't allow us to create many rules when the subscription
+            // is created.
+            namespaceManager.CreateSubscription(subscriptionDescription, new RuleDescription("$Default", new SqlFilter("1=0")));
         }
     }
 }

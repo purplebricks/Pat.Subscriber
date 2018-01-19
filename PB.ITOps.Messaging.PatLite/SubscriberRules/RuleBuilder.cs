@@ -17,105 +17,182 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             _subscriberName = subscriberName;
             _version = ruleVersionResolver.GetVersion();
         }
-
-        private void ValidateRules(string[] messagesTypes, RuleDescription[] existingRules)
+        
+        private static string GenerateSyntheticFilterClause(string handlerFullName)
         {
-            foreach (var messagesTypeFilter in messagesTypes)
-            {
-                if (!existingRules.Any(r =>
-                {
-                    var filter = ((SqlFilter)r.Filter).SqlExpression;
-                    return filter.Contains($"'{messagesTypeFilter}'");
-                }))
-                {
-                    throw new InvalidOperationException($"subscriber {_subscriberName} does not have a filter for message type '{messagesTypeFilter}'");
-                }
-            }
-        }
-
-        private static string GenerateSyntheticFilterRules(string handlerFullName)
-        {
-            var sythenticFilter = "";
+            var syntheticFilter = "";
             if (handlerFullName != null)
             {
-                sythenticFilter = $"'{handlerFullName}.' like DomainUnderTest +'%'";
+                syntheticFilter = $"'{handlerFullName}.' like DomainUnderTest +'%'";
             }
-            return  $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true' OR {sythenticFilter} )";
+
+            if (string.IsNullOrEmpty(syntheticFilter))
+            {
+                return $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true')";
+            }
+
+            return $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true' OR {syntheticFilter})";
         }
 
-        private static string GenerateMessageTypeFilterRules(IEnumerable<string> messagesTypeFilters)
+        public List<string> GenerateMessageTypeFilterClause(IEnumerable<string> messagesTypeFilters, int initialFilterLength)
         {
-            var typeFilters = messagesTypeFilters as string[] ?? messagesTypeFilters.ToArray();
-            var customMessageTypeRule = $"MessageType IN ('{string.Join("','", typeFilters)}')";
-            return customMessageTypeRule;
+            const int maxRuleLength = 1024;
+            const int messageTypeFilterPrefixLengthOverhead = 20;
+
+            var filterLength = initialFilterLength + messageTypeFilterPrefixLengthOverhead;
+
+            var messageTypes = new List<string>();
+            var rules = new List<string>();
+            string customMessageTypeRule;
+
+            foreach (var item in messagesTypeFilters)
+            {
+                if (filterLength + item.Length < maxRuleLength)
+                {
+                    var newItem = $"'{item}',";
+                    messageTypes.Add(newItem);
+                    filterLength += newItem.Length;
+                }
+                else
+                {
+                    var newItem = $"'{item}',";
+
+                    customMessageTypeRule = messageTypes.Any() ? $"MessageType IN ({string.Join("", messageTypes.ToArray()).TrimEnd(',')})" : $"MessageType IN ('{item}')";
+                    rules.Add(customMessageTypeRule);
+                    messageTypes.Clear();
+                    messageTypes.Add(newItem);
+                    filterLength = initialFilterLength + messageTypeFilterPrefixLengthOverhead + newItem.Length;
+                }
+            }
+
+            if (messageTypes.Any())
+            {
+                customMessageTypeRule = $"MessageType IN ({string.Join("", messageTypes.ToArray()).TrimEnd(',')})";
+                rules.Add(customMessageTypeRule);
+            }
+
+            return rules;
         }
 
-        private static string GenerateSubsciberFilterRule(string subscriberName)
+        private static string GenerateSubscriberFilterClause(string subscriberName)
         {
             return $"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{subscriberName}')";
         }
 
-        public RuleDescription GenerateSubscriptionRule(IEnumerable<string> messagesTypeFilters, string handlerFullName)
+        public IEnumerable<RuleDescription> GenerateSubscriptionRules(IEnumerable<string> messagesTypeFilters, string handlerFullName)
         {
-            var specificSubscriberOrAllRule = GenerateSubsciberFilterRule(_subscriberName);
-            var customMessageTypeRule = GenerateMessageTypeFilterRules(messagesTypeFilters);
-            var sythenticFilter = GenerateSyntheticFilterRules(handlerFullName);
+            var specificSubscriberOrAllRule = GenerateSubscriberFilterClause(_subscriberName);
+            var sythenticFilter = GenerateSyntheticFilterClause(handlerFullName);
 
-            var combinedRules = $"({customMessageTypeRule}) AND {specificSubscriberOrAllRule} AND {sythenticFilter}";
+            // Get the length of the specific and synthetic rules
+            var filterLength = $" AND {specificSubscriberOrAllRule} AND {sythenticFilter}".Length;
+            var customMessageTypes = GenerateMessageTypeFilterClause(messagesTypeFilters, filterLength);
 
-            var rule = new RuleDescription($"{_subscriberName}_{_version.Major}_{_version.Minor}_{_version.Build}")
+            var rules = new List<RuleDescription>();
+            var count = 1;
+
+            foreach (var item in customMessageTypes)
             {
-                Filter = new SqlFilter(combinedRules)
-            };
+                rules.Add(new RuleDescription($"{count}_v_{_version.Major}_{_version.Minor}_{_version.Build}")
+                {
+                    Filter = new SqlFilter($"{item} AND {specificSubscriberOrAllRule} AND {sythenticFilter}")
+                });
+                count++;
+            }
 
-            return rule;
+            return rules;
         }
 
-        public void BuildRules(RuleDescription newRule, RuleDescription[] existingRules, string[] messagesTypes)
+        public void ApplyRuleChanges(RuleDescription[] newRules, RuleDescription[] existingRules, string[] messagesTypes)
         {
-            if (!existingRules.Any())
+            var newRulesAlreadyPresent = new List<Rule>();
+
+            foreach (var newRuleDescription in newRules)
             {
-                _ruleApplier.AddRule(newRule);
+                //var existingRuleWithSameName =
+                //    existingRules.SingleOrDefault(existingRule => GetRuleVersion(existingRule.Name).Item1 == GetRuleVersion(newRule.Name).Item1);
+
+                var existingRulesWithSameName = new List<Rule>();
+
+                foreach (var ruleDescription in existingRules)
+                {
+                    var oldRule = GetRuleVersion(ruleDescription);
+                    var newRule = GetRuleVersion(newRuleDescription);
+
+                    if (oldRule.RuleDescription.Name == newRule.RuleDescription.Name)
+                    {
+                        existingRulesWithSameName.Add(oldRule);
+                        break;
+                    }
+
+                    if (oldRule.Name == newRule.Name && oldRule.Version >= newRule.Version)
+                    {
+                        existingRulesWithSameName.Add(oldRule);
+                        break;
+                    }
+                }
+
+                if (!existingRulesWithSameName.Any())
+                {
+                    continue;
+                }
+
+                newRulesAlreadyPresent.Add(GetRuleVersion(newRuleDescription));
+
+                if (((SqlFilter)existingRulesWithSameName.First().RuleDescription.Filter).SqlExpression !=
+                    ((SqlFilter)newRuleDescription.Filter).SqlExpression)
+                {
+                    throw new InvalidOperationException("Message types inside the assembly have changed, but the assembly version number has not.");
+                }
+            }
+
+            if (newRulesAlreadyPresent.Count == newRules.Length)
+            {
                 return;
             }
 
-            var newVersion = new Version(_version.Major, _version.Minor, _version.Build);
-
-            var oldRulesToRemove = existingRules.Where(r =>
+            foreach (var newRule in GetNewRulesNotAlreadyPresent(newRules, newRulesAlreadyPresent.Select(x => x.RuleDescription.Name)))
             {
-                var filterIsDifferent = ((SqlFilter) r.Filter).SqlExpression != ((SqlFilter) newRule.Filter).SqlExpression;
-                var versionData = r.Name.Equals("$Default") ? new[] {"$Default", "0", "0", "0"} : r.Name.Split('_');
-
-                if (versionData.Length < 4)
-                {
-                    throw new InvalidOperationException(
-                        $"Could not parse the subscription rule version number for rule {r.Name}. The existing subscription may have been created using old Pat which uses a different version number format. Please manually review the subscription and delete it if an upgrade is safe and messages will not be lost.");
-                }
-
-                var existingVersion = new Version(int.Parse(versionData[1]), int.Parse(versionData[2]),
-                    int.Parse(versionData[3]));
-                var isOldVersion = existingVersion < newVersion;
-                return filterIsDifferent && isOldVersion;
-            }).ToArray();
-
-            var rulesToRemain = existingRules.Except(oldRulesToRemove).ToArray();
-            if (rulesToRemain.Any())
-            {
-                ValidateRules(messagesTypes, rulesToRemain);
+                _ruleApplier.AddRule(newRule);
             }
 
-            if (oldRulesToRemove.Any())
+            foreach (var existingRule in GetOutdatedExistingRules(existingRules, newRules))
             {
-                if (!rulesToRemain.Any())
-                {
-                    _ruleApplier.AddRule(newRule);
-                }
-
-                foreach (var oldRule in oldRulesToRemove)
-                {
-                    _ruleApplier.RemoveRule(oldRule);
-                }
+                _ruleApplier.RemoveRule(existingRule);
             }
         }
+
+        private static Rule GetRuleVersion(RuleDescription ruleDescription)
+        {
+            var reversedRuleName = ruleDescription.Name.Split('_').Reverse().ToList();
+
+            var rule = new Rule
+            {
+                RuleDescription = ruleDescription,
+                Version = new Version(int.Parse(reversedRuleName[2]), int.Parse(reversedRuleName[1]),
+                    int.Parse(reversedRuleName[0]))
+            };
+
+            rule.Name = ruleDescription.Name.Replace("_" + rule.Version.ToString().Replace(".", "_"), "");
+            return rule;
+        }
+
+        private static IEnumerable<RuleDescription> GetNewRulesNotAlreadyPresent(
+            IEnumerable<RuleDescription> newRules,
+            IEnumerable<string> newRulesAlreadyPresent)
+                => newRules.Where(r => !newRulesAlreadyPresent.Contains(r.Name));
+
+        private static IEnumerable<RuleDescription> GetOutdatedExistingRules(
+            IEnumerable<RuleDescription> existingRules,
+            IEnumerable<RuleDescription> newRules)
+            => existingRules.Where(
+                r => newRules.All(newRule => r.Name != newRule.Name));
+    }
+
+    public class Rule
+    {
+        public RuleDescription RuleDescription { get; set; }
+        public string Name { get; set; }
+        public Version Version { get; set; }
     }
 }

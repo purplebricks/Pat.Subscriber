@@ -33,8 +33,12 @@ namespace PB.ITOps.Messaging.PatLite
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
         public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
-            Initialise(handlerAssemblies);
+            if (handlerAssemblies == null)
+            {
+                handlerAssemblies = new[] { Assembly.GetCallingAssembly() };
+            }
 
+            Initialise(handlerAssemblies);
             ListenForEvents(tokenSource);
         }
 
@@ -44,11 +48,6 @@ namespace PB.ITOps.Messaging.PatLite
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
         public void Initialise(Assembly[] handlerAssemblies)
         {
-            if (handlerAssemblies == null)
-            {
-                handlerAssemblies = new[] { Assembly.GetCallingAssembly() };
-            }
-
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
             var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();

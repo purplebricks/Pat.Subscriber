@@ -63,6 +63,7 @@ namespace PB.ITOps.Messaging.PatLite
                 var handler = MessageMapper.GetHandlerForMessageType(messagesTypes.First()).HandlerType;
                 handlerName = handler.FullName;
             }
+
             builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
         }
 

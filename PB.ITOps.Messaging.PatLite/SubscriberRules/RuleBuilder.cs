@@ -109,9 +109,6 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
 
             foreach (var newRuleDescription in newRules)
             {
-                //var existingRuleWithSameName =
-                //    existingRules.SingleOrDefault(existingRule => GetRuleVersion(existingRule.Name).Item1 == GetRuleVersion(newRule.Name).Item1);
-
                 var existingRulesWithSameName = new List<Rule>();
 
                 foreach (var ruleDescription in existingRules)
@@ -162,8 +159,17 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             }
         }
 
-        private static Rule GetRuleVersion(RuleDescription ruleDescription)
+        public static Rule GetRuleVersion(RuleDescription ruleDescription)
         {
+            if (ruleDescription.Name == "$Default")
+            {
+                return new Rule
+                {
+                    RuleDescription = ruleDescription,
+                    Version = new Version(1, 0)
+                };
+            }
+
             var reversedRuleName = ruleDescription.Name.Split('_').Reverse().ToList();
 
             var rule = new Rule

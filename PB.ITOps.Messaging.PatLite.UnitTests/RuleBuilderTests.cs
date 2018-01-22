@@ -221,5 +221,18 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
             _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
         }
+
+        [Fact]
+        public void WhenRuleIsDefault_GetRuleVersionShouldReturnValidVersion()
+        {
+            var rule = new RuleDescription
+            {
+                Name = "$Default",
+                Filter = new SqlFilter("1=0")
+            };
+
+            var ruleVersion = RuleBuilder.GetRuleVersion(rule);
+            Assert.Equal(new Version(1, 0), ruleVersion.Version);
+        }
     }
 }

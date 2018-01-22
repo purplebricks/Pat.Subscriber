@@ -46,7 +46,7 @@ namespace TestSubscriber
             });
 
             var subscriber = container.GetInstance<Subscriber>();
-            subscriber.Run(tokenSource, new[] { Assembly.GetExecutingAssembly() });
+            subscriber.Run(tokenSource);
         }
 
         public static IContainer Initialize()

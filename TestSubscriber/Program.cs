@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.DataProtection;
@@ -45,7 +46,7 @@ namespace TestSubscriber
             });
 
             var subscriber = container.GetInstance<Subscriber>();
-            subscriber.Run(tokenSource);
+            subscriber.Run(tokenSource, new[] { Assembly.GetExecutingAssembly() });
         }
 
         public static IContainer Initialize()

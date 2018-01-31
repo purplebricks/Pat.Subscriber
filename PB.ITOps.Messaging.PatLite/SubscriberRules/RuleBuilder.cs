@@ -104,7 +104,7 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             return rules;
         }
 
-        public async Task BuildRules(RuleDescription[] newRules, RuleDescription[] existingRules, string[] messagesTypes)
+        public async Task ApplyRuleChanges(RuleDescription[] newRules, RuleDescription[] existingRules, string[] messagesTypes)
         {
             var newRulesAlreadyPresent = new List<Rule>();
 
@@ -151,12 +151,12 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
 
             foreach (var newRule in GetNewRulesNotAlreadyPresent(newRules, newRulesAlreadyPresent.Select(x => x.RuleDescription.Name)))
             {
-                _ruleApplier.AddRule(newRule);
+                await _ruleApplier.AddRule(newRule);
             }
 
             foreach (var existingRule in GetOutdatedExistingRules(existingRules, newRules))
             {
-                _ruleApplier.RemoveRule(existingRule);
+                await _ruleApplier.RemoveRule(existingRule);
             }
         }
 

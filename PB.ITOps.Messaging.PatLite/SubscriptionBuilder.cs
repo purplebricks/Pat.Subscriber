@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using log4net;
 using Microsoft.Azure.ServiceBus;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
@@ -54,33 +55,15 @@ namespace PB.ITOps.Messaging.PatLite
             var topicName = _config.EffectiveTopicName;
 
             var client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
-
-            var ruleBuilder = new RuleBuilder(new RuleApplier(_log, client), _subscriptionRuleVersionResolver, _config.SubscriberName);
-
+         
             var ruleApplier = new RuleApplier(_log, client);
-
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
-            var existingRules = await client.GetRulesAsync();
 
             var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
-
-            if (!namespaceManager.SubscriptionExists(topicName, _config.SubscriberName))
-            {
-                _log.Info($"Subscription '{_config.SubscriberName}' does not exist on topic '{topicName}', creating subscription...");
-                CreateSubscriptionReadyToReceiveRules(subscriptionDescription, namespaceManager);
-            }
+            var rulesCurrentlyDefinedInServiceBus = await client.GetRulesAsync();
 
             _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
-            var rulesCurrentlyDefinedInServiceBus = namespaceManager.GetRules(topicName, _config.SubscriberName).ToArray();
-
-            ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus, messagesTypes);
-        }
-
-        private static void CreateSubscriptionReadyToReceiveRules(SubscriptionDescription subscriptionDescription, NamespaceManager namespaceManager)
-        {
-            // Create a temporary rule description because this API doesn't allow us to create many rules when the subscription
-            // is created.
-            namespaceManager.CreateSubscription(subscriptionDescription, new RuleDescription("$Default", new SqlFilter("1=0")));
+            await ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus.ToArray(), messagesTypes);
         }
     }
 }

@@ -144,14 +144,12 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
                 }
             }
 
-            if (newRulesAlreadyPresent.Count == newRules.Length)
+            if (newRulesAlreadyPresent.Count < newRules.Length)
             {
-                return;
-            }
-
-            foreach (var newRule in GetNewRulesNotAlreadyPresent(newRules, newRulesAlreadyPresent.Select(x => x.RuleDescription.Name)))
-            {
-                await _ruleApplier.AddRule(newRule);
+                foreach (var newRule in GetNewRulesNotAlreadyPresent(newRules, newRulesAlreadyPresent.Select(x => x.RuleDescription.Name)))
+                {
+                    await _ruleApplier.AddRule(newRule);
+                }
             }
 
             foreach (var existingRule in GetOutdatedExistingRules(existingRules, newRules))
@@ -193,7 +191,7 @@ namespace PB.ITOps.Messaging.PatLite.SubscriberRules
             IEnumerable<RuleDescription> existingRules,
             IEnumerable<RuleDescription> newRules)
             => existingRules.Where(
-                r => newRules.All(newRule => r.Name != newRule.Name));
+                r => newRules.All(newRule => r.Name != newRule.Name && GetRuleVersion(r).Version <= GetRuleVersion(newRule).Version));
     }
 
     public class Rule

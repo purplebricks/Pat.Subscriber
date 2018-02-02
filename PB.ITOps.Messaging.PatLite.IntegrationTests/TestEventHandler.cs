@@ -6,10 +6,10 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
     public class TestEventHandler: IHandleEvent<TestEvent>
     {
-        private readonly IMessageContext _messageContext;
+        private readonly MessageContext _messageContext;
         public static List<CapturedEvent<TestEvent>> ReceivedEvents = new List<CapturedEvent<TestEvent>>();
 
-        public TestEventHandler(IMessageContext messageContext)
+        public TestEventHandler(MessageContext messageContext)
         {
             _messageContext = messageContext;
         }

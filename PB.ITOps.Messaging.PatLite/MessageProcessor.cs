@@ -1,110 +1,42 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using log4net;
-using Microsoft.ServiceBus.Messaging;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using PB.ITOps.Messaging.PatLite.IoC;
-using PB.ITOps.Messaging.PatLite.MessageMapping;
-using PB.ITOps.Messaging.PatLite.MessageProcessingPolicy;
-using PB.ITOps.Messaging.PatLite.Serialiser;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 
 namespace PB.ITOps.Messaging.PatLite
 {
     public class MessageProcessor: IMessageProcessor
     {
         private readonly IMessageDependencyResolver _messageDependencyResolver;
+        private readonly MessageProcessingBehaviourPipeline _pipeline;
 
-        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver)
+        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver, MessageProcessingBehaviourPipeline pipeline)
         {
             _messageDependencyResolver = messageDependencyResolver;
+            _pipeline = pipeline;
         }
-        public async Task ProcessMessage(BrokeredMessage message, ISubscriberPolicy globalPolicy)
+
+        public async Task ProcessMessage(Message message, IMessageReceiver messageReceiver)
         {
             using (var scope = _messageDependencyResolver.BeginScope())
             {
-                var messageTypeString = message.Properties["MessageType"].ToString();
-                var messageBody = await GetMessageBody(message);
-
-                var ctx = (IMessageContext)scope.GetService(typeof(IMessageContext));
-
-                ctx.CorrelationId = message.Properties.ContainsKey("PBCorrelationId")
-                    ? message.Properties["PBCorrelationId"].ToString()
+                var ctx = (MessageContext)scope.GetService(typeof(MessageContext));
+                ctx.CorrelationId = message.UserProperties.ContainsKey("PBCorrelationId")
+                    ? message.UserProperties["PBCorrelationId"].ToString()
                     : Guid.NewGuid().ToString();
-                ctx.MessageEncrypted = message.Properties.ContainsKey("Encrypted") && bool.Parse(message.Properties["Encrypted"].ToString());
-                ctx.Synthetic = message.Properties.ContainsKey("Synthetic") && bool.Parse(message.Properties["Synthetic"].ToString());
-                ctx.DomainUnderTest = message.Properties.ContainsKey("DomainUnderTest") ? message.Properties["DomainUnderTest"].ToString(): null;
-                ctx.MessageId = message.MessageId;
-                ctx.MessageEnqueuedTimeUtc = message.EnqueuedTimeUtc;
-
-                ProcessCustomProperties(message, ctx);
+                ctx.MessageEncrypted = message.UserProperties.ContainsKey("Encrypted") && bool.Parse(message.UserProperties["Encrypted"].ToString());
+                ctx.Synthetic = message.UserProperties.ContainsKey("Synthetic") && bool.Parse(message.UserProperties["Synthetic"].ToString());
+                ctx.DomainUnderTest = message.UserProperties.ContainsKey("DomainUnderTest") ? message.UserProperties["DomainUnderTest"].ToString() : null;
+                ctx.MessageReceiver = messageReceiver;
+                ctx.DependencyScope = scope;
+                ctx.Message = message;
 
                 LogicalThreadContext.Properties["CorrelationId"] = ctx.CorrelationId;
 
-                var messageProcessingPolicy = (IMessageProcessingPolicy)scope.GetService(typeof(IMessageProcessingPolicy));
-                var messageDeserialiser = (IMessageDeserialiser)scope.GetService(typeof(IMessageDeserialiser));
-
-                try
-                {
-                    await messageProcessingPolicy.OnMessageHandlerStarted(message, messageBody);
-
-                    var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
-                    var messageHandler = scope.GetService(handlerForMessageType.HandlerType);
-
-                    var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
-
-                    await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new [] { typedMessage });
-                        
-                    await messageProcessingPolicy.OnMessageHandlerCompleted(message, messageBody);
-                    await globalPolicy.OnMessageHandlerCompleted(message, messageBody);
-                }
-                catch (Exception ex)
-                {
-                    await messageProcessingPolicy.OnMessageHandlerFailed(message, messageBody, ex);
-                    await globalPolicy.OnMessageHandlerFailed(message, messageBody, ex);
-                }
-            }
-        }
-
-        private static async Task<string> GetMessageBody(BrokeredMessage message)
-        {
-            /*
-             * This is a work around to cope with two clients, one client 
-             * is publishing with a stream payload, the other is with a 
-             * string payload. Once all versions of the PB.ITOps.Messaging.PatSender 
-             * are on 1.5.28 or above this can be removed.
-             */
-            try
-            {
-                var clone = message.Clone();
-                return clone.GetBody<string>();
-            }
-            catch (SerializationException)
-            {
-                using (var messageStream = message.GetBody<Stream>())
-                {
-                    using (var reader = new StreamReader(messageStream))
-                    {
-                        return await reader.ReadToEndAsync();
-                    }
-                }
-            }
-        }
-
-        private static void ProcessCustomProperties(BrokeredMessage message, IMessageContext ctx)
-        {
-            foreach (var messageProperty in message.Properties)
-            {
-                if (messageProperty.Key != "PBCorrelationId" && messageProperty.Key != "Encrypted")
-                {
-                    if (ctx.CustomProperties == null)
-                    {
-                        ctx.CustomProperties = new Dictionary<string, object>();
-                    }
-                    ctx.CustomProperties.Add(messageProperty.Key, messageProperty.Value);
-                }
+                await _pipeline.Invoke(ctx);
             }
         }
     }

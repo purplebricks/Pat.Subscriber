@@ -5,17 +5,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.CicuitBreaker;
+using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.Encryption;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
-using PB.ITOps.Messaging.PatLite.IoC;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.RateLimiterPolicy;
-using PB.ITOps.Messaging.PatLite.Serialiser;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
 using PB.ITOps.Messaging.PatSender.Correlation;
 using PB.ITOps.Messaging.PatSender.Encryption;
-using Purplebricks.StatsD.Client;
 using StructureMap;
 
 namespace TestSubscriber
@@ -46,7 +46,7 @@ namespace TestSubscriber
             });
 
             var subscriber = container.GetInstance<Subscriber>();
-            subscriber.Run(tokenSource);
+            subscriber.ListenForMessages(tokenSource);
         }
 
         public static IContainer Initialize()
@@ -54,7 +54,7 @@ namespace TestSubscriber
             var connection = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=***REMOVED***";
             var topicName = "pat";
 
-            var subscriberConfig = new SubscriberConfiguration
+            var subscriberConfiguration = new SubscriberConfiguration
             {
                 ConnectionStrings = new[] { connection },
                 TopicName = topicName,
@@ -63,14 +63,6 @@ namespace TestSubscriber
                 BatchSize = 100,
                 UseDevelopmentTopic = true
             };
-            var options = new PatLiteOptions
-            {
-                SubscriberConfiguration = subscriberConfig,
-                GlobalPolicyBuilder = new PatLiteGlobalPolicyBuilder()
-                    .AddPolicy<RateLimiterPolicy>()
-                    .AddPolicy<StandardPolicy>()
-                    .AddPolicy<MonitoringPolicy>()
-            };
             var patSenderConfig = new PatSenderSettings
             {
                 PrimaryConnection = connection,
@@ -78,18 +70,30 @@ namespace TestSubscriber
                 UseDevelopmentTopic = true
             };
 
-            StatsDConfiguration.Initialize(new StatsDConfiguration.Settings
+            var statdConfig = new StatisticsReporterConfiguration
             {
                 Environment = "local",
                 StatsDHost = "***REMOVED***",
                 Tenant = "uk"
-            });
+            };
 
-            using (StatsDSender.StartTimer("IocStartup", $"Client=PatLite.{subscriberConfig.SubscriberName}"))
+            var statsReporter = new StatisticsReporter(statdConfig);
+
+            using (statsReporter.StartTimer("IocStartup", $"Client=PatLite.{subscriberConfiguration.SubscriberName}"))
             {
                 var container = new Container(x =>
                 {
-                    x.AddRegistry(new PatLiteRegistry(options));
+                    x.AddRegistry(new PatLiteRegistryBuilder()
+                        .DefineMessagePipeline()
+                            .With<CircuitBreakerMessageProcessingBehaviour>()
+                            .With<DefaultMessageProcessingBehaviour>()
+                            .With<InvokeHandlerBehaviour>()
+                        .DefineBatchPipeline()
+                            .With<RateLimiterBehaviour>()
+                            .With<CircuitBreakerBatchProcessingBehaviour>()
+                            .With<DefaultBatchProcessingBehaviour>()
+                        .Use(subscriberConfiguration)
+                        .Build());
                 });
 
                 container.Configure(x =>
@@ -99,13 +103,17 @@ namespace TestSubscriber
                         scanner.WithDefaultConventions();
                         scanner.AssemblyContainingType<IMessagePublisher>();
                     });
+
+                    x.For<IStatisticsReporter>().Use(statsReporter);
+
                     x.For<RateLimiterPolicyOptions>().Use(
                         new RateLimiterPolicyOptions(
-                            new RateLimiterPolicyConfiguration
+                            new RateLimiterConfiguration
                             {
                                 RateLimit = 100
                             })
                     );
+
                     x.For<DataProtectionConfiguration>().Use(new DataProtectionConfiguration
                     {
                         AccountName = "***REMOVED***",
@@ -115,8 +123,8 @@ namespace TestSubscriber
                     });
                     x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(""));
                     x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
-                        .Ctor<string>().Is(ctx => ctx.GetInstance<IMessageContext>().CorrelationId);
-                    x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<IMessageContext>().MessageEncrypted
+                        .Ctor<string>().Is(ctx => ctx.GetInstance<MessageContext>().CorrelationId);
+                    x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
                         ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
                         : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());
                     x.For<PatSenderSettings>().Use(patSenderConfig);

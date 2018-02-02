@@ -1,28 +1,28 @@
 ﻿using System;
-using log4net;
-using Microsoft.ServiceBus.Messaging;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
-using PB.ITOps.Messaging.PatLite.MessageMapping;
-using PB.ITOps.Messaging.PatLite.SubscriberRules;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using log4net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus.Core;
+using System.Reflection;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.MessageMapping;
+using PB.ITOps.Messaging.PatLite.SubscriberRules;
 
 namespace PB.ITOps.Messaging.PatLite
 {
     public class Subscriber
     {
         private readonly ILog _log;
-        private readonly ISubscriberPolicy _policy;
+        private readonly BatchProcessingBehaviourPipeline _batchProcessingBehaviourPipeline;
         private readonly SubscriberConfiguration _config;
         private readonly IMessageProcessor _messageProcessor;
 
-        public Subscriber(ILog log, ISubscriberPolicy policy, SubscriberConfiguration config, IMessageProcessor messageProcessor)
+        public Subscriber(ILog log, BatchProcessingBehaviourPipeline batchProcessingBehaviourPipeline, SubscriberConfiguration config, IMessageProcessor messageProcessor)
         {
             _log = log;
-            _policy = policy;
+            _batchProcessingBehaviourPipeline = batchProcessingBehaviourPipeline;
             _config = config;
             _messageProcessor = messageProcessor;
         }
@@ -30,24 +30,27 @@ namespace PB.ITOps.Messaging.PatLite
         /// <summary>
         /// Create subscriptions and process messages.
         /// </summary>
+        /// <param name="tokenSource"></param>
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
-        public void Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
+        public async Task Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
-            if (handlerAssemblies == null)
+            if (await Initialise(handlerAssemblies))
             {
-                handlerAssemblies = new[] { Assembly.GetCallingAssembly() };
+                ListenForMessages(tokenSource);
             }
-
-            Initialise(handlerAssemblies);
-            ListenForEvents(tokenSource);
         }
 
         /// <summary>
         /// Creates relevant subscriptions.
         /// </summary>
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
-        public void Initialise(Assembly[] handlerAssemblies)
+        public async Task<bool> Initialise(Assembly[] handlerAssemblies)
         {
+            if (handlerAssemblies == null || handlerAssemblies.Length == 0)
+            {
+                throw new ArgumentException("One or more assemblies required", nameof(handlerAssemblies));
+            }
+
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
             var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
@@ -63,16 +66,16 @@ namespace PB.ITOps.Messaging.PatLite
                 handlerName = handler.FullName;
             }
 
-            builder.Build(builder.CommonSubscriptionDescription(), messagesTypes, handlerName);
+            return await builder.Build(messagesTypes, handlerName);
         }
 
         /// <summary>
-        /// Process events, terminate once the cancellation token is cancelled.
+        /// Process messages, terminate once the cancellation token is cancelled.
         /// </summary>
-        public void ListenForEvents(CancellationTokenSource tokenSource = null)
+        public void ListenForMessages(CancellationTokenSource tokenSource = null)
         {
-            var builder = new SubscriptionClientBuilder(_log, _config);
-            var clients = builder.CreateClients(_config.SubscriberName);
+            var builder = new MessageReceiverBuilder(_log, _config);
+            var clients = builder.Build();
 
             _log.Info("Listening for messages...");
 
@@ -95,14 +98,14 @@ namespace PB.ITOps.Messaging.PatLite
             Task.WaitAll(tasks.ToArray());
         }
 
-        private async Task ProcessBatchChain(ConcurrentQueue<SubscriptionClient> clients, CancellationTokenSource tokenSource, int batchIndex)
+        private async Task ProcessBatchChain(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchIndex)
         {
-            var processor = new BatchProcessor(_policy, _messageProcessor, _log, batchIndex);
+            var processor = new BatchProcessor(_batchProcessingBehaviourPipeline, _messageProcessor, _log, batchIndex);
             while (!tokenSource.IsCancellationRequested)
             {
                 try
                 {
-                    await processor.ProcessBatch(clients, tokenSource, _config.BatchSize);
+                    await processor.ProcessBatch(messageReceivers, tokenSource, _config.BatchSize);
                 }
                 catch (Exception exception)
                 {

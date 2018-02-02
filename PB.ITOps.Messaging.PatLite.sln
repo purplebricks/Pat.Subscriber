@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite", "PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj", "{8BE4D60E-65AE-4872-AF04-C78A0CEA79A9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestSubscriber", "TestSubscriber\TestSubscriber.csproj", "{B40358A6-19E6-438C-9571-AA8FF74A892E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.UnitTests", "PB.ITOps.Messaging.PatLite.UnitTests\PB.ITOps.Messaging.PatLite.UnitTests.csproj", "{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.StructureMap4", "PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj", "{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}"
 EndProject
@@ -21,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests", "PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests.csproj", "{52033F26-1FFE-44B6-9443-CCE0192DE687}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.IntegrationTests", "PB.ITOps.Messaging.PatLite.IntegrationTests\PB.ITOps.Messaging.PatLite.IntegrationTests.csproj", "{36465E27-A860-43E7-93F9-C4D1F219B0DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.IntegrationTests", "PB.ITOps.Messaging.PatLite.IntegrationTests\PB.ITOps.Messaging.PatLite.IntegrationTests.csproj", "{36465E27-A860-43E7-93F9-C4D1F219B0DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.UnitTests", "PB.ITOps.Messaging.PatLite.UnitTests\PB.ITOps.Messaging.PatLite.UnitTests.csproj", "{5DEB2C71-B8A1-48B0-890B-20A51F68766A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +37,6 @@ Global
 		{B40358A6-19E6-438C-9571-AA8FF74A892E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B40358A6-19E6-438C-9571-AA8FF74A892E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B40358A6-19E6-438C-9571-AA8FF74A892E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CE8B253-6A7A-4A71-B76E-67AE2485B7F2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D2E3EF0-76D5-4206-84FC-735EAC75BB27}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,8 +65,15 @@ Global
 		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36465E27-A860-43E7-93F9-C4D1F219B0DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E8FA9093-C60E-48BA-A34E-F82E51FBB8CD}
 	EndGlobalSection
 EndGlobal

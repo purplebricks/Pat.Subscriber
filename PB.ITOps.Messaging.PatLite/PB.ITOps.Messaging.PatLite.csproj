@@ -1,15 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
     <PackageId>PB.ITOps.Messaging.PatLite</PackageId>
     <Description>Purplebricks message subscriber infrastructure</Description>
     <Company>Purplebricks</Company>
-    <buildCounter Condition=" '$(buildCounter)' == '' ">0</buildCounter>
-    <Version>1.0.$(buildCounter)</Version>
+    <BuildCounter Condition=" '$(buildCounter)' == '' ">0</BuildCounter>
+    <Version>2.0.$(BuildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET451'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="2.0.0" />
   </ItemGroup>
 </Project>

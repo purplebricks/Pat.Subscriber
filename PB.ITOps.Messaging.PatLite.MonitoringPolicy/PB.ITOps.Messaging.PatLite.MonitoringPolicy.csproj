@@ -1,15 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
     <PackageId>PB.ITOps.Messaging.PatLite.MonitoringPolicy</PackageId>
     <Description>Purplebricks message subscriber infrastructure: MonitoringPolicy</Description>
     <Company>Purplebricks</Company>
-    <buildCounter Condition=" '$(buildCounter)' == '' ">0</buildCounter>
-    <Version>0.6.$(buildCounter)</Version>
+    <BuildCounter Condition=" '$(buildCounter)' == '' ">0</BuildCounter>
+    <Version>1.0.$(BuildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.2" />
-    <PackageReference Include="PurplebricksStatsdClient" Version="5.1.16" />
+    <PackageReference Include="StatsdClient" Version="3.0.86" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET451'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />

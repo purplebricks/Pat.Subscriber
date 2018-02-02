@@ -1,7 +1,7 @@
 ﻿using log4net;
-using PB.ITOps.Messaging.PatLite.GlobalSubscriberPolicy;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.IoC;
-using PB.ITOps.Messaging.PatLite.MessageProcessingPolicy;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using StructureMap;
 
 namespace PB.ITOps.Messaging.PatLite.StructureMap4
@@ -13,60 +13,51 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             Scan(scanner =>
             {
                 scanner.WithDefaultConventions();
-                scanner.AssemblyContainingType<IMessageContext>();
+                scanner.AssemblyContainingType<MessageContext>();
             });
 
             For<IMessageDependencyResolver>().Use<StructureMapDependencyResolver>();
             For<ILog>().AlwaysUnique().Use(s => LogManager.GetLogger(s.RootType));
-            
         }
 
-        private void ConfigureDefaultProcessingPolicies()
+        public PatLiteRegistry(PatLiteOptions options): this(options.BatchMessageProcessingBehaviourDependencyBuilder, options.MessageProcessingPipelineDependencyBuilder)
         {
-            For<ISubscriberPolicy>().Use(c =>
-                c.GetInstance<StandardPolicy>()
-                    .AppendInnerPolicy(c.GetInstance<MonitoringPolicy.MonitoringPolicy>())
-            );
-            For<IMessageProcessingPolicy>().Use<DefaultMessageProcessingPolicy>();
-        }
-
-        public PatLiteRegistry()
-        {
-            CommonRegistrySetup();
-            ConfigureDefaultProcessingPolicies();
-        }
-
-        public PatLiteRegistry(SubscriberConfiguration subscriberConfig)
-        {
-            CommonRegistrySetup();
-            ConfigureDefaultProcessingPolicies();
-            For<SubscriberConfiguration>().Use(subscriberConfig);
-        }
-
-        public PatLiteRegistry(PatLiteOptions options)
-        {
-            CommonRegistrySetup();
             For<SubscriberConfiguration>().Use(options.SubscriberConfiguration);
+        }
 
-            if (options.GlobalPolicyBuilder == null)
+        private PatLiteRegistry(BatchPipelineDependencyBuilder batchMessageProcessingBehaviourPipelineDependencyBuilder,
+            MessagePipelineDependencyBuilder messageProcessingPipelineDependencyBuilder)
+        {
+            CommonRegistrySetup();
+
+            if (batchMessageProcessingBehaviourPipelineDependencyBuilder == null)
             {
-                options.GlobalPolicyBuilder = new PatLiteGlobalPolicyBuilder()
-                    .AddPolicy<MonitoringPolicy.MonitoringPolicy>()
-                    .AddPolicy<StandardPolicy>();
+                For<BatchProcessingBehaviourPipeline>().Use((ctx) =>
+                    new BatchProcessingBehaviourPipeline()
+                        .AddBehaviour<DefaultBatchProcessingBehaviour>(ctx)
+                );
+            }
+            else
+            {
+                batchMessageProcessingBehaviourPipelineDependencyBuilder.RegisterTypes(this);
+                For<MessageProcessingBehaviourPipeline>().Use(context => messageProcessingPipelineDependencyBuilder.Build(context));
             }
 
-            if (options.MessagePolicyBuilder == null)
+            if (messageProcessingPipelineDependencyBuilder == null)
             {
-                options.MessagePolicyBuilder = new PatLiteMessagePolicyBuilder()
-                    .AddPolicy<DefaultMessageProcessingPolicy>();
+                For<MessageProcessingBehaviourPipeline>().Use((ctx) =>
+                    new MessageProcessingBehaviourPipeline()
+                        .AddBehaviour<DefaultMessageProcessingBehaviour>(ctx)
+                        .AddBehaviour<InvokeHandlerBehaviour>(ctx));
             }
-
-            options.GlobalPolicyBuilder.RegisterPolicies(this);
-            options.MessagePolicyBuilder.RegisterPolicies(this);
-
-            For<ISubscriberPolicy>().Use((ctx) => options.GlobalPolicyBuilder.Build(ctx));
-            For<IMessageProcessingPolicy>().Use((ctx) => options.MessagePolicyBuilder.Build(ctx));
-
+            else
+            {
+                messageProcessingPipelineDependencyBuilder.RegisterTypes(this);
+                For<MessageProcessingBehaviourPipeline>().Use(context => messageProcessingPipelineDependencyBuilder.Build(context));
+            }
+           
+            For<DefaultMessageProcessingBehaviour>().Use<DefaultMessageProcessingBehaviour>();
+            For<InvokeHandlerBehaviour>().Use<InvokeHandlerBehaviour>();
         }
     }
 }

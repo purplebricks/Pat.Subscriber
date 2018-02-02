@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ServiceBus.Messaging;
+using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 using NSubstitute;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
 using Xunit;
@@ -53,25 +54,25 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         }
 
         [Fact]
-        public void ApplyRuleChanges_ExistingRulesAreUpToDate_DoesNotChangeRules()
+        public async Task ApplyRuleChanges_ExistingRulesAreUpToDate_DoesNotChangeRules()
         {
             var messagesTypes = new[] { "TestEvent" };
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName).ToArray();
-            _ruleBuilder.ApplyRuleChanges(rules, rules, messagesTypes);
+            await _ruleBuilder.ApplyRuleChanges(rules, rules, messagesTypes);
 
-            _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(null);
-            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
+            await _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(null);
+            await _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
         }
 
         [Fact]
-        public void ApplyRuleChanges_NoExistingRules_CallAddRule()
+        public async Task ApplyRuleChanges_NoExistingRules_CallAddRule()
         {
             var messagesTypes = new[] { "TestEvent" };
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName).ToArray();
 
-            _ruleBuilder.ApplyRuleChanges(rules, new RuleDescription[] { }, messagesTypes);
-            _ruleApplier.Received(1).AddRule(rules.First());
-            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
+            await _ruleBuilder.ApplyRuleChanges(rules, new RuleDescription[] { }, messagesTypes);
+            await _ruleApplier.Received(1).AddRule(rules.First());
+            await _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(null);
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         public void GeneratesMultipleSubscriptionRules_WhenMaximumRuleLengthExceeded()
         {
             var rules = _ruleBuilder.GenerateSubscriptionRules(CreateEnoughMessageTypesToSpanMultipleRules(), _handlerName);
-            Assert.Equal(rules.Count(), 3);
+            Assert.Equal(3, rules.Count());
         }
 
         private List<string> CreateEnoughMessageTypesToSpanMultipleRules()
@@ -120,7 +121,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             return messageTypes;
         }
 
-        private void WhenAssemblyVersionChangesOnMultipleRules()
+        private async Task WhenAssemblyVersionChangesOnMultipleRules()
         {
             var oldMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
             var newMessageTypes = oldMessageTypes.ToArray().Union(new[] { "NewEvent" }).ToArray();
@@ -133,57 +134,57 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
 
-            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
         }
 
         [Fact]
-        public void WhenAssemblyVersionChangesOnMultipleRules_NewRulesAdded()
+        public async Task WhenAssemblyVersionChangesOnMultipleRules_NewRulesAdded()
         {
-            WhenAssemblyVersionChangesOnMultipleRules();
-            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
-            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_1_0_0"));
-            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
+            await WhenAssemblyVersionChangesOnMultipleRules();
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_1_0_0"));
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
         }
 
         [Fact]
-        public void WhenAssemblyVersionChangesOnMultipleRules_OldRulesRemoved()
+        public async Task WhenAssemblyVersionChangesOnMultipleRules_OldRulesRemoved()
         {
-            WhenAssemblyVersionChangesOnMultipleRules();
-            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_0_1_0"));
-            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_0_1_0"));
-            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_0_1_0"));
+            await WhenAssemblyVersionChangesOnMultipleRules();
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_0_1_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "2_v_0_1_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_0_1_0"));
         }
 
         [Fact]
-        public void WhenAssemblyVersionUnchanged_AndANewMessageTypeAdded_ExceptionIsThrown()
+        public async Task WhenAssemblyVersionUnchanged_AndANewMessageTypeAdded_ExceptionIsThrown()
         {
             var expectedMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
 
             var existingRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes.Skip(1), _handlerName).ToArray();
             var newRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).ToArray();
 
-            Assert.Throws<InvalidOperationException>(
+            await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _ruleBuilder.ApplyRuleChanges(newRules, existingRules, expectedMessageTypes.ToArray()));
 
-            _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
-            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
+            await _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
+            await _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
         }
 
         [Fact]
-        public void WhenAssemblyVersionUnchanged_ButARuleFailedToDeployOnPreviousAttempt_MissingRuleIsAdded()
+        public async Task WhenAssemblyVersionUnchanged_ButARuleFailedToDeployOnPreviousAttempt_MissingRuleIsAdded()
         {
             var expectedMessageTypes = CreateEnoughMessageTypesToSpanMultipleRules();
 
             var existingRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).Take(2).ToArray();
             var newRules = _ruleBuilder.GenerateSubscriptionRules(expectedMessageTypes, _handlerName).ToArray();
 
-            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, expectedMessageTypes.ToArray());
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, expectedMessageTypes.ToArray());
 
-            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "3_v_1_0_0"));
         }
 
         [Fact]
-        public void WhenCurrentAssemblyVersionIsLowerThanExistingRulesVersion_NoRuleChangesAreMade()
+        public async Task WhenCurrentAssemblyVersionIsLowerThanExistingRulesVersion_NoRuleChangesAreMade()
         {
             var oldMessageTypes = new[] { "NewEvent" };
             var newMessageTypes = new[] { "NewEvent" };
@@ -195,14 +196,14 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
-            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
 
-            _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
-            _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
+            await _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
+            await _ruleApplier.DidNotReceiveWithAnyArgs().RemoveRule(Arg.Any<RuleDescription>());
         }
 
         [Fact]
-        public void WhenRuleNameIsInOldFormatAndIsOlderVersion_NewRuleAddedAndOldRuleRemoved()
+        public async Task WhenRuleNameIsInOldFormatAndIsOlderVersion_NewRuleAddedAndOldRuleRemoved()
         {
             var oldMessageTypes = new[] { "NewEvent" };
             var newMessageTypes = new[] { "NewEvent" };
@@ -216,10 +217,10 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0";
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
-            _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
 
-            _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
-            _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
         }
 
         [Fact]

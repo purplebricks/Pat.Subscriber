@@ -1,38 +1,49 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 
 namespace PB.ITOps.Messaging.PatLite
 {
+    public class MessageClientPair
+    {
+        public Message Message { get; set; }
+        public IMessageReceiver MessageReceiver { get; set; }
+    }
+
     public static class SubscriptionHelper
     {
         private const string AddressKey = "SubscriptionClientAddress";
 
-        public static ConcurrentQueue<BrokeredMessage> GetMessages(this ConcurrentQueue<SubscriptionClient> clients, int batchSize)
+        public static IList<MessageClientPair> GetMessages(this IList<IMessageReceiver> clients, int batchSize)
         {
-            var messageQueue = new ConcurrentQueue<BrokeredMessage>();
+            var messageQueue = new List<MessageClientPair>();
             Task.WaitAll(clients.Select(c => QueueMessages(c, messageQueue, batchSize)).ToArray());
             return messageQueue;
         }
 
-        private static async Task QueueMessages(this SubscriptionClient c, ConcurrentQueue<BrokeredMessage> queueMessages, int batchSize)
+        private static async Task QueueMessages(IMessageReceiver messageReceiver, List<MessageClientPair> queueMessages, int batchSize)
         {
-            var messages = await c.ReceiveBatchAsync(batchSize, TimeSpan.FromSeconds(1));
-            foreach (var message in messages)
+            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(1)) ?? new List<Message>();
+            foreach (var message in messages.Where(m => m != null))
             {
-                message.Properties.Add(AddressKey, c.MessagingFactory.Address.ToString());
-                queueMessages.Enqueue(message);
+                message.UserProperties.Add(AddressKey, messageReceiver.Path);
+                queueMessages.Add(new MessageClientPair
+                {
+                    Message = message,
+                    MessageReceiver = messageReceiver
+                });
             }
         }
 
         public static string RetrieveServiceBusAddress(this string connectionString)
         {
             var endpointPrefix = "Endpoint=sb://";
-            var startIndex = connectionString.IndexOf(endpointPrefix, StringComparison.InvariantCultureIgnoreCase);
-            var endIndex = connectionString.IndexOf(";", StringComparison.InvariantCultureIgnoreCase);
+            var startIndex = connectionString.IndexOf(endpointPrefix, StringComparison.OrdinalIgnoreCase);
+            var endIndex = connectionString.IndexOf(";", StringComparison.OrdinalIgnoreCase);
             if (startIndex >= 0 && endIndex > startIndex)
             {
                 return connectionString.Substring(startIndex + endpointPrefix.Length, endIndex - endpointPrefix.Length);
@@ -40,12 +51,12 @@ namespace PB.ITOps.Messaging.PatLite
             return String.Empty;
         }
 
-        public static string RetrieveServiceBusAddress(this BrokeredMessage message)
+        public static string RetrieveServiceBusAddress(this Message message)
         {
-            return message.Properties.ContainsKey(AddressKey) ? message.Properties[AddressKey].ToString() : null;
+            return message.UserProperties.ContainsKey(AddressKey) ? message.UserProperties[AddressKey].ToString() : null;
         }
 
-        public static string RetrieveServiceBusAddressWithOnlyLetters(this BrokeredMessage message)
+        public static string RetrieveServiceBusAddressWithOnlyLetters(this Message message)
         {
             return Regex.Replace(message.RetrieveServiceBusAddress(), "[^a-zA-Z]", "");
         }

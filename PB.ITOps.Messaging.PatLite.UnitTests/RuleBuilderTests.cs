@@ -224,6 +224,50 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         }
 
         [Fact]
+        public async Task WhenRuleNameIsInOldFormatAndSameVersion_NewRuleAddedAndOldFormatRuleRemoved()
+        {
+            var oldMessageTypes = new[] { "NewEvent" };
+            var newMessageTypes = new[] { "NewEvent" };
+
+            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
+            oldRuleVersionResolver.GetVersion().Returns(new Version(1, 0, 0));
+
+            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
+            var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
+
+            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0";
+
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+
+            await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
+        }
+
+        [Fact]
+        public async Task WhenRuleAndExistsInNewFormatAndOldFormatWithSameVersion_OldFormatRuleRemoved()
+        {
+            var oldMessageTypes = new[] { "NewEvent" };
+            var newMessageTypes = new[] { "NewEvent" };
+
+            var oldRuleVersionResolver = Substitute.For<IRuleVersionResolver>();
+            oldRuleVersionResolver.GetVersion().Returns(new Version(1, 0, 0));
+
+            var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
+            var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
+          
+            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0";
+
+            var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
+            existingRules = existingRules.Concat(newRules).ToArray();
+
+            await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
+
+            await _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
+        }
+
+        [Fact]
         public void WhenRuleIsDefault_GetRuleVersionShouldReturnValidVersion()
         {
             var rule = new RuleDescription

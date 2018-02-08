@@ -26,6 +26,11 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
             Scope?.Dispose();
         }
 
+        public T GetService<T>()
+        {
+            return Provider.GetService<T>();
+        }
+
         public object GetService(Type serviceType)
         {
             return Provider.GetService(serviceType);
@@ -34,6 +39,11 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         public IEnumerable<object> GetServices(Type serviceType)
         {
             return Provider.GetServices(serviceType).Cast<object>();
+        }
+
+        public IEnumerable<T> GetServices<T>()
+        {
+            return Provider.GetServices<T>();
         }
     }
 }

@@ -17,8 +17,14 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 .AddJsonFile(@"Configuration\appsettings.json");
             var configuration = configurationBuilder.Build();
 
-            //ServiceProvider = new DotNetServiceProvider(DotNetIoC.Initialize(configuration));
-            ServiceProvider = new StructureMapServiceProvider(StructureMapIoC.Initialize(configuration));
+            if (bool.Parse(configuration["UseStructureMap"]))
+            {
+                ServiceProvider = new StructureMapServiceProvider(StructureMapIoC.Initialize(configuration));
+            }
+            else
+            {
+                ServiceProvider = new DotNetServiceProvider(DotNetIoC.Initialize(configuration));
+            }
 
             var subscriber = ServiceProvider.GetService<Subscriber>();
             _cancellationTokenSource = new CancellationTokenSource();

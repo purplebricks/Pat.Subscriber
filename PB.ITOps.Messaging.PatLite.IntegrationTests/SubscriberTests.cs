@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatSender;
+using PB.ITOps.Messaging.PatSender.Correlation;
+using PB.ITOps.Messaging.PatSender.Encryption;
 using Xunit;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
@@ -19,6 +22,28 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         private T GetService<T>()
         {
             return _serviceProvider.GetService<T>();
+        }
+
+        [Fact]
+        public async Task When_EncryptedMessagePublished_HandlerReceivesDecryptedMessage()
+        {
+            var encryptedMessageGenerator = new EncryptedMessageGenerator(GetService<DataProtectionConfiguration>());
+            var messagePublisher = new MessagePublisher(
+                GetService<IMessageSender>(),
+                encryptedMessageGenerator, 
+                new MessageProperties(GetService<ICorrelationIdProvider>()));
+
+            var correlationId = Guid.NewGuid().ToString();
+
+            var testMessageToBeEncrypted = "test encryption";
+            await messagePublisher.PublishEvent(new TestEvent
+            {
+                Data = testMessageToBeEncrypted
+            }, new MessageProperties(correlationId));
+
+            Wait.UntilIsNotNull(() =>
+                    TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId && m.Event.Data == testMessageToBeEncrypted),
+                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
         [Fact]

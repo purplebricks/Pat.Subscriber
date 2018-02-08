@@ -6,13 +6,18 @@ using log4net.Layout;
 using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PB.ITOps.Messaging.DataProtection;
+using PB.ITOps.Messaging.PatLite.Deserialiser;
+using PB.ITOps.Messaging.PatLite.Encryption;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
 using PB.ITOps.Messaging.PatSender;
+using PB.ITOps.Messaging.PatSender.Encryption;
 using PB.ITOps.Messaging.PatSender.MessageGeneration;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
+
     public class DotNetIoC
     {
         public static IServiceProvider Initialize(IConfigurationRoot configuration)
@@ -26,12 +31,21 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             var statisticsConfiguration = new StatisticsReporterConfiguration();
             configuration.GetSection("StatsD").Bind(statisticsConfiguration);
 
+            var dataProtectionConfiguration = new DataProtectionConfiguration();
+            configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
+
             InitLogger();
             var serviceProvider = new ServiceCollection()
                 .AddSingleton(senderSettings)
                 .AddSingleton(subscriberConfiguration)
                 .AddSingleton(statisticsConfiguration)
+                .AddSingleton(dataProtectionConfiguration)
                 .AddSingleton<IMessageGenerator, MessageGenerator>()
+                .AddTransient<IEncryptedMessagePublisher>(
+                    provider => new EncryptedMessagePublisher(
+                        provider.GetRequiredService<IMessageSender>(),
+                        provider.GetRequiredService<DataProtectionConfiguration>(),
+                        new MessageProperties(Guid.NewGuid().ToString())))
                 .AddTransient<IMessagePublisher>(
                     provider => new MessagePublisher(
                         provider.GetRequiredService<IMessageSender>(),
@@ -40,7 +54,13 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 .AddSingleton(LogManager.GetLogger("IntegrationLogger"))
                 .AddTransient<IMessageSender, MessageSender>()
                 .AddTransient<IStatisticsReporter, StatisticsReporter>()
-                .AddPatLite()
+                .AddPatLite(new PatLiteOptions
+                {
+                    MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
+                    ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
+                    : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser(),
+                    SubscriberConfiguration = subscriberConfiguration
+                })
                 .AddHandlersFromAssemblyContainingType<DotNetIoC>()
                 .BuildServiceProvider();
 

@@ -16,12 +16,6 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessing
     /// </summary>
     public class InvokeHandlerBehaviour : IMessageProcessingBehaviour
     {
-        private readonly IMessageDeserialiser _messageDeserialiser;
-
-        public InvokeHandlerBehaviour(IMessageDeserialiser messageDeserialiser)
-        {
-            _messageDeserialiser = messageDeserialiser;
-        }
 
         public async Task Invoke(Func<MessageContext, Task> next, MessageContext messageContext)
         {
@@ -30,8 +24,9 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessing
 
             var messageTypeString = message.UserProperties["MessageType"].ToString();
             var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
+            var messageDeserialiser = messageContext.DependencyScope.GetService<IMessageDeserialiser>();
             var messageHandler = messageContext.DependencyScope.GetService(handlerForMessageType.HandlerType);
-            var typedMessage = _messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
+            var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
 
             await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new[] { typedMessage });
         }

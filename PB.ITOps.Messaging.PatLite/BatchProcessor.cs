@@ -23,11 +23,11 @@ namespace PB.ITOps.Messaging.PatLite
             _batchIndex = batchIndex;
         }
 
-        public Task ProcessBatch(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchSize)
+        public Task ProcessBatch(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchSize, int receiveTimeout)
         {
             return _batchProcessingBehaviourPipeline.Invoke(() =>
             {
-                var messages = messageReceivers.GetMessages(batchSize);
+                var messages = messageReceivers.GetMessages(batchSize, receiveTimeout);
                 if (messages.Any())
                 {
                     _log.Debug($"Batch index {_batchIndex} processing {messages.Count} messages");

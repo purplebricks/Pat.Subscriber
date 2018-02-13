@@ -5,7 +5,7 @@
     <Description>Purplebricks message subscriber infrastructure: dot net core dependency resolution</Description>
     <Company>Purplebricks</Company>
     <BuildCounter Condition=" '$(buildCounter)' == '' ">0</BuildCounter>
-    <Version>1.0.$(BuildCounter)</Version>
+    <Version>2.0.$(BuildCounter)</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\net462\PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.xml</DocumentationFile>

@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using log4net;
+using log4net.Appender;
+using log4net.Core;
+using log4net.Layout;
+using log4net.Repository.Hierarchy;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
@@ -20,8 +25,37 @@ using StructureMap;
 
 namespace TestSubscriber
 {
+
     internal class Program
     {
+        private static void InitLogger()
+        {
+            var hierarchy = (Hierarchy)LogManager.GetRepository();
+            var tracer = new TraceAppender();
+            var patternLayout = new PatternLayout();
+
+            patternLayout.ConversionPattern = "%d [%t] %-5p %m%n";
+            patternLayout.ActivateOptions();
+
+            tracer.Layout = patternLayout;
+            tracer.ActivateOptions();
+            hierarchy.Root.AddAppender(tracer);
+
+            var roller = new RollingFileAppender();
+            roller.Layout = patternLayout;
+            roller.AppendToFile = true;
+            roller.RollingStyle = RollingFileAppender.RollingMode.Size;
+            roller.MaxSizeRollBackups = 4;
+            roller.MaximumFileSize = "100KB";
+            roller.StaticLogFileName = true;
+            roller.File = "IntegrationLogger.txt";
+            roller.ActivateOptions();
+            hierarchy.Root.AddAppender(roller);
+
+            hierarchy.Root.Level = Level.All;
+            hierarchy.Configured = true;
+        }
+
         private static async Task Main()
         {
             var tokenSource = new CancellationTokenSource();
@@ -36,16 +70,18 @@ namespace TestSubscriber
 
             var messagePublisher = container.GetInstance<IMessagePublisher>();
 
-            await messagePublisher.PublishEvent(new MyEvent1(), new MessageProperties("")
-            {
-                CustomProperties = new Dictionary<string, string>
+            await messagePublisher.PublishEvent(new MyEvent1()
+                , new MessageProperties("")
                 {
-                    { "Synthetic", "true"},
-                    { "DomainUnderTest", "TestSubscriber." }
-                }
-            });
+                    CustomProperties = new Dictionary<string, string>
+                    {
+                        { "Synthetic", "true"},
+                        { "DomainUnderTest", "TestSubscriber." }
+                    }
+                });
 
             var subscriber = container.GetInstance<Subscriber>();
+            await subscriber.Initialise(new[] { Assembly.GetExecutingAssembly() });
             subscriber.ListenForMessages(tokenSource);
         }
 
@@ -61,6 +97,7 @@ namespace TestSubscriber
                 UsePartitioning = true,
                 SubscriberName = "PatLiteTestSubscriber",
                 BatchSize = 100,
+                ConcurrentBatches = 1,
                 UseDevelopmentTopic = true
             };
             var patSenderConfig = new PatSenderSettings
@@ -78,11 +115,14 @@ namespace TestSubscriber
             };
 
             var statsReporter = new StatisticsReporter(statdConfig);
+            InitLogger();
 
             using (statsReporter.StartTimer("IocStartup", $"Client=PatLite.{subscriberConfiguration.SubscriberName}"))
             {
                 var container = new Container(x =>
                 {
+                    x.For<CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions>().Use(
+                        new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1000, exception => false));
                     x.AddRegistry(new PatLiteRegistryBuilder()
                         .DefineMessagePipeline()
                             .With<CircuitBreakerMessageProcessingBehaviour>()

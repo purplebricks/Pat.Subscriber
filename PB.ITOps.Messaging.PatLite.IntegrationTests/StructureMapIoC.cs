@@ -4,6 +4,7 @@ using log4net.Appender;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
@@ -30,6 +31,9 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             var statisticsConfiguration = new StatisticsReporterConfiguration();
             configuration.GetSection("StatsD").Bind(statisticsConfiguration);
 
+            var dataProtectionConfiguration = new DataProtectionConfiguration();
+            configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
+
             var statsReporter = new StatisticsReporter(statisticsConfiguration);
 
             InitLogger();
@@ -51,12 +55,11 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 
                 x.For<IStatisticsReporter>().Use(statsReporter);
                 x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(Guid.NewGuid().ToString()));
-                x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
-                    .Ctor<string>().Is(ctx => ctx.GetInstance<MessageContext>().CorrelationId);
                 x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
                     ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
                     : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());
                 x.For<PatSenderSettings>().Use(senderSettings);
+                x.For<DataProtectionConfiguration>().Use(dataProtectionConfiguration);
             });
 
             return container;

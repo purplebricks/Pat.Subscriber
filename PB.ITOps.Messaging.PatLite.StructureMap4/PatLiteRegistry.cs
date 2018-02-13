@@ -40,7 +40,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             else
             {
                 batchMessageProcessingBehaviourPipelineDependencyBuilder.RegisterTypes(this);
-                For<MessageProcessingBehaviourPipeline>().Use(context => messageProcessingPipelineDependencyBuilder.Build(context));
+                For<BatchProcessingBehaviourPipeline>().Use(context => batchMessageProcessingBehaviourPipelineDependencyBuilder.Build(context));
             }
 
             if (messageProcessingPipelineDependencyBuilder == null)

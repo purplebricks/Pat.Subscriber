@@ -1,7 +1,5 @@
 using System;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
 
 namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 {
@@ -15,13 +13,13 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         /// Optional 
         /// by default monitoring and standard processing polciies will be used
         /// </summary>
-        public BatchPipelineDependencyBuilder BatchMessageProcessingBehaviourPipeline { get; set; }
+        public BatchPipelineDependencyBuilder BatchMessageProcessingBehaviourPipelineBuilder { get; set; }
 
         /// <summary>
         /// Optional
         /// By default standard message processing pipeline will be used with default message processing behaviour
         /// </summary>
-        public MessagePipelineDependencyBuilder MessageProcessingPipeline { get; set; }
+        public MessagePipelineDependencyBuilder MessageProcessingPipelineBuilder { get; set; }
         /// <summary>
         /// Optional
         /// Scanner can be used to register handlers

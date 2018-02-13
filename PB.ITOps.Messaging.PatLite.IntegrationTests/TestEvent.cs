@@ -2,5 +2,6 @@
 {
     public class TestEvent
     {
+        public string Data { get; set; }
     }
 }

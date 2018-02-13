@@ -26,6 +26,11 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             Container.Dispose();
         }
 
+        public T GetService<T>()
+        {
+            return Container.GetInstance<T>();
+        }
+
         public object GetService(Type serviceType)
         {
             return Container.GetInstance(serviceType);
@@ -34,6 +39,11 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
         public IEnumerable<object> GetServices(Type serviceType)
         {
             return Container.GetAllInstances(serviceType).Cast<object>();
+        }
+
+        public IEnumerable<T> GetServices<T>()
+        {
+            return Container.GetAllInstances<T>();
         }
     }
 }

@@ -18,16 +18,16 @@ namespace PB.ITOps.Messaging.PatLite
     {
         private const string AddressKey = "SubscriptionClientAddress";
 
-        public static IList<MessageClientPair> GetMessages(this IList<IMessageReceiver> clients, int batchSize)
+        public static IList<MessageClientPair> GetMessages(this IList<IMessageReceiver> clients, int batchSize, int receiveTimeout)
         {
             var messageQueue = new List<MessageClientPair>();
-            Task.WaitAll(clients.Select(c => QueueMessages(c, messageQueue, batchSize)).ToArray());
+            Task.WaitAll(clients.Select(c => QueueMessages(c, messageQueue, batchSize, receiveTimeout)).ToArray());
             return messageQueue;
         }
 
-        private static async Task QueueMessages(IMessageReceiver messageReceiver, List<MessageClientPair> queueMessages, int batchSize)
+        private static async Task QueueMessages(IMessageReceiver messageReceiver, List<MessageClientPair> queueMessages, int batchSize, int receiveTimeout)
         {
-            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(1)) ?? new List<Message>();
+            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(receiveTimeout)) ?? new List<Message>();
             foreach (var message in messages.Where(m => m != null))
             {
                 message.UserProperties.Add(AddressKey, messageReceiver.Path);

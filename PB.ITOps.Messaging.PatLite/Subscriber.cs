@@ -105,7 +105,7 @@ namespace PB.ITOps.Messaging.PatLite
             {
                 try
                 {
-                    await processor.ProcessBatch(messageReceivers, tokenSource, _config.BatchSize);
+                    await processor.ProcessBatch(messageReceivers, tokenSource, _config.BatchSize, _config.ReceiveTimeout);
                 }
                 catch (Exception exception)
                 {

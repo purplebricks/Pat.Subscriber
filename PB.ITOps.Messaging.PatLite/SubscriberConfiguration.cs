@@ -10,6 +10,7 @@ namespace PB.ITOps.Messaging.PatLite
             UseDevelopmentTopic = true;
             BatchSize = 16;
             UsePartitioning = false;
+            ReceiveTimeout = 60;
         }
 
         private string _topicName;
@@ -57,5 +58,10 @@ namespace PB.ITOps.Messaging.PatLite
         /// Number of batches the subscriber will use to receive messages.
         /// </summary>
         public int ConcurrentBatches { get; set; }
+
+        /// <summary>
+        /// Amount of time in seconds receive should wait before timing out if no messages are available before returning 
+        /// </summary>
+        public int ReceiveTimeout { get; set; }
     }
 }

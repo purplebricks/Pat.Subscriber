@@ -67,6 +67,7 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                 .AddTransient<IMessageProcessor, MessageProcessor>()
                 .AddScoped<DefaultMessageProcessingBehaviour>()
                 .AddScoped<InvokeHandlerBehaviour>()
+                .AddScoped<MonitoringMessageProcessingBehaviour>()
                 .AddScoped<MonitoringBatchProcessingBehaviour>()
                 .AddScoped<DefaultBatchProcessingBehaviour>()
                 .AddScoped(provider => provider.GetService<IMessageDependencyResolver>().BeginScope())
@@ -77,6 +78,7 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(provider))
                 .AddSingleton(provider => messagePipelineDependencyBuilder != null ? messagePipelineDependencyBuilder.Build(provider) :
                     new MessageProcessingBehaviourPipeline()
+                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(provider)
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(provider)
                         .AddBehaviour<InvokeHandlerBehaviour>(provider))
                 .AddScoped(deserialisationResolver)

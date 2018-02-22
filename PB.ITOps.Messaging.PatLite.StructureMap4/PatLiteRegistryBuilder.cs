@@ -13,8 +13,10 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
 
         public PatLiteRegistryBuilder()
         {
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
         }
 

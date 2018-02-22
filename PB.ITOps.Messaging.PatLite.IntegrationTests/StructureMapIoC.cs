@@ -4,7 +4,6 @@ using log4net.Appender;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
@@ -13,7 +12,6 @@ using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
 using PB.ITOps.Messaging.PatSender.Correlation;
-using PB.ITOps.Messaging.PatSender.Encryption;
 using StructureMap;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests

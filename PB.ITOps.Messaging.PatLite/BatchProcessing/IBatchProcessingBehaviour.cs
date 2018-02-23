@@ -5,6 +5,6 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
 {
     public interface IBatchProcessingBehaviour
     {
-        Task<int> Invoke(Func<BatchContext, Task<int>> next, BatchContext context);
+        Task Invoke(Func<BatchContext, Task> next, BatchContext context);
     }
 }

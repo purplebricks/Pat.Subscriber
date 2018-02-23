@@ -125,11 +125,12 @@ namespace TestSubscriber
                         new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1000, exception => false));
                     x.AddRegistry(new PatLiteRegistryBuilder()
                         .DefineMessagePipeline()
+                            .With<RateLimiterMessageProcessingBehaviour>()
                             .With<CircuitBreakerMessageProcessingBehaviour>()
                             .With<DefaultMessageProcessingBehaviour>()
                             .With<InvokeHandlerBehaviour>()
                         .DefineBatchPipeline()
-                            .With<RateLimiterBehaviour>()
+                            .With<RateLimiterBatchProcessingBehaviour>()
                             .With<CircuitBreakerBatchProcessingBehaviour>()
                             .With<DefaultBatchProcessingBehaviour>()
                         .Use(subscriberConfiguration)

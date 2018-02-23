@@ -101,18 +101,27 @@ namespace PB.ITOps.Messaging.PatLite
         private async Task ProcessBatchChain(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchIndex)
         {
             var processor = new BatchProcessor(_batchProcessingBehaviourPipeline, _messageProcessor, _log, batchIndex);
-            while (!tokenSource.IsCancellationRequested)
+            var tasks = messageReceivers.Select(messageReceiver => Task.Run(async () =>
             {
-                try
+                while (!tokenSource.IsCancellationRequested)
                 {
-                    await processor.ProcessBatch(messageReceivers, tokenSource, _config.BatchSize, _config.ReceiveTimeout);
+                    try
+                    {
+                        await processor.ProcessBatch(
+                            messageReceiver,
+                            tokenSource,
+                            _config.BatchSize,
+                            _config.ReceiveTimeout);
+                    }
+                    catch (Exception exception)
+                    {
+                        _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler from ProcessBatchChain.", exception);
+                        tokenSource.Cancel();
+                    }
                 }
-                catch (Exception exception)
-                {
-                    _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler from ProcessBatchChain.", exception);
-                    tokenSource.Cancel();
-                }
-            }
+            }));
+
+            await Task.WhenAll(tasks.ToArray());
         }
     }
 }

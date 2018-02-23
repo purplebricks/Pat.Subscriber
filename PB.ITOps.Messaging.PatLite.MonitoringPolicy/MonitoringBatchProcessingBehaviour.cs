@@ -15,11 +15,11 @@ namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
             _statisticsReporter = statisticsReporter;
         }
 
-        public async Task<int> Invoke(Func<BatchContext, Task<int>> next, BatchContext context)
+        public async Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             try
             {
-                return await next(context);
+                await next(context);
             }
             catch (Exception ex)
             {

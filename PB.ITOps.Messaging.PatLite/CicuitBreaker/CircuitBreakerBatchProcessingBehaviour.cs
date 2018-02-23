@@ -98,7 +98,7 @@ namespace PB.ITOps.Messaging.PatLite.CicuitBreaker
             OnCircuitReset(EventArgs.Empty);
         }
 
-        public Task<int> TestCircuit(Func<BatchContext, Task<int>> next, BatchContext context)
+        public Task TestCircuit(Func<BatchContext, Task> next, BatchContext context)
         {
             OnCircuitTest(EventArgs.Empty);
             _log.Info($"Subscriber circuit breaker: testing circuit for subscriber '{_config.SubscriberName}'");
@@ -106,7 +106,7 @@ namespace PB.ITOps.Messaging.PatLite.CicuitBreaker
             return next(context);
         }
 
-        public Task<int> Invoke(Func<BatchContext, Task<int>> next, BatchContext context)
+        public Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             if (State == CircuitState.Closed)
             {

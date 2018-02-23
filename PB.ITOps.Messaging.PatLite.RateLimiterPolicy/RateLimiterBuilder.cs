@@ -35,9 +35,9 @@
             return this;
         }
 
-        public RateLimiterBehaviour Build()
+        public RateLimiterBatchProcessingBehaviour Build()
         {
-            return new RateLimiterBehaviour(new RateLimiterPolicyOptions(
+            return new RateLimiterBatchProcessingBehaviour(new RateLimiterPolicyOptions(
                 new RateLimiterConfiguration
                 {
                     IntervalInMilliSeconds = _groupingInterval,

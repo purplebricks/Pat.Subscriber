@@ -9,7 +9,7 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
     public class BatchProcessingBehaviourPipeline
     {
         private readonly ICollection<IBatchProcessingBehaviour> _behaviours;
-        private Func<BatchContext, Task<int>> _pipeline;
+        private Func<BatchContext, Task> _pipeline;
 
         public BatchProcessingBehaviourPipeline AddBehaviour(IBatchProcessingBehaviour nextBehaviour)
         {
@@ -22,7 +22,7 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
             _behaviours = new List<IBatchProcessingBehaviour>();
         }
 
-        public async Task Invoke(Func<Task<int>> action, CancellationTokenSource tokenSource)
+        public async Task Invoke(Func<Task> action, CancellationTokenSource tokenSource)
         {
             if (_pipeline == null)
             {
@@ -40,9 +40,9 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
             BuildPipeline();
         }
 
-        private Func<BatchContext, Task<int>> BuildPipeline()
+        private Func<BatchContext, Task> BuildPipeline()
         {
-            Func<BatchContext, Task<int>> current = null;
+            Func<BatchContext, Task> current = null;
             foreach (var behaviour in _behaviours.Reverse())
             {
 

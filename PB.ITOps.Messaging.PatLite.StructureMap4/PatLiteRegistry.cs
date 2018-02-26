@@ -34,6 +34,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             {
                 For<BatchProcessingBehaviourPipeline>().Use((ctx) =>
                     new BatchProcessingBehaviourPipeline()
+                        .AddBehaviour<MonitoringPolicy.MonitoringBatchProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(ctx)
                 );
             }
@@ -47,6 +48,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             {
                 For<MessageProcessingBehaviourPipeline>().Use((ctx) =>
                     new MessageProcessingBehaviourPipeline()
+                        .AddBehaviour<MonitoringPolicy.MonitoringMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<InvokeHandlerBehaviour>(ctx));
             }

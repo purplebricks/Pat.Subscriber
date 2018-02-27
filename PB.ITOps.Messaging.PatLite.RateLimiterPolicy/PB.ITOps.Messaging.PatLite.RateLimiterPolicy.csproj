@@ -5,7 +5,7 @@
     <Description>Purplebricks message subscriber infrastructure: RateLimiterPolicy</Description>
     <Company>Purplebricks</Company>
     <BuildCounter Condition=" '$(buildCounter)' == '' ">0</BuildCounter>
-    <Version>1.0.$(BuildCounter)</Version>
+    <Version>1.1.$(BuildCounter)</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nito.Collections.Deque" Version="1.0.4" />

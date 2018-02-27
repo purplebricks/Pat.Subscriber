@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Nito.Collections;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
 
 namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
 {
-    public class RateLimiterBehaviour : IBatchProcessingBehaviour
+    public class RateLimiterBatchProcessingBehaviour : IBatchProcessingBehaviour
     {
         internal class IntervalPerformance
         {
@@ -24,8 +23,56 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
         private readonly double _intervalsPerMinute;
         public delegate void ThrottlingHandler(object sender, EventArgs e);
         public event ThrottlingHandler Throttling;
+        private readonly Object _rateLock = new Object();
 
-        public RateLimiterBehaviour(RateLimiterPolicyOptions options, SubscriberConfiguration configuration)
+        public Func<Exception, bool> ShouldIncrementProcessingRate { get; set; }
+
+        public void MessageCompleted()
+        {
+            IncrementProcessingRate();
+        }
+
+        private void IncrementProcessingRate()
+        {
+            var currentInterval = _timer.ElapsedMilliseconds / _intervalInMilliSeconds;
+            var intervalPerformance = _messagesProcessed.Count > 0 ? _messagesProcessed[0] : null;
+            if (intervalPerformance != null && intervalPerformance.IntervalNumber == currentInterval)
+            {
+                intervalPerformance.MessagesProcessed += 1;
+            }
+            else
+            {
+                lock (_rateLock)
+                {
+                    if (intervalPerformance != null && intervalPerformance.IntervalNumber == currentInterval)
+                    {
+                        intervalPerformance.MessagesProcessed += 1;
+                    }
+                    else
+                    {
+                        if (_messagesProcessed.Count > _rollingIntervals)
+                        {
+                            _messagesProcessed.RemoveFromBack();
+                        }
+                        _messagesProcessed.AddToFront(new IntervalPerformance
+                        {
+                            IntervalNumber = currentInterval,
+                            MessagesProcessed = 1
+                        });
+                    }
+                }
+            }
+        }
+
+        public void MessageFailed(Exception ex)
+        {
+            if (ShouldIncrementProcessingRate(ex))
+            {
+                IncrementProcessingRate();
+            }
+        }
+
+        public RateLimiterBatchProcessingBehaviour(RateLimiterPolicyOptions options, SubscriberConfiguration configuration)
         {
             if (configuration.ConcurrentBatches > 1)
             {
@@ -39,6 +86,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
             _intervalInMilliSeconds = options.Configuration.IntervalInMilliSeconds;
             _intervalsPerMinute = (double)1000 * 60 / options.Configuration.IntervalInMilliSeconds;
             _rollingIntervals = options.Configuration.RollingIntervals;
+            ShouldIncrementProcessingRate = options.ShouldIncrementProcessingRate;
         }
 
         protected virtual void OnThrottling(EventArgs e)
@@ -46,35 +94,13 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
             Throttling?.Invoke(this, e);
         }
 
-        public async Task<int> Invoke(Func<BatchContext, Task<int>> next, BatchContext context)
+        public async Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             _timer.Start();
 
-            var messagesProcessed = await next(context);
-
-            if (messagesProcessed > _rateLimit)
-            {
-                throw new RateLimiterPolicyConfigurationException($"Invalid rate limit: message batch size processed was {messagesProcessed}, which exceeds the rate limit of {_rateLimit}");
-            }
+            await next(context);
 
             var currentInterval = _timer.ElapsedMilliseconds / _intervalInMilliSeconds;
-            var intervalPerformance = _messagesProcessed.Count > 0 ? _messagesProcessed[0] : null;
-            if (intervalPerformance != null && intervalPerformance.IntervalNumber == currentInterval)
-            {
-                intervalPerformance.MessagesProcessed += messagesProcessed;
-            }
-            else
-            {
-                if (_messagesProcessed.Count > _rollingIntervals)
-                {
-                    _messagesProcessed.RemoveFromBack();
-                }
-                _messagesProcessed.AddToFront(new IntervalPerformance
-                {
-                    IntervalNumber = currentInterval,
-                    MessagesProcessed = messagesProcessed
-                });
-            }
 
             var startInterval = (currentInterval - _rollingIntervals > 0) ? currentInterval - _rollingIntervals : 0;
             var messagesProcessedInLastInterval = 0;
@@ -101,8 +127,6 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
                 OnThrottling(new ThrottlingEventArgs(delay));
                 await _throttler.Delay(delay);
             }
-
-            return messagesProcessed;
         }
     }
 }

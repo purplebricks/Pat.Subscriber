@@ -17,7 +17,7 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
             _config = config;
         }
 
-        public async Task<int> Invoke(Func<BatchContext, Task<int>> next, BatchContext context)
+        public async Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             try
             {
@@ -50,8 +50,6 @@ namespace PB.ITOps.Messaging.PatLite.BatchProcessing
                 _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler", exception);
                 context.TokenSource.Cancel();
             }
-
-            return 0;
         }
     }
 }

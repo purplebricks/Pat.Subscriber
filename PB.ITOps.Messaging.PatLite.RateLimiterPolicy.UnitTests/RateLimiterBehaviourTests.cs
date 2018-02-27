@@ -20,21 +20,26 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
             _behaviourBuilder = new RateLimiterBuilder(_timer, _throttler, new SubscriberConfiguration());
         }
 
-        private Func<Task<int>> BatchProcessedInSeconds(int batchSize, int elapsedSeconds)
+        private Func<Task> BatchProcessedInSeconds(RateLimiterBatchProcessingBehaviour behaviour, int batchSize, int elapsedSeconds)
         {
             return () => {
                 _timer.AddElapsedSeconds(elapsedSeconds);
-                return Task.FromResult(batchSize);
+
+                for (int i = 0; i < batchSize; i++)
+                {
+                    behaviour.MessageCompleted();
+                }
+
+                return Task.CompletedTask;
             };
         }
-
 
         [Fact]
         public async Task WhenRateLimitIs1_AndBatchSizeIs1_AndBatchIsProcessedIn10Seconds_ThenDelayFor50Seconds()
         {
             var batchSize = 1;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(1).Build();
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -50,7 +55,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             var batchSize = 1;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(batchSize).Build();
-            var batchProcessedIn60Seconds = BatchProcessedInSeconds(batchSize, 60);
+            var batchProcessedIn60Seconds = BatchProcessedInSeconds(behaviour, batchSize, 60);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -66,7 +71,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             var batchSize = 2;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(2).Build();
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -82,7 +87,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             var batchSize = 2;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(2).Build();
-            var batchProcessedIn30Seconds = BatchProcessedInSeconds(batchSize, 30);
+            var batchProcessedIn30Seconds = BatchProcessedInSeconds(behaviour, batchSize, 30);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -98,7 +103,7 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             var batchSize = 2;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(12).Build();
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -114,8 +119,8 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         {
             var batchSize = 2;
             var behaviour = _behaviourBuilder.WithRateLimitPerMinute(12).Build();
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
-            var batchProcessedIn5Seconds = BatchProcessedInSeconds(batchSize, 5);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
+            var batchProcessedIn5Seconds = BatchProcessedInSeconds(behaviour, batchSize, 5);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -137,8 +142,8 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
                 .WithRollingIntervals(4)//consider 4 previous intervals when calculating rate
                 .WithRateLimitPerMinute(15).Build();
 
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
-            var batchProcessedIn1Second = BatchProcessedInSeconds(batchSize, 1);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
+            var batchProcessedIn1Second = BatchProcessedInSeconds(behaviour, batchSize, 1);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -167,8 +172,8 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
                 .WithRollingIntervals(3)//consider 3 previous intervals when calculating rate
                 .WithRateLimitPerMinute(15).Build();
 
-            var batchProcessedIn10Seconds = BatchProcessedInSeconds(batchSize, 10);
-            var batchProcessedIn1Second = BatchProcessedInSeconds(batchSize, 1);
+            var batchProcessedIn10Seconds = BatchProcessedInSeconds(behaviour, batchSize, 10);
+            var batchProcessedIn1Second = BatchProcessedInSeconds(behaviour, batchSize, 1);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
@@ -188,22 +193,21 @@ namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
         }
 
         [Fact]
-        public async Task WhenRateLimitIs2_AndBatchSizeIs4_AndBatchIsProcessedIn30Sec_ThenThrowsConfigException()
+        public async Task WhenRateLimitIs2_AndBatchSizeIs4_AndBatchIsProcessedIn30Sec_ThenDelayFor90Secs()
         {
             var batchSize = 4;
             var behaviour = _behaviourBuilder
                 .WithRateLimitPerMinute(2).Build();
 
-            var batchProcessedIn30Seconds = new Func<Task<int>>(() => {
-                _timer.AddElapsedMilliseconds(30 * 1000);
-                return Task.FromResult(batchSize);
-            });
+            var batchProcessedIn30Seconds = BatchProcessedInSeconds(behaviour, batchSize, 30);
 
             using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                await Assert.ThrowsAsync<RateLimiterPolicyConfigurationException>(() => behaviour.Invoke(context => context.Action(),
-                    new BatchContext { Action = batchProcessedIn30Seconds, TokenSource = cancellationTokenSource }));
+                await behaviour.Invoke(context => context.Action(),
+                    new BatchContext { Action = batchProcessedIn30Seconds, TokenSource = cancellationTokenSource });
             }
+
+            await _throttler.Received(1).Delay(Arg.Is<long>(90000));
         }
     }
 }

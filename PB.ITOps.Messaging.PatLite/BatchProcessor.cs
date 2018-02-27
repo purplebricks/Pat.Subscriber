@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
 
@@ -23,24 +24,22 @@ namespace PB.ITOps.Messaging.PatLite
             _batchIndex = batchIndex;
         }
 
-        public Task ProcessBatch(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchSize, int receiveTimeout)
+        public Task ProcessBatch(IMessageReceiver messageReceiver, CancellationTokenSource tokenSource, int batchSize, int receiveTimeout)
         {
-            return _batchProcessingBehaviourPipeline.Invoke(() =>
+            return _batchProcessingBehaviourPipeline.Invoke(async ()  => 
             {
-                var messages = messageReceivers.GetMessages(batchSize, receiveTimeout);
+                var messages = await messageReceiver.GetMessages(batchSize, receiveTimeout);
                 if (messages.Any())
                 {
                     _log.Debug($"Batch index {_batchIndex} processing {messages.Count} messages");
-                    return ProcessMessages(messages);
+                    await ProcessMessages(messages, messageReceiver);
                 }
-                return Task.FromResult(0);
             }, tokenSource);
         }
 
-        private async Task<int> ProcessMessages(ICollection<MessageClientPair> messages)
+        private async Task ProcessMessages(ICollection<Message> messages, IMessageReceiver messageReceiver)
         {
-            await Task.WhenAll(messages.Select(m => _messageProcessor.ProcessMessage(m.Message, m.MessageReceiver)).ToArray());
-            return messages.Count;
+            await Task.WhenAll(messages.Select(m => _messageProcessor.ProcessMessage(m, messageReceiver)).ToArray());
         }
     }
 }

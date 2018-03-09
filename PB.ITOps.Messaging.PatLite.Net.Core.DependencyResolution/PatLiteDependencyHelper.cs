@@ -43,6 +43,20 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         }
 
         /// <summary>
+        /// <para>Registers dependencies required for PatLite, allowing customisaton through options</para>
+        /// </summary>
+        /// <param name="serviceCollection"></param>
+        /// <param name="subscriberConfiguration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddPatLite(this IServiceCollection serviceCollection, SubscriberConfiguration subscriberConfiguration)
+        {
+            return serviceCollection.AddPatLite(new PatLiteOptions
+            {
+                SubscriberConfiguration = subscriberConfiguration
+            });
+        }
+
+        /// <summary>
         /// Registers dependencies required for PatLite building the default message and batch processing pipelines
         /// </summary>
         /// <param name="serviceCollection"></param>
@@ -70,6 +84,11 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                 .AddScoped<MonitoringMessageProcessingBehaviour>()
                 .AddScoped<MonitoringBatchProcessingBehaviour>()
                 .AddScoped<DefaultBatchProcessingBehaviour>()
+                .AddSingleton<MultipleBatchProcessor>()
+                .AddSingleton<BatchProcessor>()
+                .AddSingleton(provider => new BatchConfiguration(
+                    provider.GetService<SubscriberConfiguration>().BatchSize,
+                    provider.GetService<SubscriberConfiguration>().ReceiveTimeoutSeconds))
                 .AddScoped(provider => provider.GetService<IMessageDependencyResolver>().BeginScope())
                 .AddScoped(provider => new MessageContext())
                 .AddSingleton(provider => batchMessageProcessingBehaviourBuilder != null ? batchMessageProcessingBehaviourBuilder.Build(provider) :

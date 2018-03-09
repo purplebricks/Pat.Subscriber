@@ -22,9 +22,8 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
     public class StructureMapSubscriberTests
     {
-        private CancellationTokenSource _cancellationTokenSource;
-        private IConfigurationRoot _configuration;
-        private SubscriberConfiguration _subscriberConfiguration;
+        private readonly IConfigurationRoot _configuration;
+        private readonly SubscriberConfiguration _subscriberConfiguration;
         private IStatisticsReporter _statisticsReporter;
 
         public StructureMapSubscriberTests()
@@ -35,6 +34,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 
             _subscriberConfiguration = new SubscriberConfiguration();
             _configuration.GetSection("PatLite:Subscriber").Bind(_subscriberConfiguration);
+            _subscriberConfiguration.SubscriberName = $"{_subscriberConfiguration.SubscriberName}-StructureMap";
         }
 
         public IContainer InitialiseIoC(Container container)
@@ -63,6 +63,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 x.For<IStatisticsReporter>().Use(_statisticsReporter);
                 x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(Guid.NewGuid().ToString()));
                 x.For<PatSenderSettings>().Use(senderSettings);
+                x.For<CapturedEvents>().Use(new CapturedEvents());
                 x.For<DataProtectionConfiguration>().Use(dataProtectionConfiguration);
             });
 
@@ -97,12 +98,6 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             hierarchy.Configured = true;
         }
 
-        public void Dispose()
-        {
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Token.WaitHandle.WaitOne();
-        }
-
         [Fact]
         public async Task Given_DefaultPatLiteRegistryBuilder_When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
@@ -117,20 +112,25 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             InitialiseIoC(container);
 
             var subscriber = container.GetInstance<Subscriber>();
-            _cancellationTokenSource = new CancellationTokenSource();
-            if (subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly }).GetAwaiter().GetResult())
-            {
-                Task.Run(() => subscriber.ListenForMessages(_cancellationTokenSource));
-            }
+            var cancellationTokenSource = new CancellationTokenSource();
 
+            await subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly});
+  
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            
             var messagePublisher = container.GetInstance<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
 
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
         }
 
         [Fact]
@@ -147,22 +147,27 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             InitialiseIoC(container);
 
             var subscriber = container.GetInstance<Subscriber>();
-            _cancellationTokenSource = new CancellationTokenSource();
-            if (subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly }).GetAwaiter().GetResult())
-            {
-                Task.Run(() => subscriber.ListenForMessages(_cancellationTokenSource));
-            }
+            var cancellationTokenSource = new CancellationTokenSource();
 
+            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            
             var messagePublisher = container.GetInstance<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
             
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                    TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
 
             _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
         }
     }
 }

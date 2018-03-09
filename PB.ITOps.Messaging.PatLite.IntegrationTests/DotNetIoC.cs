@@ -41,6 +41,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 .AddSingleton(statisticsConfiguration)
                 .AddSingleton(dataProtectionConfiguration)
                 .AddSingleton<IMessageGenerator, MessageGenerator>()
+                .AddSingleton<CapturedEvents>()
                 .AddTransient<IEncryptedMessagePublisher>(
                     provider => new EncryptedMessagePublisher(
                         provider.GetRequiredService<IMessageSender>(),

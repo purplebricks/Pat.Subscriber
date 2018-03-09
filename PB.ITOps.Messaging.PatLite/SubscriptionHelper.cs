@@ -12,9 +12,9 @@ namespace PB.ITOps.Messaging.PatLite
     {
         private const string AddressKey = "SubscriptionClientAddress";
 
-        public static async Task<IList<Message>> GetMessages(this IMessageReceiver messageReceiver, int batchSize, int receiveTimeout)
+        public static async Task<IList<Message>> GetMessages(this IMessageReceiver messageReceiver, int batchSize, int receiveTimeoutSeconds)
         {
-            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(receiveTimeout)) ?? new List<Message>();
+            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(receiveTimeoutSeconds)) ?? new List<Message>();
             foreach (var message in messages.Where(m => m != null))
             {
                 message.UserProperties.Add(AddressKey, messageReceiver.Path);

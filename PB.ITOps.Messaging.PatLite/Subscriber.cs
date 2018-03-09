@@ -4,9 +4,8 @@ using System.Linq;
 using log4net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus.Core;
 using System.Reflection;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Microsoft.Azure.ServiceBus.Core;
 using PB.ITOps.Messaging.PatLite.MessageMapping;
 using PB.ITOps.Messaging.PatLite.SubscriberRules;
 
@@ -15,20 +14,18 @@ namespace PB.ITOps.Messaging.PatLite
     public class Subscriber
     {
         private readonly ILog _log;
-        private readonly BatchProcessingBehaviourPipeline _batchProcessingBehaviourPipeline;
         private readonly SubscriberConfiguration _config;
-        private readonly IMessageProcessor _messageProcessor;
+        private readonly MultipleBatchProcessor _multipleBatchProcessor;
 
-        public Subscriber(ILog log, BatchProcessingBehaviourPipeline batchProcessingBehaviourPipeline, SubscriberConfiguration config, IMessageProcessor messageProcessor)
+        public Subscriber(ILog log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor)
         {
             _log = log;
-            _batchProcessingBehaviourPipeline = batchProcessingBehaviourPipeline;
             _config = config;
-            _messageProcessor = messageProcessor;
+            _multipleBatchProcessor = multipleBatchProcessor;
         }
 
         /// <summary>
-        /// Create subscriptions and process messages.
+        /// ReceiveMessages subscriptions and process messages.
         /// </summary>
         /// <param name="tokenSource"></param>
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
@@ -36,7 +33,7 @@ namespace PB.ITOps.Messaging.PatLite
         {
             if (await Initialise(handlerAssemblies))
             {
-                ListenForMessages(tokenSource);
+                await ListenForMessages(tokenSource);
             }
         }
 
@@ -72,13 +69,8 @@ namespace PB.ITOps.Messaging.PatLite
         /// <summary>
         /// Process messages, terminate once the cancellation token is cancelled.
         /// </summary>
-        public void ListenForMessages(CancellationTokenSource tokenSource = null)
+        public async Task ListenForMessages(CancellationTokenSource tokenSource = null)
         {
-            var builder = new MessageReceiverBuilder(_log, _config);
-            var clients = builder.Build();
-
-            _log.Info("Listening for messages...");
-
             tokenSource = tokenSource ?? new CancellationTokenSource();
             if (_config.ConcurrentBatches == 0)
             {
@@ -91,37 +83,23 @@ namespace PB.ITOps.Messaging.PatLite
                     $"Cannot support {_config.ConcurrentBatches} concurrent batches.");
             }
 
-            var tasks = Enumerable.Range(0, _config.ConcurrentBatches)
-                .Select(_ =>
-                    Task.Run(async () => await ProcessBatchChain(clients, tokenSource, _), tokenSource.Token));
+           var receivers = CreateMessageReceivers();
 
-            Task.WaitAll(tasks.ToArray());
+            _log.Info("Listening for messages...");
+
+            await _multipleBatchProcessor.ProcessMessages(receivers, tokenSource);
         }
 
-        private async Task ProcessBatchChain(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource, int batchIndex)
+        private List<IMessageReceiver> CreateMessageReceivers()
         {
-            var processor = new BatchProcessor(_batchProcessingBehaviourPipeline, _messageProcessor, _log, batchIndex);
-            var tasks = messageReceivers.Select(messageReceiver => Task.Run(async () =>
-            {
-                while (!tokenSource.IsCancellationRequested)
-                {
-                    try
-                    {
-                        await processor.ProcessBatch(
-                            messageReceiver,
-                            tokenSource,
-                            _config.BatchSize,
-                            _config.ReceiveTimeout);
-                    }
-                    catch (Exception exception)
-                    {
-                        _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler from ProcessBatchChain.", exception);
-                        tokenSource.Cancel();
-                    }
-                }
-            }));
+            var messageReceivers = new List<IMessageReceiver>();
 
-            await Task.WhenAll(tasks.ToArray());
+            var messageReceiverBuilder = new MessageReceiverBuilder(_log, _config);
+            foreach (var messageReceiver in messageReceiverBuilder.Build())
+            {
+                messageReceivers.AddRange(Enumerable.Repeat(messageReceiver, _config.ConcurrentBatches));
+            }
+            return messageReceivers;
         }
     }
 }

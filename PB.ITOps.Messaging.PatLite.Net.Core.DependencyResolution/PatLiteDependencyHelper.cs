@@ -84,6 +84,11 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                 .AddScoped<MonitoringMessageProcessingBehaviour>()
                 .AddScoped<MonitoringBatchProcessingBehaviour>()
                 .AddScoped<DefaultBatchProcessingBehaviour>()
+                .AddSingleton<MultipleBatchProcessor>()
+                .AddSingleton<BatchProcessor>()
+                .AddSingleton(provider => new BatchConfiguration(
+                    provider.GetService<SubscriberConfiguration>().BatchSize,
+                    provider.GetService<SubscriberConfiguration>().ReceiveTimeoutSeconds))
                 .AddScoped(provider => provider.GetService<IMessageDependencyResolver>().BeginScope())
                 .AddScoped(provider => new MessageContext())
                 .AddSingleton(provider => batchMessageProcessingBehaviourBuilder != null ? batchMessageProcessingBehaviourBuilder.Build(provider) :

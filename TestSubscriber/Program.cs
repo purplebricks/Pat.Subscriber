@@ -82,7 +82,7 @@ namespace TestSubscriber
 
             var subscriber = container.GetInstance<Subscriber>();
             await subscriber.Initialise(new[] { Assembly.GetExecutingAssembly() });
-            subscriber.ListenForMessages(tokenSource);
+            await subscriber.ListenForMessages(tokenSource);
         }
 
         public static IContainer Initialize()

@@ -1,22 +1,27 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.IoC;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
+    public class CapturedEvents
+    {
+        public List<CapturedEvent<TestEvent>> ReceivedEvents = new List<CapturedEvent<TestEvent>>();
+    }
+
     public class TestEventHandler: IHandleEvent<TestEvent>
     {
         private readonly MessageContext _messageContext;
-        public static List<CapturedEvent<TestEvent>> ReceivedEvents = new List<CapturedEvent<TestEvent>>();
+        private readonly CapturedEvents _capturedEvents;
 
-        public TestEventHandler(MessageContext messageContext)
+        public TestEventHandler(MessageContext messageContext, CapturedEvents capturedEvents)
         {
             _messageContext = messageContext;
+            _capturedEvents = capturedEvents;
         }
 
         public Task HandleAsync(TestEvent message)
         {
-            ReceivedEvents.Add(new CapturedEvent<TestEvent>
+            _capturedEvents.ReceivedEvents.Add(new CapturedEvent<TestEvent>
             {
                 Event = message,
                 CorrelationId = _messageContext.CorrelationId

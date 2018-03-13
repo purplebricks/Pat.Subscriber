@@ -57,6 +57,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                     ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
                     : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());
                 x.For<PatSenderSettings>().Use(senderSettings);
+                x.For<CapturedEvents>().Use(new CapturedEvents());
                 x.For<DataProtectionConfiguration>().Use(dataProtectionConfiguration);
             });
 

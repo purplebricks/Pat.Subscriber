@@ -60,6 +60,11 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
            
             For<DefaultMessageProcessingBehaviour>().Use<DefaultMessageProcessingBehaviour>();
             For<InvokeHandlerBehaviour>().Use<InvokeHandlerBehaviour>();
+            For<MultipleBatchProcessor>().Use<MultipleBatchProcessor>();
+            For<BatchProcessor>().Use<BatchProcessor>();
+            For<BatchConfiguration>().Use(context => new BatchConfiguration(
+                    context.GetInstance<SubscriberConfiguration>().BatchSize,
+                    context.GetInstance<SubscriberConfiguration>().ReceiveTimeoutSeconds));
         }
     }
 }

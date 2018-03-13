@@ -42,7 +42,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             }, new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                    TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId && m.Event.Data == testMessageToBeEncrypted),
+                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId && m.Event.Data == testMessageToBeEncrypted),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
@@ -55,7 +55,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
@@ -76,7 +76,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             });
 
             Wait.UntilIsNotNull(() =>
-                TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received when sythetic and domain under test is set as '{domainUnderTest}'");
         }
 
@@ -97,7 +97,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             });
 
              Wait.ToEnsureIsNull(() =>
-                TestEventHandler.ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message incorrectly received when sythetic and domain under test is set as '{domainUnderTest}'");
         }
     }

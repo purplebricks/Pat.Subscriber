@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.Azure.ServiceBus.Core;
@@ -10,18 +9,15 @@ namespace PB.ITOps.Messaging.PatLite
     public class BatchProcessor
     {
         private readonly BatchProcessingBehaviourPipeline _batchProcessingBehaviourPipeline;
-        private readonly IMessageProcessor _messageProcessor;
-        private readonly BatchConfiguration _config;
+        private readonly BatchFactory _batchFactory;
         private readonly ILog _log;
 
         public BatchProcessor(BatchProcessingBehaviourPipeline batchProcessingBehaviourPipeline,
-            IMessageProcessor messageProcessor,
-            BatchConfiguration config,
+            BatchFactory batchFactory,
             ILog log)
         {
             _batchProcessingBehaviourPipeline = batchProcessingBehaviourPipeline;
-            _messageProcessor = messageProcessor;
-            _config = config;
+            _batchFactory = batchFactory;
             _log = log;
         }
 
@@ -29,11 +25,12 @@ namespace PB.ITOps.Messaging.PatLite
         {
             return _batchProcessingBehaviourPipeline.Invoke(async () =>
             {
-                var receivedMessages = await MessageCollection.ReceiveMessages(messageReceiver, _config.BatchSize, _config.ReceiveTimeoutSeconds).ConfigureAwait(false);
-                if (receivedMessages.Any)
+                var batch = _batchFactory.Create();
+                await batch.ReceiveMessages(messageReceiver).ConfigureAwait(false);
+                if (batch.HasMessages)
                 {
-                    _log.Debug($"Message collection processing {receivedMessages.Count} messages");
-                    await receivedMessages.Process(_messageProcessor).ConfigureAwait(false);
+                    _log.Debug($"Message collection processing {batch.MessageCount} messages");
+                    await batch.ProcessMessages().ConfigureAwait(false);
                 }
             }, tokenSource);
         }

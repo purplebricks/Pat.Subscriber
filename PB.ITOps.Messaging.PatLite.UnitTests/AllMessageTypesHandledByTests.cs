@@ -13,7 +13,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         {
             var messageTypes = AssemblyScanner.AllMessageTypesHandledBy(typeof(Event1Handler));
 
-            Assert.Equal(messageTypes.Single(), typeof(Event1));
+            Assert.Equal(typeof(Event1), messageTypes.Single());
         }
 
 

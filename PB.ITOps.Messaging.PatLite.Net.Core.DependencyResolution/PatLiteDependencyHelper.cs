@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using log4net;
 using Microsoft.Extensions.DependencyInjection;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
@@ -84,7 +85,12 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                 .AddScoped<MonitoringMessageProcessingBehaviour>()
                 .AddScoped<MonitoringBatchProcessingBehaviour>()
                 .AddScoped<DefaultBatchProcessingBehaviour>()
-                .AddSingleton<MultipleBatchProcessor>()
+                .AddSingleton(provider => 
+                    new MultipleBatchProcessor(
+                        provider.GetService<BatchProcessor>(),
+                        provider.GetService<ILog>(),
+                        provider.GetService<SubscriberConfiguration>().SubscriberName))
+                .AddSingleton<BatchFactory>()
                 .AddSingleton<BatchProcessor>()
                 .AddSingleton(provider => new BatchConfiguration(
                     provider.GetService<SubscriberConfiguration>().BatchSize,

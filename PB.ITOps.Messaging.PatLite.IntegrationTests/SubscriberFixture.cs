@@ -10,6 +10,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public IGenericServiceProvider ServiceProvider { get; }
 
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly Task _subscriberTask;
 
         public SubscriberFixture()
         {
@@ -30,7 +31,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             _cancellationTokenSource = new CancellationTokenSource();
             if (subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly}).GetAwaiter().GetResult())
             {
-                Task.Run(() => subscriber.ListenForMessages(_cancellationTokenSource));
+                _subscriberTask = Task.Run(() => subscriber.ListenForMessages(_cancellationTokenSource));
             }
         }
 
@@ -38,6 +39,8 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         {
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            _subscriberTask.Wait();
         }
     }
 }

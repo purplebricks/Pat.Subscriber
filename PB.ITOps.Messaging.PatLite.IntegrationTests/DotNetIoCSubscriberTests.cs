@@ -11,21 +11,24 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using PB.ITOps.Messaging.DataProtection;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.Encryption;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
 using PB.ITOps.Messaging.PatSender;
 using PB.ITOps.Messaging.PatSender.Encryption;
 using PB.ITOps.Messaging.PatSender.MessageGeneration;
 using Xunit;
+using PatLiteOptions = PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.PatLiteOptions;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
     public class DotNetIocSubscriberTests
     {
-        private IConfigurationRoot _configuration;
-        private SubscriberConfiguration _subscriberConfiguration;
+        private readonly IConfigurationRoot _configuration;
+        private readonly SubscriberConfiguration _subscriberConfiguration;
         private IStatisticsReporter _statisticsReporter;
 
         public DotNetIocSubscriberTests()
@@ -147,13 +150,11 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public async Task Given_AddPatLiteExtension_WhenHandlerProcessesMessage_ThenMonitoringIncrementsMessageProcessed()
         {
             var collection = new ServiceCollection()
-                .AddPatLite(new PatLiteOptions
-                {
-                    MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
+                .AddPatLite(new PatLiteOptionsBuilder(_subscriberConfiguration)
+                    .WithMessageDeserialiser(provider => provider.GetService<MessageContext>().MessageEncrypted
                         ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
-                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser(),
-                    SubscriberConfiguration = _subscriberConfiguration
-                });
+                        : (IMessageDeserialiser) new NewtonsoftMessageDeserialiser())
+                    .Build());
             var serviceProvider = InitialiseIoC(collection);
 
             var subscriber = serviceProvider.GetService<Subscriber>();
@@ -173,6 +174,94 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
 
             _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
+        }
+
+        [Fact]
+        public async Task Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+            var collection = new ServiceCollection()
+                .AddPatLite(new PatLiteOptionsBuilder(_subscriberConfiguration)
+                    .DefineMessagePipeline
+                        .With<DefaultMessageProcessingBehaviour>()
+                        .With<MockMessageProcessingBehaviour>()
+                        .With<InvokeHandlerBehaviour>()
+                    .WithMessageDeserialiser(provider => provider.GetService<MessageContext>().MessageEncrypted
+                        ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
+                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
+                    .Build());
+            var serviceProvider = InitialiseIoC(collection);
+
+            var subscriber = serviceProvider.GetService<Subscriber>();
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+
+            var messagePublisher = serviceProvider.GetService<IMessagePublisher>();
+            var correlationId = Guid.NewGuid().ToString();
+
+            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+
+            Wait.UntilIsNotNull(() =>
+                    serviceProvider.GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+
+            Wait.UntilIsNotNull(() =>
+                    MockMessageProcessingBehaviour.CalledForMessages.FirstOrDefault(m => m == correlationId),
+                $"'{nameof(TestEvent)}' message never processed by MockMessageProcessingBehaviour for correlation id '{correlationId}'");
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
+        }
+
+        [Fact]
+        public async Task Given_A_CustomBatchProcessingStepIsAdded_WhenMessageProcessed_ThenTheCustomStepIsCalled()
+        {
+            var collection = new ServiceCollection()
+                .AddPatLite(new PatLiteOptionsBuilder(_subscriberConfiguration)
+                    .DefineBatchPipeline
+                        .With<MockBatchProcessingBehaviour>()
+                        .With<DefaultBatchProcessingBehaviour>()
+                    .WithMessageDeserialiser(provider => provider.GetService<MessageContext>().MessageEncrypted
+                        ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
+                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
+                    .Build());
+            var correlationId = Guid.NewGuid().ToString();
+
+            collection.AddSingleton(new MockBatchProcessingBehaviour.MockBatchProcessingBehaviourSettings
+            {
+                CorrelationId = correlationId
+            });
+
+            var serviceProvider = InitialiseIoC(collection);
+
+            var subscriber = serviceProvider.GetService<Subscriber>();
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+
+            var messagePublisher = serviceProvider.GetService<IMessagePublisher>();
+
+            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+
+            Wait.UntilIsNotNull(() =>
+                    serviceProvider.GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+
+            Wait.UntilIsNotNull(() =>
+                    MockBatchProcessingBehaviour.CalledForMessages.FirstOrDefault(m =>
+                        m == correlationId),
+                $"'{nameof(TestEvent)}' message never processed by MockMessageProcessingBehaviour for correlation id '{correlationId}'");
 
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Token.WaitHandle.WaitOne();

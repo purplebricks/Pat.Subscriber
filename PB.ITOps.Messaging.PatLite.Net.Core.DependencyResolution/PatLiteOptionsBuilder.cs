@@ -1,20 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.MessageProcessing;
-using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
 {
-    public class PatLiteRegistryBuilder: IMessagePipelineBuilder, IBatchPipelineBuilder
+    public class PatLiteOptionsBuilder : IMessagePipelineBuilder, IBatchPipelineBuilder
     {
+        private readonly SubscriberConfiguration _subscriberConfiguration;
         private readonly ICollection<Type> _messagePipelineBehaviourTypes = new List<Type>();
         private readonly ICollection<Type> _batchPipelineBehaviourTypes = new List<Type>();
-        private readonly SubscriberConfiguration _subscriberConfiguration;
-        private Func<IContext, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
+        private Func<IServiceProvider, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
 
-        public PatLiteRegistryBuilder(SubscriberConfiguration subscriberConfiguration)
+        public PatLiteOptionsBuilder(SubscriberConfiguration subscriberConfiguration)
         {
             _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
@@ -48,33 +47,33 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             }
         }
 
+        public IPatLiteOptionsBuilder WithMessageDeserialiser(Func<IServiceProvider, IMessageDeserialiser> func)
+        {
+            _messageDeserialiser = func;
+            return this;
+        }
+
         IBatchPipelineBuilder IBatchPipelineBuilder.With<T>()
         {
             _batchPipelineBehaviourTypes.Add(typeof(T));
             return this;
         }
 
-        public IPatLiteRegistryBuilder WithMessageDeserialiser(Func<IContext, IMessageDeserialiser> func)
-        {
-            _messageDeserialiser = func;
-            return this;
-        }
-
-        public PatLiteRegistry Build()
+        public PatLiteOptions Build()
         {
             var builder = new MessagePipelineDependencyBuilder(_messagePipelineBehaviourTypes);
             var batchBuilder = new BatchPipelineDependencyBuilder(_batchPipelineBehaviourTypes);
             var patliteOptions = new PatLiteOptions
             {
                 SubscriberConfiguration = _subscriberConfiguration,
-                MessageProcessingPipelineDependencyBuilder = builder,
-                BatchMessageProcessingBehaviourDependencyBuilder = batchBuilder,
+                MessageProcessingPipelineBuilder = builder,
+                BatchMessageProcessingBehaviourPipelineBuilder = batchBuilder,
                 MessageDeserialiser = _messageDeserialiser
             };
-            return new PatLiteRegistry(patliteOptions);
+            return patliteOptions;
         }
 
-        public static implicit operator PatLiteRegistry(PatLiteRegistryBuilder instance)
+        public static implicit operator PatLiteOptions(PatLiteOptionsBuilder instance)
         {
             return instance.Build();
         }

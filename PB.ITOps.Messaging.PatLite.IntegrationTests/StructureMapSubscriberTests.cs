@@ -10,7 +10,10 @@ using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using PB.ITOps.Messaging.DataProtection;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
+using PB.ITOps.Messaging.PatLite.Encryption;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
 using PB.ITOps.Messaging.PatSender;
@@ -72,7 +75,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 
         private static void InitLogger()
         {
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
+            var hierarchy = (Hierarchy) LogManager.GetRepository();
             var tracer = new TraceAppender();
             var patternLayout = new PatternLayout();
 
@@ -103,11 +106,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         {
             var container = new Container(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder()
-                    .Use(_subscriberConfiguration)
-                    .Build());
-
-                x.For<IMessageDeserialiser>().Use<NewtonsoftMessageDeserialiser>();
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration).Build());
             });
             InitialiseIoC(container);
 
@@ -115,16 +114,17 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             var cancellationTokenSource = new CancellationTokenSource();
 
             await subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly});
-  
+
             var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
-            
+
             var messagePublisher = container.GetInstance<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
 
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                    container.GetInstance<CapturedEvents>().ReceivedEvents
+                        .FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
 
             cancellationTokenSource.Cancel();
@@ -138,13 +138,111 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         {
             var container = new Container(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder()
-                    .Use(_subscriberConfiguration)
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithMessageDeserialiser(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
+                    ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
+                    : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
                     .Build());
-
-                x.For<IMessageDeserialiser>().Use<NewtonsoftMessageDeserialiser>();
             });
             InitialiseIoC(container);
+
+            var subscriber = container.GetInstance<Subscriber>();
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            await subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly});
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+
+            var messagePublisher = container.GetInstance<IMessagePublisher>();
+            var correlationId = Guid.NewGuid().ToString();
+
+            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+
+            Wait.UntilIsNotNull(() =>
+                    container.GetInstance<CapturedEvents>().ReceivedEvents
+                        .FirstOrDefault(m => m.CorrelationId == correlationId),
+                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+
+            _statisticsReporter.Received()
+                .Increment(
+                    Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)),
+                    Arg.Any<string>());
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
+        }
+
+        [Fact]
+        public async Task
+            Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+            var container = new Container(x =>
+            {
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithMessageDeserialiser(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
+                        ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
+                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
+                    .DefineMessagePipeline
+                        .With<DefaultMessageProcessingBehaviour>()
+                        .With<MockMessageProcessingBehaviour>()
+                        .With<InvokeHandlerBehaviour>()
+                    .Build());
+            });
+            InitialiseIoC(container);
+
+            var subscriber = container.GetInstance<Subscriber>();
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            await subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly});
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+
+            var messagePublisher = container.GetInstance<IMessagePublisher>();
+            var correlationId = Guid.NewGuid().ToString();
+
+            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+
+            Wait.UntilIsNotNull(() =>
+                    container.GetInstance<CapturedEvents>().ReceivedEvents
+                        .FirstOrDefault(m => m.CorrelationId == correlationId),
+                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+
+            Wait.UntilIsNotNull(() =>
+                    MockMessageProcessingBehaviour.CalledForMessages.FirstOrDefault(m =>
+                        m == correlationId),
+                $"'{nameof(TestEvent)}' message never processed by MockMessageProcessingBehaviour for correlation id '{correlationId}'");
+
+            cancellationTokenSource.Cancel();
+            cancellationTokenSource.Token.WaitHandle.WaitOne();
+
+            await subscriberListeningTask;
+        }
+
+        [Fact]
+        public async Task Given_A_CustomBatchProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+            var container = new Container(x =>
+            {
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithMessageDeserialiser(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
+                        ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
+                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
+                    .DefineBatchPipeline
+                        .With<MockBatchProcessingBehaviour>()
+                        .With<DefaultBatchProcessingBehaviour>()
+                    .Build());
+            });
+            InitialiseIoC(container);
+
+            var correlationId = Guid.NewGuid().ToString();
+
+            container.Configure(x => x.For<MockBatchProcessingBehaviour.MockBatchProcessingBehaviourSettings>()
+                .Use(context => new MockBatchProcessingBehaviour.MockBatchProcessingBehaviourSettings
+                {
+                    CorrelationId = correlationId
+                }));
 
             var subscriber = container.GetInstance<Subscriber>();
             var cancellationTokenSource = new CancellationTokenSource();
@@ -152,17 +250,20 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
 
             var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
-            
+
             var messagePublisher = container.GetInstance<IMessagePublisher>();
-            var correlationId = Guid.NewGuid().ToString();
-            
+
             await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
 
             Wait.UntilIsNotNull(() =>
-                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
+                    container.GetInstance<CapturedEvents>().ReceivedEvents
+                        .FirstOrDefault(m => m.CorrelationId == correlationId),
                 $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
 
-            _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
+            Wait.UntilIsNotNull(() =>
+                    MockBatchProcessingBehaviour.CalledForMessages.FirstOrDefault(m =>
+                        m == correlationId),
+                $"'{nameof(TestEvent)}' message never processed by MockMessageProcessingBehaviour for correlation id '{correlationId}'");
 
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Token.WaitHandle.WaitOne();

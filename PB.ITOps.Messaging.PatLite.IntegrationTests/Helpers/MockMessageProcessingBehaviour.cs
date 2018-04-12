@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.PatLite.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
 {
     public class MockMessageProcessingBehaviour : IMessageProcessingBehaviour
     {

@@ -10,13 +10,13 @@ namespace PB.ITOps.Messaging.PatLite.CicuitBreaker
     {
         public class CircuitBreakerOptions
         {
-            public CircuitBreakerOptions(int circuitTestInterval, Func<Exception, bool> shouldCircuitBreak)
+            public CircuitBreakerOptions(int circuitTestIntervalInSeconds, Func<Exception, bool> shouldCircuitBreak)
             {
                 ShouldCircuitBreak = shouldCircuitBreak;
-                CircuitTestInterval = circuitTestInterval;
+                CircuitTestIntervalInSeconds = circuitTestIntervalInSeconds;
             }
 
-            public int CircuitTestInterval { get; }
+            public int CircuitTestIntervalInSeconds { get; }
             public Func<Exception, bool> ShouldCircuitBreak { get; }
         }
 
@@ -44,7 +44,7 @@ namespace PB.ITOps.Messaging.PatLite.CicuitBreaker
             _log = log;
             _config = config;
             ShouldCircuitBreak = circuitBreakerOptions.ShouldCircuitBreak;
-            _circuitTestInterval = circuitBreakerOptions.CircuitTestInterval;
+            _circuitTestInterval = circuitBreakerOptions.CircuitTestIntervalInSeconds;
             State = CircuitState.Closed;
         }
 

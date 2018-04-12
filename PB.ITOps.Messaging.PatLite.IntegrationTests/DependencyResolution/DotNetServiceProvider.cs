@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
 {
     public class DotNetServiceProvider : IGenericServiceProvider
     {
@@ -13,7 +13,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         }
         public T GetService<T>()
         {
-            return _serviceProvider.GetService<T>();
+            return ServiceProviderServiceExtensions.GetService<T>(_serviceProvider);
         }
     }
 }

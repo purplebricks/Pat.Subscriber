@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using PB.ITOps.Messaging.DataProtection;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
 using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Correlation;
 using PB.ITOps.Messaging.PatSender.Encryption;
 using Xunit;
 
@@ -13,10 +13,12 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
     public class SubscriberTests: IClassFixture<SubscriberFixture>
     {
         private readonly IGenericServiceProvider _serviceProvider;
+        private readonly bool _integrationTest;
 
         public SubscriberTests(SubscriberFixture subscriberFixture)
         {
             _serviceProvider = subscriberFixture.ServiceProvider;
+            _integrationTest = subscriberFixture.IntegrationTest;
         }
 
         private T GetService<T>()
@@ -25,48 +27,42 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         }
 
         [Fact]
-        public async Task When_EncryptedMessagePublished_HandlerReceivesDecryptedMessage()
+        public async Task When_EncryptedMessagePublished_HandlerReceivesDecryptedMessagea()
         {
-            var encryptedMessageGenerator = new EncryptedMessageGenerator(GetService<DataProtectionConfiguration>());
-            var messagePublisher = new MessagePublisher(
-                GetService<IMessageSender>(),
-                encryptedMessageGenerator, 
-                new MessageProperties(GetService<ICorrelationIdProvider>()));
-
             var correlationId = Guid.NewGuid().ToString();
-
             var testMessageToBeEncrypted = "test encryption";
-            await messagePublisher.PublishEvent(new TestEvent
+            var testMessage = new TestEvent
             {
                 Data = testMessageToBeEncrypted
-            }, new MessageProperties(correlationId));
+            };
+            var messageSender = GetService<TestMessageSender>();
 
-            Wait.UntilIsNotNull(() =>
-                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId && m.Event.Data == testMessageToBeEncrypted),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+            var messageWaiter = await messageSender.PublishMessage(testMessage, correlationId,
+                messageGenerator: new EncryptedMessageGenerator(GetService<DataProtectionConfiguration>()));
+
+            Assert.True(messageWaiter.WaitOne() != null, $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
         [Fact]
         public async Task When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
-            var messagePublisher = GetService<IMessagePublisher>();
             var correlationId = Guid.NewGuid().ToString();
+            var messageSender = GetService<TestMessageSender>();
 
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+            var messageWaiter = await messageSender.PublishMessage(new TestEvent(), correlationId);
 
-            Wait.UntilIsNotNull(() =>
-                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+            Assert.True(messageWaiter.WaitOne() != null, $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task When_SynthenticMessagePublishedWithFullDomain_HandlerReceivesMessage()
         {
-            var messagePublisher = GetService<IMessagePublisher>();
+            Skip.IfNot(_integrationTest);
             var correlationId = Guid.NewGuid().ToString();
-
             var domainUnderTest = "PB.ITOps.Messaging.PatLite.IntegrationTests.";
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId)
+
+            var messageSender = GetService<TestMessageSender>();
+            var messageWaiter = await messageSender.PublishMessage(new TestEvent(), new MessageProperties(correlationId)
             {
                 CustomProperties = new Dictionary<string, string>
                 {
@@ -75,19 +71,18 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 }
             });
 
-            Wait.UntilIsNotNull(() =>
-                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received when sythetic and domain under test is set as '{domainUnderTest}'");
+            Assert.True(messageWaiter.WaitOne() != null, $"'{nameof(TestEvent)}' message never received when sythetic and domain under test is set as '{domainUnderTest}'");
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task When_SynthenticMessagePublishedInDifferentDomain_HandlerDoesNotReceiveTheMessage()
         {
-            var messagePublisher = GetService<IMessagePublisher>();
+            Skip.IfNot(_integrationTest);
             var correlationId = Guid.NewGuid().ToString();
+            var messageSender = GetService<TestMessageSender>();
 
             var domainUnderTest = "PB.Offers.";
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId)
+            var messageWaiter = await messageSender.PublishMessage(new TestEvent(), new MessageProperties(correlationId)
             {
                 CustomProperties = new Dictionary<string, string>
                 {
@@ -96,9 +91,7 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 }
             });
 
-             Wait.ToEnsureIsNull(() =>
-                GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message incorrectly received when sythetic and domain under test is set as '{domainUnderTest}'");
+            Assert.True(messageWaiter.WaitOne(10000) == null, $"'{nameof(TestEvent)}' message incorrectly received when sythetic and domain under test is set as '{domainUnderTest}'");
         }
     }
 }

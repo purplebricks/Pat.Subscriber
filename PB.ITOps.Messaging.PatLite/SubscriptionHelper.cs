@@ -14,7 +14,7 @@ namespace PB.ITOps.Messaging.PatLite
 
         public static async Task<IList<Message>> GetMessages(this IMessageReceiver messageReceiver, int batchSize, int receiveTimeoutSeconds)
         {
-            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(receiveTimeoutSeconds)) ?? new List<Message>();
+            var messages = await messageReceiver.ReceiveAsync(batchSize, TimeSpan.FromSeconds(receiveTimeoutSeconds)).ConfigureAwait(false) ?? new List<Message>();
             foreach (var message in messages.Where(m => m != null))
             {
                 message.UserProperties.Add(AddressKey, messageReceiver.Path);

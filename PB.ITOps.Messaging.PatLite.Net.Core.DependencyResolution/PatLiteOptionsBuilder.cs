@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.CicuitBreaker;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.MessageProcessing;
 
@@ -12,12 +13,13 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         private readonly ICollection<Type> _messagePipelineBehaviourTypes = new List<Type>();
         private readonly ICollection<Type> _batchPipelineBehaviourTypes = new List<Type>();
         private Func<IServiceProvider, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
+        private CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions _circuitBreakerOptions;
 
         public PatLiteOptionsBuilder(SubscriberConfiguration subscriberConfiguration)
         {
             _subscriberConfiguration = subscriberConfiguration;
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
@@ -76,6 +78,21 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         public static implicit operator PatLiteOptions(PatLiteOptionsBuilder instance)
         {
             return instance.Build();
+        }
+
+        public IPatLiteOptionsBuilder UseDefaultPipelinesWithCircuitBreaker(CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions circuitBreakerOptions)
+        {
+            _messagePipelineBehaviourTypes.Clear();
+            _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(CircuitBreakerMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
+            _batchPipelineBehaviourTypes.Clear();
+            _batchPipelineBehaviourTypes.Add(typeof(CircuitBreakerBatchProcessingBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
+            _circuitBreakerOptions = circuitBreakerOptions;
+            return this;
         }
     }
 }

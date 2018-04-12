@@ -36,7 +36,7 @@ namespace PB.ITOps.Messaging.PatLite
 
                 LogicalThreadContext.Properties["CorrelationId"] = ctx.CorrelationId;
 
-                await _pipeline.Invoke(ctx);
+                await _pipeline.Invoke(ctx).ConfigureAwait(false);
             }
         }
     }

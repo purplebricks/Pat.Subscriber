@@ -11,7 +11,7 @@ namespace PB.ITOps.Messaging.PatLite
     public class MultipleBatchProcessor
     {
         private readonly BatchProcessor _batchProcessor;
-        private string _subscriberName;
+        private readonly string _subscriberName;
         private readonly ILog _log;
 
         public MultipleBatchProcessor(BatchProcessor batchProcessor, ILog log, string subscriberName)
@@ -21,7 +21,8 @@ namespace PB.ITOps.Messaging.PatLite
             _subscriberName = subscriberName;
         }
 
-        public Task ProcessMessages(IList<IMessageReceiver> messageReceivers, CancellationTokenSource tokenSource)
+        public virtual Task ProcessMessages(IList<IMessageReceiver> messageReceivers,
+            CancellationTokenSource tokenSource)
         {
             var tasks = messageReceivers
                 .Select(messageReceiver =>
@@ -31,7 +32,7 @@ namespace PB.ITOps.Messaging.PatLite
                         {
                             try
                             {
-                                await _batchProcessor.ProcessBatch(messageReceiver, tokenSource);
+                                await _batchProcessor.ProcessBatch(messageReceiver, tokenSource).ConfigureAwait(false);
                             }
                             catch (Exception exception)
                             {

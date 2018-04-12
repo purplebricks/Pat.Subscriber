@@ -10,7 +10,7 @@ namespace PB.ITOps.Messaging.PatLite
     {
         private readonly IMessageProcessor _messageProcessor;
         private readonly BatchConfiguration _batchConfiguration;
-        private IList<Message> _receivedMessages;
+        protected IList<Message> ReceivedMessages;
         private IMessageReceiver _messageReceiver;
 
         public Batch(IMessageProcessor messageProcessor, BatchConfiguration batchConfiguration)
@@ -22,15 +22,15 @@ namespace PB.ITOps.Messaging.PatLite
         public async Task ReceiveMessages(IMessageReceiver messageReceiver)
         {
             _messageReceiver = messageReceiver;
-            _receivedMessages = await _messageReceiver.GetMessages(_batchConfiguration.BatchSize, _batchConfiguration.ReceiveTimeoutSeconds).ConfigureAwait(false);
+            ReceivedMessages = await _messageReceiver.GetMessages(_batchConfiguration.BatchSize, _batchConfiguration.ReceiveTimeoutSeconds).ConfigureAwait(false);
         }
 
         public Task ProcessMessages()
         {
-            return Task.WhenAll(_receivedMessages.Select(m => _messageProcessor.ProcessMessage(m, _messageReceiver)).ToArray());
+            return Task.WhenAll(ReceivedMessages.Select(m => _messageProcessor.ProcessMessage(m, _messageReceiver)).ToArray());
         }
 
-        public int MessageCount => _receivedMessages.Count;
-        public bool HasMessages => _receivedMessages.Any();
+        public int MessageCount => ReceivedMessages.Count;
+        public bool HasMessages => ReceivedMessages.Any();
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite", "PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj", "{8BE4D60E-65AE-4872-AF04-C78A0CEA79A9}"
 EndProject
@@ -22,6 +22,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.IntegrationTests", "PB.ITOps.Messaging.PatLite.IntegrationTests\PB.ITOps.Messaging.PatLite.IntegrationTests.csproj", "{36465E27-A860-43E7-93F9-C4D1F219B0DD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.UnitTests", "PB.ITOps.Messaging.PatLite.UnitTests\PB.ITOps.Messaging.PatLite.UnitTests.csproj", "{5DEB2C71-B8A1-48B0-890B-20A51F68766A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PB.ITOps.Messaging.PatLite.Encryption.NetCoreDependencyResolution", "PB.ITOps.Messaging.PatLite.Encryption.NetCoreDependencyResolution\PB.ITOps.Messaging.PatLite.Encryption.NetCoreDependencyResolution.csproj", "{2B5D91BD-5F57-4BE9-AD45-F1DBD1525B41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PB.ITOps.Messaging.PatLite.Encyption.StructureMap", "PB.ITOps.Messaging.PatLite.Encyption.StructureMap\PB.ITOps.Messaging.PatLite.Encyption.StructureMap.csproj", "{B654A1BE-E843-4C0D-9AAF-3B56B52DEDBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +73,14 @@ Global
 		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DEB2C71-B8A1-48B0-890B-20A51F68766A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B5D91BD-5F57-4BE9-AD45-F1DBD1525B41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B5D91BD-5F57-4BE9-AD45-F1DBD1525B41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B5D91BD-5F57-4BE9-AD45-F1DBD1525B41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B5D91BD-5F57-4BE9-AD45-F1DBD1525B41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B654A1BE-E843-4C0D-9AAF-3B56B52DEDBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B654A1BE-E843-4C0D-9AAF-3B56B52DEDBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B654A1BE-E843-4C0D-9AAF-3B56B52DEDBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B654A1BE-E843-4C0D-9AAF-3B56B52DEDBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

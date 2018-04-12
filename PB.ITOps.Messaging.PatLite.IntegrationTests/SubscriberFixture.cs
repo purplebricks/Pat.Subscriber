@@ -2,12 +2,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
     public class SubscriberFixture : IDisposable
     {
         public IGenericServiceProvider ServiceProvider { get; }
+        public bool IntegrationTest { get; }
 
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Task _subscriberTask;
@@ -18,13 +22,36 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                 .AddJsonFile(@"Configuration\appsettings.json");
             var configuration = configurationBuilder.Build();
 
-            if (bool.Parse(configuration["UseStructureMap"]))
+            IntegrationTest = bool.Parse(configuration["SubscriberTests:IntegrationTest"]);
+
+            if (bool.Parse(configuration["SubscriberTests:UseStructureMap"]))
             {
-                ServiceProvider = new StructureMapServiceProvider(StructureMapIoC.Initialize(configuration));
+                var container = StructureMapIoC.Initialize(configuration);
+                if (!IntegrationTest)
+                {
+                    container.SetupTestMessage(null);
+                }
+                container.Configure(x =>
+                    {
+                        x.For<TestMessageSender>().Use(context =>
+                            new TestMessageSender(context.GetInstance<IGenericServiceProvider>(), IntegrationTest));
+                        x.For<IGenericServiceProvider>().Use(new StructureMapServiceProvider(container));
+                    }
+                );
+                ServiceProvider = container.GetInstance<IGenericServiceProvider>();
             }
             else
             {
-                ServiceProvider = new DotNetServiceProvider(DotNetIoC.Initialize(configuration));
+                var serviceCollection = DotNetIoC.Initialize(configuration);
+                if (!IntegrationTest)
+                {
+                    serviceCollection.SetupTestMessage(null);
+                }
+                serviceCollection.AddSingleton(provider =>
+                    new TestMessageSender(provider.GetService<IGenericServiceProvider>(), IntegrationTest));
+                serviceCollection.AddSingleton<IGenericServiceProvider>(provider => new DotNetServiceProvider(provider));
+                var serviceProvider = serviceCollection.BuildServiceProvider();
+                ServiceProvider = serviceProvider.GetService<IGenericServiceProvider>();
             }
 
             var subscriber = ServiceProvider.GetService<Subscriber>();
@@ -38,8 +65,6 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public void Dispose()
         {
             _cancellationTokenSource.Cancel();
-            _cancellationTokenSource.Token.WaitHandle.WaitOne();
-
             _subscriberTask.Wait();
         }
     }

@@ -29,7 +29,7 @@ namespace PB.ITOps.Messaging.PatLite
                     _log.Info($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
                     try
                     {
-                        await BuildSubscription(connectionString, messagesTypes, handlerFullName);
+                        await BuildSubscription(connectionString, messagesTypes, handlerFullName).ConfigureAwait(false);
                     }
                     catch (ServiceBusTimeoutException)
                     {
@@ -60,10 +60,10 @@ namespace PB.ITOps.Messaging.PatLite
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
 
             var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
-            var rulesCurrentlyDefinedInServiceBus = await client.GetRulesAsync();
+            var rulesCurrentlyDefinedInServiceBus = await client.GetRulesAsync().ConfigureAwait(false);
 
             _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
-            await ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus.ToArray(), messagesTypes);
+            await ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus.ToArray(), messagesTypes).ConfigureAwait(false);
         }
     }
 }

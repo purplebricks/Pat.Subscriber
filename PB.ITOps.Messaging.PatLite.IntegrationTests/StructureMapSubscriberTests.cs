@@ -3,18 +3,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
-using log4net.Appender;
-using log4net.Core;
-using log4net.Layout;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.StructureMap4;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Correlation;
 using StructureMap;
 using Xunit;
 
@@ -25,6 +21,24 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         private readonly IConfigurationRoot _configuration;
         private readonly SubscriberConfiguration _subscriberConfiguration;
         private IStatisticsReporter _statisticsReporter;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly string _correlationId;
+
+        private static async Task<Task> StartSubscriber(CancellationTokenSource cancellationTokenSource, Container container)
+        {
+            var subscriber = container.GetInstance<Subscriber>();
+            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            return subscriberListeningTask;
+        }
+
+        private Container SetupContainer(Action<ConfigurationExpression> configurationExpression)
+        {
+            var container = new Container(configurationExpression);
+            InitialiseIoC(container);
+            return container;
+        }
 
         public StructureMapSubscriberTests()
         {
@@ -35,139 +49,129 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             _subscriberConfiguration = new SubscriberConfiguration();
             _configuration.GetSection("PatLite:Subscriber").Bind(_subscriberConfiguration);
             _subscriberConfiguration.SubscriberName = $"{_subscriberConfiguration.SubscriberName}-StructureMap";
+            _cancellationTokenSource = new CancellationTokenSource();
+            _correlationId = Guid.NewGuid().ToString();
         }
 
         public IContainer InitialiseIoC(Container container)
         {
-            var senderSettings = new PatSenderSettings();
-            _configuration.GetSection("PatLite:Sender").Bind(senderSettings);
-
             var statisticsConfiguration = new StatisticsReporterConfiguration();
             _configuration.GetSection("StatsD").Bind(statisticsConfiguration);
-
-            var dataProtectionConfiguration = new DataProtectionConfiguration();
-            _configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
-
             _statisticsReporter = Substitute.For<IStatisticsReporter>();
 
-            InitLogger();
+            var loggerName = "IntegrationLogger-StructureMap";
+            Logging.InitLogger(loggerName);
 
             container.Configure(x =>
             {
                 x.Scan(scanner =>
                 {
                     scanner.WithDefaultConventions();
-                    scanner.AssemblyContainingType<IMessagePublisher>();
                 });
 
                 x.For<IStatisticsReporter>().Use(_statisticsReporter);
-                x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(Guid.NewGuid().ToString()));
-                x.For<PatSenderSettings>().Use(senderSettings);
-                x.For<CapturedEvents>().Use(new CapturedEvents());
-                x.For<DataProtectionConfiguration>().Use(dataProtectionConfiguration);
+                x.For<MessageReceivedNotifier<TestEvent>>().Use(new MessageReceivedNotifier<TestEvent>());
+                x.For<ILog>().Use(LogManager.GetLogger(loggerName, loggerName));
             });
 
             return container;
         }
 
-        private static void InitLogger()
-        {
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
-            var tracer = new TraceAppender();
-            var patternLayout = new PatternLayout();
-
-            patternLayout.ConversionPattern = "%d [%t] %-5p %m%n";
-            patternLayout.ActivateOptions();
-
-            tracer.Layout = patternLayout;
-            tracer.ActivateOptions();
-            hierarchy.Root.AddAppender(tracer);
-
-            var roller = new RollingFileAppender();
-            roller.Layout = patternLayout;
-            roller.AppendToFile = true;
-            roller.RollingStyle = RollingFileAppender.RollingMode.Size;
-            roller.MaxSizeRollBackups = 4;
-            roller.MaximumFileSize = "100KB";
-            roller.StaticLogFileName = true;
-            roller.File = "IntegrationLogger.txt";
-            roller.ActivateOptions();
-            hierarchy.Root.AddAppender(roller);
-
-            hierarchy.Root.Level = Level.All;
-            hierarchy.Configured = true;
-        }
-
         [Fact]
         public async Task Given_DefaultPatLiteRegistryBuilder_When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
-            var container = new Container(x =>
+            var container = SetupContainer(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder()
-                    .Use(_subscriberConfiguration)
-                    .Build());
-
-                x.For<IMessageDeserialiser>().Use<NewtonsoftMessageDeserialiser>();
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration).Build());
             });
-            InitialiseIoC(container);
+            container.SetupTestMessage(_correlationId);
 
-            var subscriber = container.GetInstance<Subscriber>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly});
-  
-            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            var messageWaiter = container.GetInstance<MessageWaiter<TestEvent>>();
+           
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, container);
             
-            var messagePublisher = container.GetInstance<IMessagePublisher>();
-            var correlationId = Guid.NewGuid().ToString();
+            Assert.NotNull(messageWaiter.WaitOne());
 
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
-
-            Wait.UntilIsNotNull(() =>
-                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
-
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Token.WaitHandle.WaitOne();
-
+            _cancellationTokenSource.Cancel();
             await subscriberListeningTask;
         }
 
         [Fact]
         public async Task Given_DefaultPatLiteRegistryBuilder_WhenHandlerProcessesMessage_ThenMonitoringIncrementsMessageProcessed()
         {
-            var container = new Container(x =>
+            var container = SetupContainer(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder()
-                    .Use(_subscriberConfiguration)
-                    .Build());
-
-                x.For<IMessageDeserialiser>().Use<NewtonsoftMessageDeserialiser>();
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration).Build());
             });
-            InitialiseIoC(container);
+            container.SetupTestMessage(_correlationId);
 
-            var subscriber = container.GetInstance<Subscriber>();
-            var cancellationTokenSource = new CancellationTokenSource();
+            var messageWaiter = container.GetInstance<MessageWaiter<TestEvent>>();
 
-            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, container);
 
-            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
-            
-            var messagePublisher = container.GetInstance<IMessagePublisher>();
-            var correlationId = Guid.NewGuid().ToString();
-            
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
+            Assert.NotNull(messageWaiter.WaitOne());
 
-            Wait.UntilIsNotNull(() =>
-                container.GetInstance<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
-
-            _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
-
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Token.WaitHandle.WaitOne();
-
+            _cancellationTokenSource.Cancel();
             await subscriberListeningTask;
+
+            _statisticsReporter.Received()
+                .Increment(
+                    Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)),
+                    Arg.Any<string>());
+        }
+
+        [Fact]
+        public async Task
+            Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+            var container = SetupContainer(x =>
+            {
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .DefineMessagePipeline
+                        .With<DefaultMessageProcessingBehaviour>()
+                        .With<MockMessageProcessingBehaviour>()
+                        .With<InvokeHandlerBehaviour>()
+                    .Build());
+            });
+            container.SetupTestMessage(_correlationId);
+
+            var messageWaiter = container.GetInstance<MessageWaiter<TestEvent>>();
+
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, container);
+
+            Assert.True(messageWaiter.WaitOne() != null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
+
+            _cancellationTokenSource.Cancel();
+            await subscriberListeningTask;
+
+            Assert.NotNull(MockMessageProcessingBehaviour.CalledForMessages.FirstOrDefault(m => m == _correlationId));
+        }
+
+        [Fact]
+        public async Task Given_A_CustomBatchProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+            var container = SetupContainer(x =>
+            {
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .DefineBatchPipeline
+                        .With<MockBatchProcessingBehaviour>()
+                        .With<DefaultBatchProcessingBehaviour>()
+                    .Build());
+            });
+            container.Configure(x => x.For<MockBatchProcessingBehaviour>()
+                .Use(context => new MockBatchProcessingBehaviour(_correlationId)));
+            container.SetupTestMessage(_correlationId);
+
+            var messageWaiter = container.GetInstance<MessageWaiter<TestEvent>>();
+
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, container);
+         
+            Assert.True(messageWaiter.WaitOne()!=null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
+
+            _cancellationTokenSource.Cancel();
+            await subscriberListeningTask;
+
+            Assert.NotNull(MockBatchProcessingBehaviour.CalledForMessages.FirstOrDefault(m => m == _correlationId));
         }
     }
 }

@@ -90,6 +90,7 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
                         provider.GetService<BatchProcessor>(),
                         provider.GetService<ILog>(),
                         provider.GetService<SubscriberConfiguration>().SubscriberName))
+                .AddSingleton<MessageReceiverFactory, AzureServiceBusMessageReceiverFactory>()
                 .AddSingleton<BatchFactory>()
                 .AddSingleton<BatchProcessor>()
                 .AddSingleton(provider => new BatchConfiguration(

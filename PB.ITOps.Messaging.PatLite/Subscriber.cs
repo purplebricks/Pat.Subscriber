@@ -16,12 +16,14 @@ namespace PB.ITOps.Messaging.PatLite
         private readonly ILog _log;
         private readonly SubscriberConfiguration _config;
         private readonly MultipleBatchProcessor _multipleBatchProcessor;
+        private readonly MessageReceiverFactory _messageReceiverFactory;
 
-        public Subscriber(ILog log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor)
+        public Subscriber(ILog log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory)
         {
             _log = log;
             _config = config;
             _multipleBatchProcessor = multipleBatchProcessor;
+            _messageReceiverFactory = messageReceiverFactory;
         }
 
         /// <summary>
@@ -31,9 +33,9 @@ namespace PB.ITOps.Messaging.PatLite
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
         public async Task Run(CancellationTokenSource tokenSource = null, Assembly[] handlerAssemblies = null)
         {
-            if (await Initialise(handlerAssemblies))
+            if (await Initialise(handlerAssemblies).ConfigureAwait(false))
             {
-                await ListenForMessages(tokenSource);
+                await ListenForMessages(tokenSource).ConfigureAwait(false);
             }
         }
 
@@ -83,23 +85,11 @@ namespace PB.ITOps.Messaging.PatLite
                     $"Cannot support {_config.ConcurrentBatches} concurrent batches.");
             }
 
-           var receivers = CreateMessageReceivers();
+           var receivers = _messageReceiverFactory.CreateReceivers();
 
             _log.Info("Listening for messages...");
 
-            await _multipleBatchProcessor.ProcessMessages(receivers, tokenSource);
-        }
-
-        private List<IMessageReceiver> CreateMessageReceivers()
-        {
-            var messageReceivers = new List<IMessageReceiver>();
-
-            var messageReceiverBuilder = new MessageReceiverBuilder(_log, _config);
-            foreach (var messageReceiver in messageReceiverBuilder.Build())
-            {
-                messageReceivers.AddRange(Enumerable.Repeat(messageReceiver, _config.ConcurrentBatches));
-            }
-            return messageReceivers;
+            await _multipleBatchProcessor.ProcessMessages(receivers, tokenSource).ConfigureAwait(false);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessing
         public async Task Invoke(Func<MessageContext, Task> next, MessageContext messageContext)
         {
             var message = messageContext.Message;
-            var messageBody = await GetMessageBody(message);
+            var messageBody = await GetMessageBody(message).ConfigureAwait(false);
 
             var messageTypeString = message.UserProperties["MessageType"].ToString();
             var handlerForMessageType = MessageMapper.GetHandlerForMessageType(messageTypeString);
@@ -28,7 +28,8 @@ namespace PB.ITOps.Messaging.PatLite.MessageProcessing
             var messageHandler = messageContext.DependencyScope.GetService(handlerForMessageType.HandlerType);
             var typedMessage = messageDeserialiser.DeserialiseObject(messageBody, handlerForMessageType.MessageType);
 
-            await (Task)handlerForMessageType.HandlerMethod.Invoke(messageHandler, new[] { typedMessage });
+            var handlerTask = (Task) handlerForMessageType.HandlerMethod.Invoke(messageHandler, new[] {typedMessage});
+            await handlerTask.ConfigureAwait(false);
         }
 
 

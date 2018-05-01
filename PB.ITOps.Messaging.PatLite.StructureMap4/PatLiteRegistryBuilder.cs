@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using StructureMap;
 
 namespace PB.ITOps.Messaging.PatLite.StructureMap4
 {
@@ -9,10 +11,12 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
     {
         private readonly ICollection<Type> _messagePipelineBehaviourTypes = new List<Type>();
         private readonly ICollection<Type> _batchPipelineBehaviourTypes = new List<Type>();
-        private SubscriberConfiguration _subscriberConfiguration = new SubscriberConfiguration();
+        private readonly SubscriberConfiguration _subscriberConfiguration;
+        private Func<IContext, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
 
-        public PatLiteRegistryBuilder()
+        public PatLiteRegistryBuilder(SubscriberConfiguration subscriberConfiguration)
         {
+            _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
@@ -26,27 +30,33 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             return this;
         }
 
-        public IMessagePipelineBuilder DefineMessagePipeline()
+        public IMessagePipelineBuilder DefineMessagePipeline
         {
-            _messagePipelineBehaviourTypes.Clear();
-            return this;
+            get
+            {
+                _messagePipelineBehaviourTypes.Clear();
+                return this;
+            }
         }
 
-        public IBatchPipelineBuilder DefineBatchPipeline()
+        public IBatchPipelineBuilder DefineBatchPipeline
         {
-            _batchPipelineBehaviourTypes.Clear();
-            return this;
-        }
-
-        public IPatLiteRegistryBuilder Use(SubscriberConfiguration subscriberConfiguration)
-        {
-            _subscriberConfiguration = subscriberConfiguration;
-            return this;
+            get
+            {
+                _batchPipelineBehaviourTypes.Clear();
+                return this;
+            }
         }
 
         IBatchPipelineBuilder IBatchPipelineBuilder.With<T>()
         {
             _batchPipelineBehaviourTypes.Add(typeof(T));
+            return this;
+        }
+
+        public IPatLiteRegistryBuilder WithMessageDeserialiser(Func<IContext, IMessageDeserialiser> func)
+        {
+            _messageDeserialiser = func;
             return this;
         }
 
@@ -58,7 +68,8 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             {
                 SubscriberConfiguration = _subscriberConfiguration,
                 MessageProcessingPipelineDependencyBuilder = builder,
-                BatchMessageProcessingBehaviourDependencyBuilder = batchBuilder
+                BatchMessageProcessingBehaviourDependencyBuilder = batchBuilder,
+                MessageDeserialiser = _messageDeserialiser
             };
             return new PatLiteRegistry(patliteOptions);
         }

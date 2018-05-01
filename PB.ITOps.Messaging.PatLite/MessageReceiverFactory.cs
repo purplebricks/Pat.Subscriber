@@ -1,22 +1,39 @@
 using System.Collections.Generic;
+using System.Linq;
 using log4net;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 
 namespace PB.ITOps.Messaging.PatLite
 {
-    public class MessageReceiverBuilder
+    public abstract class MessageReceiverFactory
     {
         private readonly ILog _log;
         private readonly SubscriberConfiguration _config;
 
-        public MessageReceiverBuilder(ILog log, SubscriberConfiguration config)
+        protected abstract IMessageReceiver CreateMessageReceiver(
+            string connectionString,
+            string topicName,
+            string subscriberName);
+
+        protected MessageReceiverFactory(ILog log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
         }
 
-        public IList<IMessageReceiver> Build()
+        public IList<IMessageReceiver> CreateReceivers()
+        {
+            var messageReceivers = new List<IMessageReceiver>();
+
+            foreach (var messageReceiver in CreateMessageReceivers())
+            {
+                messageReceivers.AddRange(Enumerable.Repeat(messageReceiver, _config.ConcurrentBatches));
+            }
+
+            return messageReceivers;
+        }
+
+        private List<IMessageReceiver> CreateMessageReceivers()
         {
             var messageReceivers = new List<IMessageReceiver>();
 
@@ -26,7 +43,8 @@ namespace PB.ITOps.Messaging.PatLite
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.Info($"Adding on subscription client {clientIndex} to list of source subscriptions");
-                    messageReceivers.Add(new MessageReceiver(connectionString, EntityNameHelper.FormatSubscriptionPath(_config.EffectiveTopicName, _config.SubscriberName)));
+                    messageReceivers.Add(CreateMessageReceiver(connectionString,
+                        _config.EffectiveTopicName, _config.SubscriberName));
                 }
                 else
                 {
@@ -34,7 +52,6 @@ namespace PB.ITOps.Messaging.PatLite
                 }
                 clientIndex++;
             }
-
             return messageReceivers;
         }
     }

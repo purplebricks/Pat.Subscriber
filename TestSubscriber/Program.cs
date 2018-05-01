@@ -123,17 +123,19 @@ namespace TestSubscriber
                 {
                     x.For<CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions>().Use(
                         new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1000, exception => false));
-                    x.AddRegistry(new PatLiteRegistryBuilder()
-                        .DefineMessagePipeline()
+                    x.AddRegistry(new PatLiteRegistryBuilder(subscriberConfiguration)
+                        .DefineMessagePipeline
                             .With<RateLimiterMessageProcessingBehaviour>()
                             .With<CircuitBreakerMessageProcessingBehaviour>()
                             .With<DefaultMessageProcessingBehaviour>()
                             .With<InvokeHandlerBehaviour>()
-                        .DefineBatchPipeline()
+                        .DefineBatchPipeline
                             .With<RateLimiterBatchProcessingBehaviour>()
                             .With<CircuitBreakerBatchProcessingBehaviour>()
                             .With<DefaultBatchProcessingBehaviour>()
-                        .Use(subscriberConfiguration)
+                        .WithMessageDeserialiser(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
+                            ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
+                            : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser())
                         .Build());
                 });
 
@@ -165,9 +167,6 @@ namespace TestSubscriber
                     x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(""));
                     x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()
                         .Ctor<string>().Is(ctx => ctx.GetInstance<MessageContext>().CorrelationId);
-                    x.For<IMessageDeserialiser>().Use(ctx => ctx.GetInstance<MessageContext>().MessageEncrypted
-                        ? new EncryptedMessageDeserialiser(ctx.GetInstance<DataProtectionConfiguration>())
-                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser());
                     x.For<PatSenderSettings>().Use(patSenderConfig);
                 });
 

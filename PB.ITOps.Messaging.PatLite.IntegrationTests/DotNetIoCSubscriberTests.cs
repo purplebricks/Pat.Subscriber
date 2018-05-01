@@ -3,30 +3,34 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
-using log4net.Appender;
-using log4net.Core;
-using log4net.Layout;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.Encryption;
+using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
+using PB.ITOps.Messaging.PatLite.MessageProcessing;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Encryption;
-using PB.ITOps.Messaging.PatSender.MessageGeneration;
 using Xunit;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
     public class DotNetIocSubscriberTests
     {
-        private IConfigurationRoot _configuration;
-        private SubscriberConfiguration _subscriberConfiguration;
+        private readonly IConfigurationRoot _configuration;
+        private readonly SubscriberConfiguration _subscriberConfiguration;
         private IStatisticsReporter _statisticsReporter;
+        private readonly string _correlationId;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
+        private static async Task<Task> StartSubscriber(CancellationTokenSource cancellationTokenSource, IServiceProvider serviceProvider)
+        {
+            var subscriber = serviceProvider.GetService<Subscriber>();
+            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            return subscriberListeningTask;
+        }
 
         public DotNetIocSubscriberTests()
         {
@@ -37,41 +41,23 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             _subscriberConfiguration = new SubscriberConfiguration();
             _configuration.GetSection("PatLite:Subscriber").Bind(_subscriberConfiguration);
             _subscriberConfiguration.SubscriberName = $"{_subscriberConfiguration.SubscriberName}-DotNetIoC";
+            _correlationId = Guid.NewGuid().ToString();
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public IServiceProvider InitialiseIoC(IServiceCollection serviceCollection)
         {
-            var senderSettings = new PatSenderSettings();
-            _configuration.GetSection("PatLite:Sender").Bind(senderSettings);
-
             var statisticsConfiguration = new StatisticsReporterConfiguration();
             _configuration.GetSection("StatsD").Bind(statisticsConfiguration);
-
-            var dataProtectionConfiguration = new DataProtectionConfiguration();
-            _configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
-
             _statisticsReporter = Substitute.For<IStatisticsReporter>();
 
-            InitLogger();
+            var loggerName = "IntegrationLogger-DotNetIoC";
+            Logging.InitLogger(loggerName);
 
             var serviceProvider = serviceCollection
-                .AddSingleton(senderSettings)
                 .AddSingleton(statisticsConfiguration)
-                .AddSingleton(dataProtectionConfiguration)
-                .AddSingleton<CapturedEvents>()
-                .AddSingleton<IMessageGenerator, MessageGenerator>()
-                .AddTransient<IEncryptedMessagePublisher>(
-                    provider => new EncryptedMessagePublisher(
-                        provider.GetRequiredService<IMessageSender>(),
-                        provider.GetRequiredService<DataProtectionConfiguration>(),
-                        new MessageProperties(Guid.NewGuid().ToString())))
-                .AddTransient<IMessagePublisher>(
-                    provider => new MessagePublisher(
-                        provider.GetRequiredService<IMessageSender>(),
-                        provider.GetRequiredService<IMessageGenerator>(),
-                        new MessageProperties(Guid.NewGuid().ToString())))
-                .AddSingleton(LogManager.GetLogger("IntegrationLogger"))
-                .AddTransient<IMessageSender, MessageSender>()
+                .AddSingleton<MessageReceivedNotifier<TestEvent>>()
+                .AddSingleton(LogManager.GetLogger(loggerName, loggerName))
                 .AddSingleton(_statisticsReporter)
                 .AddHandlersFromAssemblyContainingType<DotNetIoC>()
                 .BuildServiceProvider();
@@ -79,67 +65,21 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             return serviceProvider;
         }
 
-        private static void InitLogger()
-        {
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
-            var tracer = new TraceAppender();
-            var patternLayout = new PatternLayout();
-
-            patternLayout.ConversionPattern = "%d [%t] %-5p %m%n";
-            patternLayout.ActivateOptions();
-
-            tracer.Layout = patternLayout;
-            tracer.ActivateOptions();
-            hierarchy.Root.AddAppender(tracer);
-
-            var roller = new RollingFileAppender();
-            roller.Layout = patternLayout;
-            roller.AppendToFile = true;
-            roller.RollingStyle = RollingFileAppender.RollingMode.Size;
-            roller.MaxSizeRollBackups = 4;
-            roller.MaximumFileSize = "100KB";
-            roller.StaticLogFileName = true;
-            roller.File = "IntegrationLogger.txt";
-            roller.ActivateOptions();
-            hierarchy.Root.AddAppender(roller);
-
-            hierarchy.Root.Level = Level.All;
-            hierarchy.Configured = true;
-        }
-
         [Fact]
         public async Task Given_AddPatLiteExtension_When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
             var collection = new ServiceCollection()
-                .AddSingleton(_subscriberConfiguration)
-                .AddPatLite(new PatLiteOptions
-                {
-                    MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
-                        ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
-                        : (IMessageDeserialiser) new NewtonsoftMessageDeserialiser(),
-                    SubscriberConfiguration = _subscriberConfiguration
-                });
+                .AddPatLite(_subscriberConfiguration);
+
+            collection.SetupTestMessage(_correlationId);
             var serviceProvider = InitialiseIoC(collection);
+            var messageWaiter = serviceProvider.GetService<MessageWaiter<TestEvent>>();
 
-            var subscriber = serviceProvider.GetService<Subscriber>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
-
-            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, serviceProvider);
             
-            var messagePublisher = serviceProvider.GetService<IMessagePublisher>();
-            var correlationId = Guid.NewGuid().ToString();
+            Assert.NotNull(messageWaiter.WaitOne());
 
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
-
-            Wait.UntilIsNotNull(() =>
-                serviceProvider.GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
-
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Token.WaitHandle.WaitOne();
-
+            _cancellationTokenSource.Cancel();
             await subscriberListeningTask;
         }
 
@@ -147,37 +87,71 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public async Task Given_AddPatLiteExtension_WhenHandlerProcessesMessage_ThenMonitoringIncrementsMessageProcessed()
         {
             var collection = new ServiceCollection()
-                .AddPatLite(new PatLiteOptions
-                {
-                    MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
-                        ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
-                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser(),
-                    SubscriberConfiguration = _subscriberConfiguration
-                });
+                .AddPatLite(_subscriberConfiguration);
+
+            collection.SetupTestMessage(_correlationId);
             var serviceProvider = InitialiseIoC(collection);
+            var messageWaiter = serviceProvider.GetService<MessageWaiter<TestEvent>>();
 
-            var subscriber = serviceProvider.GetService<Subscriber>();
-            var cancellationTokenSource = new CancellationTokenSource();
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, serviceProvider);
 
-            await subscriber.Initialise(new[] { typeof(SubscriberTests).Assembly });
+            Assert.True(messageWaiter.WaitOne()!=null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
 
-            var subscriberListeningTask = Task.Run(() => subscriber.ListenForMessages(cancellationTokenSource));
-            
-            var messagePublisher = serviceProvider.GetService<IMessagePublisher>();
-            var correlationId = Guid.NewGuid().ToString();
-            
-            await messagePublisher.PublishEvent(new TestEvent(), new MessageProperties(correlationId));
-
-            Wait.UntilIsNotNull(() =>
-                serviceProvider.GetService<CapturedEvents>().ReceivedEvents.FirstOrDefault(m => m.CorrelationId == correlationId),
-                $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
+            _cancellationTokenSource.Cancel();
+            await subscriberListeningTask;
 
             _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
+        }
 
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Token.WaitHandle.WaitOne();
+        [Fact]
+        public async Task Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
+        {
+           var collection = new ServiceCollection()
+                .AddPatLite(_subscriberConfiguration)
+                .AddPatLite(new PatLiteOptionsBuilder(_subscriberConfiguration)
+                    .DefineMessagePipeline
+                        .With<DefaultMessageProcessingBehaviour>()
+                        .With<MockMessageProcessingBehaviour>()
+                        .With<InvokeHandlerBehaviour>()
+                    .Build());
 
+            collection.SetupTestMessage(_correlationId);
+            var serviceProvider = InitialiseIoC(collection);
+            var messageWaiter = serviceProvider.GetService<MessageWaiter<TestEvent>>();
+
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, serviceProvider);
+
+            Assert.True(messageWaiter.WaitOne()!=null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
+                    
+            _cancellationTokenSource.Cancel();
             await subscriberListeningTask;
+
+            Assert.NotNull(MockMessageProcessingBehaviour.CalledForMessages.FirstOrDefault(m => m == _correlationId));
+        }
+
+        [Fact]
+        public async Task Given_A_CustomBatchProcessingStepIsAdded_WhenMessageProcessed_ThenTheCustomStepIsCalled()
+        {
+            var collection = new ServiceCollection()
+                .AddPatLite(new PatLiteOptionsBuilder(_subscriberConfiguration)
+                    .DefineBatchPipeline
+                        .With<MockBatchProcessingBehaviour>()
+                        .With<DefaultBatchProcessingBehaviour>()
+                    .Build());
+            collection.AddSingleton(provider => new MockBatchProcessingBehaviour(_correlationId));
+
+            collection.SetupTestMessage(_correlationId);
+            var serviceProvider = InitialiseIoC(collection);
+            var messageWaiter = serviceProvider.GetService<MessageWaiter<TestEvent>>();
+
+            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, serviceProvider);       
+
+            Assert.True(messageWaiter.WaitOne()!=null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
+
+            _cancellationTokenSource.Cancel();
+            await subscriberListeningTask;
+
+            Assert.NotNull(MockBatchProcessingBehaviour.CalledForMessages.FirstOrDefault(m => m == _correlationId));
         }
     }
 }

@@ -1,26 +1,25 @@
 ﻿using System;
 using log4net;
-using log4net.Appender;
-using log4net.Core;
-using log4net.Layout;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PB.ITOps.Messaging.DataProtection;
 using PB.ITOps.Messaging.PatLite.Deserialiser;
 using PB.ITOps.Messaging.PatLite.Encryption;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
 using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
 using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
 using PB.ITOps.Messaging.PatSender;
 using PB.ITOps.Messaging.PatSender.Encryption;
 using PB.ITOps.Messaging.PatSender.MessageGeneration;
+using IMessageSender = PB.ITOps.Messaging.PatSender.IMessageSender;
+using MessageSender = PB.ITOps.Messaging.PatSender.MessageSender;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
 {
 
     public class DotNetIoC
     {
-        public static IServiceProvider Initialize(IConfigurationRoot configuration)
+        public static IServiceCollection Initialize(IConfigurationRoot configuration)
         {
             var senderSettings = new PatSenderSettings();
             configuration.GetSection("PatLite:Sender").Bind(senderSettings);
@@ -34,14 +33,15 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             var dataProtectionConfiguration = new DataProtectionConfiguration();
             configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
 
-            InitLogger();
-            var serviceProvider = new ServiceCollection()
+            var loggerName = "IntegrationLogger";
+            Logging.InitLogger(loggerName);
+            var serviceCollection = new ServiceCollection()
                 .AddSingleton(senderSettings)
                 .AddSingleton(subscriberConfiguration)
                 .AddSingleton(statisticsConfiguration)
                 .AddSingleton(dataProtectionConfiguration)
                 .AddSingleton<IMessageGenerator, MessageGenerator>()
-                .AddSingleton<CapturedEvents>()
+                .AddSingleton<MessageReceivedNotifier<TestEvent>>()
                 .AddTransient<IEncryptedMessagePublisher>(
                     provider => new EncryptedMessagePublisher(
                         provider.GetRequiredService<IMessageSender>(),
@@ -52,48 +52,19 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
                         provider.GetRequiredService<IMessageSender>(),
                         provider.GetRequiredService<IMessageGenerator>(),
                         new MessageProperties(Guid.NewGuid().ToString())))
-                .AddSingleton(LogManager.GetLogger("IntegrationLogger"))
+                .AddSingleton(LogManager.GetLogger(loggerName, loggerName))
                 .AddTransient<IMessageSender, MessageSender>()
                 .AddTransient<IStatisticsReporter, StatisticsReporter>()
                 .AddPatLite(new PatLiteOptions
                 {
                     MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
-                    ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
-                    : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser(),
+                        ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
+                        : (IMessageDeserialiser) new NewtonsoftMessageDeserialiser(),
                     SubscriberConfiguration = subscriberConfiguration
                 })
-                .AddHandlersFromAssemblyContainingType<DotNetIoC>()
-                .BuildServiceProvider();
+                .AddHandlersFromAssemblyContainingType<DotNetIoC>();
 
-            return serviceProvider;
-        }
-
-        private static void InitLogger()
-        {
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
-            var tracer = new TraceAppender();
-            var patternLayout = new PatternLayout();
-
-            patternLayout.ConversionPattern = "%d [%t] %-5p %m%n";
-            patternLayout.ActivateOptions();
-
-            tracer.Layout = patternLayout;
-            tracer.ActivateOptions();
-            hierarchy.Root.AddAppender(tracer);
-
-            var roller = new RollingFileAppender();
-            roller.Layout = patternLayout;
-            roller.AppendToFile = true;
-            roller.RollingStyle = RollingFileAppender.RollingMode.Size;
-            roller.MaxSizeRollBackups = 4;
-            roller.MaximumFileSize = "100KB";
-            roller.StaticLogFileName = true;
-            roller.File = "IntegrationLogger.txt";
-            roller.ActivateOptions();
-            hierarchy.Root.AddAppender(roller);
-
-            hierarchy.Root.Level = Level.All;
-            hierarchy.Configured = true;
+            return serviceCollection;
         }
     }
 }

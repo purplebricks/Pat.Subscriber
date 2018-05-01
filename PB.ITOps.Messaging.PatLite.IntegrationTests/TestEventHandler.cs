@@ -1,30 +1,28 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
 
 namespace PB.ITOps.Messaging.PatLite.IntegrationTests
 {
-    public class CapturedEvents
-    {
-        public List<CapturedEvent<TestEvent>> ReceivedEvents = new List<CapturedEvent<TestEvent>>();
-    }
-
     public class TestEventHandler: IHandleEvent<TestEvent>
     {
         private readonly MessageContext _messageContext;
-        private readonly CapturedEvents _capturedEvents;
+        private readonly MessageReceivedNotifier<TestEvent> _messageNotifier;
 
-        public TestEventHandler(MessageContext messageContext, CapturedEvents capturedEvents)
+        public TestEventHandler(MessageContext messageContext, MessageReceivedNotifier<TestEvent> messageNotifier)
         {
             _messageContext = messageContext;
-            _capturedEvents = capturedEvents;
+            _messageNotifier = messageNotifier;
         }
 
         public Task HandleAsync(TestEvent message)
         {
-            _capturedEvents.ReceivedEvents.Add(new CapturedEvent<TestEvent>
+            _messageNotifier.OnMessageReceived(new MessageReceivedHandlerArgs<TestEvent>
             {
-                Event = message,
-                CorrelationId = _messageContext.CorrelationId
+                CapturedMessage = new CapturedMessage<TestEvent>
+                {
+                    Message = message,
+                    CorrelationId = _messageContext.CorrelationId
+                }
             });
             return Task.CompletedTask;
         }

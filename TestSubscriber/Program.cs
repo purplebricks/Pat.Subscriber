@@ -87,7 +87,7 @@ namespace TestSubscriber
 
         public static IContainer Initialize()
         {
-            var connection = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=***REMOVED***";
+            var connection = "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=YOURKEY";
             var topicName = "pat";
 
             var subscriberConfiguration = new SubscriberConfiguration
@@ -110,7 +110,7 @@ namespace TestSubscriber
             var statdConfig = new StatisticsReporterConfiguration
             {
                 Environment = "local",
-                StatsDHost = "***REMOVED***",
+                StatsDHost = "StatsD Host Name",
                 Tenant = "uk"
             };
 
@@ -159,10 +159,9 @@ namespace TestSubscriber
 
                     x.For<DataProtectionConfiguration>().Use(new DataProtectionConfiguration
                     {
-                        AccountName = "***REMOVED***",
-                        AccountKey =
-                            "***REMOVED***",
-                        Thumbprint = "***REMOVED***"
+                        AccountName = "Blob Storage Account",
+                        AccountKey = "Blob Storage Account Key",
+                        Thumbprint = "CERTIFICATE THUMBPRINT"
                     });
                     x.For<ICorrelationIdProvider>().Use(new LiteralCorrelationIdProvider(""));
                     x.For<IEncryptedMessagePublisher>().Use<EncryptedMessagePublisher>()

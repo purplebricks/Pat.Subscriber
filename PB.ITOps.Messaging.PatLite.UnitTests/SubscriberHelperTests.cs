@@ -7,8 +7,8 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         [Fact]
         public void WhenConnectionIsValid_ThenReturnsServiceBusAddress()
         {
-            var serviceBusAddress = "***REMOVED***.servicebus.windows.net/";
-            var connectionString = "Endpoint=sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=passkeyvalue=";
+            var serviceBusAddress = "namespace.servicebus.windows.net/";
+            var connectionString = "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=passkeyvalue=";
 
             var value = connectionString.RetrieveServiceBusAddress();
 
@@ -30,7 +30,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         public void WhenConnectionDoesNotContainEndpointInfo_ThenReturnsEmptyServiceBusAddress()
         {
             var serviceBusAddress = "";
-            var connectionString = "sb://***REMOVED***.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=passkeyvalue=";
+            var connectionString = "sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=passkeyvalue=";
             
             var value = connectionString.RetrieveServiceBusAddress();
 

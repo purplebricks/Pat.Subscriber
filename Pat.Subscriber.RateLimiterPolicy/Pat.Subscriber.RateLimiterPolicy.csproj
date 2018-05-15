@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
+    <PackageId>PB.ITOps.Messaging.PatLite.RateLimiterPolicy</PackageId>
+    <Description>Purplebricks message subscriber infrastructure: RateLimiterPolicy</Description>
+    <Company>Purplebricks</Company>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nito.Collections.Deque" Version="1.0.4" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET451'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
+  </ItemGroup>
+</Project>

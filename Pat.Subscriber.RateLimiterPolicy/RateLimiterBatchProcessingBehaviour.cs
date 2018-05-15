@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Nito.Collections;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Pat.Subscriber.BatchProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
+namespace Pat.Subscriber.RateLimiterPolicy
 {
     public class RateLimiterBatchProcessingBehaviour : IBatchProcessingBehaviour
     {

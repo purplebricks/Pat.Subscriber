@@ -1,8 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Pat.Subscriber.BatchProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public static class BatchBehaviourPipelineHelper
     {

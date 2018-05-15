@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.AspNetCore.DataProtection;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using DataProtectionProvider = PB.ITOps.Messaging.DataProtection.DataProtectionProvider;
+using Pat.DataProtection;
+using Pat.Subscriber.Deserialiser;
+using DataProtectionProvider = Pat.DataProtection.DataProtectionProvider;
 
-namespace PB.ITOps.Messaging.PatLite.Encryption
+namespace Pat.Subscriber.DataProtectionDecryption
 {
     public class EncryptedMessageDeserialiser : IMessageDeserialiser
     {
@@ -17,6 +17,7 @@ namespace PB.ITOps.Messaging.PatLite.Encryption
             _protector = provider.CreateProtector("PatLite");
             _newtonsoftMessageDeserialiser = new NewtonsoftMessageDeserialiser();
         }
+
         public object DeserialiseObject(string messageBody, Type messageType)
         {
             var unprotectedMessageBody = _protector.Unprotect(messageBody);

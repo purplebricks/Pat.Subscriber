@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
-    <PackageId>PB.ITOps.Messaging.PatLite.StructureMap4</PackageId>
-    <Description>PatLite StructureMap4</Description>
+    <Description>Pat Subscriber StructureMap4</Description>
     <Company>Purplebricks</Company>
     <Version>1.0.0</Version>
   </PropertyGroup>
@@ -11,7 +10,7 @@
     <PackageReference Include="StructureMap" Version="4.5.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj" />
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.Telemetry.StatsD\Pat.Subscriber.Telemetry.StatsD.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber\Pat.Subscriber.csproj" />
   </ItemGroup>
 </Project>

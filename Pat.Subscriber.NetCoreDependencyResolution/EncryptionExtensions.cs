@@ -1,9 +1,10 @@
 ﻿using System;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
 using Microsoft.Extensions.DependencyInjection;
+using Pat.DataProtection;
+using Pat.Subscriber.DataProtectionDecryption;
+using Pat.Subscriber.Deserialiser;
 
-namespace PB.ITOps.Messaging.PatLite.Encryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public static class EncryptionExtensions
     {

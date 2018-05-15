@@ -4,16 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.SubscriberRules;
+using Pat.Subscriber.SubscriberRules;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public class RuleBuilderTests
     {
         private readonly RuleBuilder _ruleBuilder;
         private readonly IRuleApplier _ruleApplier;
-        private readonly string _handlerName = "PB.Domain.SubDomain.Handler";
+        private readonly string _handlerName = "Pat.Domain.SubDomain.Handler";
 
         public RuleBuilderTests()
         {
@@ -91,7 +91,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
         [Fact]
         public void GenerateSubscriptionRule_ContainsDomainUnderTestComparisonBaseOnHandlerName()
         {
-            var handlerName = "PB.Offer.Sales.BuyerQualification.Handler";
+            var handlerName = "Pat.Offer.Sales.BuyerQualification.Handler";
             var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerName);
 
@@ -214,13 +214,13 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
             var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
 
-            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0";
+            existingRules.First().Name = "Pat.Viewing.OpenHome.Notification.Subscriber_0_1_0";
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
             await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
 
             await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
-            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "Pat.Viewing.OpenHome.Notification.Subscriber_0_1_0"));
         }
 
         [Fact]
@@ -235,13 +235,13 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
             var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
 
-            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0";
+            existingRules.First().Name = "Pat.Viewing.OpenHome.Notification.Subscriber_1_0_0";
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
             await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
 
             await _ruleApplier.Received(1).AddRule(Arg.Is<RuleDescription>(rd => rd.Name == "1_v_1_0_0"));
-            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "Pat.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
         }
 
         [Fact]
@@ -256,7 +256,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             var oldRuleBuilder = new RuleBuilder(_ruleApplier, oldRuleVersionResolver, "SubscriberName");
             var existingRules = oldRuleBuilder.GenerateSubscriptionRules(oldMessageTypes, _handlerName).ToArray();
           
-            existingRules.First().Name = "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0";
+            existingRules.First().Name = "Pat.Viewing.OpenHome.Notification.Subscriber_1_0_0";
 
             var newRules = _ruleBuilder.GenerateSubscriptionRules(newMessageTypes, _handlerName).ToArray();
             existingRules = existingRules.Concat(newRules).ToArray();
@@ -264,7 +264,7 @@ namespace PB.ITOps.Messaging.PatLite.UnitTests
             await _ruleBuilder.ApplyRuleChanges(newRules, existingRules, newMessageTypes);
 
             await _ruleApplier.DidNotReceiveWithAnyArgs().AddRule(Arg.Any<RuleDescription>());
-            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "PB.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
+            await _ruleApplier.Received(1).RemoveRule(Arg.Is<RuleDescription>(rd => rd.Name == "Pat.Viewing.OpenHome.Notification.Subscriber_1_0_0"));
         }
 
         [Fact]

@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Encryption;
+using Pat.DataProtection;
+using Pat.Sender;
+using Pat.Sender.DataProtectionEncryption;
+using Pat.Subscriber.IntegrationTests.DependencyResolution;
+using Pat.Subscriber.IntegrationTests.Helpers;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace Pat.Subscriber.IntegrationTests
 {
     public class SubscriberTests: IClassFixture<SubscriberFixture>
     {
         private readonly IGenericServiceProvider _serviceProvider;
         private readonly bool _integrationTest;
+        private readonly bool _appVeyorCIBuild;
 
         public SubscriberTests(SubscriberFixture subscriberFixture)
         {
             _serviceProvider = subscriberFixture.ServiceProvider;
             _integrationTest = subscriberFixture.IntegrationTest;
+            _appVeyorCIBuild = subscriberFixture.AppVeyorCIBuild;
         }
 
         private T GetService<T>()
@@ -26,9 +28,12 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             return _serviceProvider.GetService<T>();
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task When_EncryptedMessagePublished_HandlerReceivesDecryptedMessagea()
         {
+            Skip.IfNot(_integrationTest);
+            Skip.If(_appVeyorCIBuild, "integration test not run on appveyor build agent");
+
             var correlationId = Guid.NewGuid().ToString();
             var testMessageToBeEncrypted = "test encryption";
             var testMessage = new TestEvent
@@ -43,9 +48,12 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             Assert.True(messageWaiter.WaitOne() != null, $"'{nameof(TestEvent)}' message never received for correlation id '{correlationId}'");
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task When_MessagePublished_HandlerReceivesMessageWithCorrectCorrelationId()
         {
+            Skip.IfNot(_integrationTest);
+            Skip.If(_appVeyorCIBuild, "integration test not run on appveyor build agent");
+
             var correlationId = Guid.NewGuid().ToString();
             var messageSender = GetService<TestMessageSender>();
 
@@ -58,8 +66,10 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public async Task When_SynthenticMessagePublishedWithFullDomain_HandlerReceivesMessage()
         {
             Skip.IfNot(_integrationTest);
+            Skip.If(_appVeyorCIBuild, "integration test not run on appveyor build agent");
+
             var correlationId = Guid.NewGuid().ToString();
-            var domainUnderTest = "PB.ITOps.Messaging.PatLite.IntegrationTests.";
+            var domainUnderTest = "Pat.ITOps.Messaging.PatLite.IntegrationTests.";
 
             var messageSender = GetService<TestMessageSender>();
             var messageWaiter = await messageSender.PublishMessage(new TestEvent(), new MessageProperties(correlationId)
@@ -78,10 +88,12 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
         public async Task When_SynthenticMessagePublishedInDifferentDomain_HandlerDoesNotReceiveTheMessage()
         {
             Skip.IfNot(_integrationTest);
+            Skip.If(_appVeyorCIBuild, "integration test not run on appveyor build agent");
+
             var correlationId = Guid.NewGuid().ToString();
             var messageSender = GetService<TestMessageSender>();
 
-            var domainUnderTest = "PB.Offers.";
+            var domainUnderTest = "Pat.Offers.";
             var messageWaiter = await messageSender.PublishMessage(new TestEvent(), new MessageProperties(correlationId)
             {
                 CustomProperties = new Dictionary<string, string>

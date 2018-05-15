@@ -6,10 +6,10 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatSender;
+using Pat.Sender;
+using Pat.Subscriber.IntegrationTests.Helpers;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
     public static class DotNetIoCExtensions
     {

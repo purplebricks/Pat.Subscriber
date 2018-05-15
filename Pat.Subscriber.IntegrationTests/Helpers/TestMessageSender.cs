@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Correlation;
-using PB.ITOps.Messaging.PatSender.MessageGeneration;
-using IMessageSender = PB.ITOps.Messaging.PatSender.IMessageSender;
 using NSubstitute;
+using Pat.Sender;
+using Pat.Sender.Correlation;
+using Pat.Sender.MessageGeneration;
+using Pat.Subscriber.IntegrationTests.DependencyResolution;
+using IMessageSender = Pat.Sender.IMessageSender;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class TestMessageSender
     {

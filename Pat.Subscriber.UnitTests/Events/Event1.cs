@@ -1,4 +1,4 @@
-namespace PB.ITOps.Messaging.PatLite.UnitTests.Events
+namespace Pat.Subscriber.UnitTests.Events
 {
     public class Event1
     {

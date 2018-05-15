@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
+﻿namespace Pat.Subscriber.Telemetry.StatsD
 {
     public class StatisticsReporterConfiguration
     {

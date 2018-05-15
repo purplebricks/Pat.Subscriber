@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.UnitTests.Events;
+using Pat.Subscriber.UnitTests.Events;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests.Handlers
+namespace Pat.Subscriber.UnitTests.Handlers
 {
     public class DerivedEventHandler : IHandleEvent<Eventv2>
     {

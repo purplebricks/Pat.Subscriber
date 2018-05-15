@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
+﻿namespace Pat.Subscriber.RateLimiterPolicy
 {
     public interface ITimer
     {

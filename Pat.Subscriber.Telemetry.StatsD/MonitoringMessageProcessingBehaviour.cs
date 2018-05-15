@@ -2,9 +2,9 @@
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
+namespace Pat.Subscriber.Telemetry.StatsD
 {
     public class MonitoringMessageProcessingBehaviour: IMessageProcessingBehaviour
     {

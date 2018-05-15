@@ -1,11 +1,12 @@
 ﻿using log4net;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.IoC;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.IoC;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public class PatLiteRegistry : Registry
     {
@@ -36,7 +37,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             {
                 For<BatchProcessingBehaviourPipeline>().Use((ctx) =>
                     new BatchProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringPolicy.MonitoringBatchProcessingBehaviour>(ctx)
+                        .AddBehaviour<MonitoringBatchProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(ctx)
                 );
             }
@@ -50,7 +51,7 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
             {
                 For<MessageProcessingBehaviourPipeline>().Use((ctx) =>
                     new MessageProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringPolicy.MonitoringMessageProcessingBehaviour>(ctx)
+                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<InvokeHandlerBehaviour>(ctx));
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
+namespace Pat.Subscriber.RateLimiterPolicy
 {
     public class ThrottlingEventArgs : EventArgs
     {

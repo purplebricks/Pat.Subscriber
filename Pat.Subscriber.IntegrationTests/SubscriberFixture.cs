@@ -3,15 +3,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
+using Pat.Subscriber.IntegrationTests.DependencyResolution;
+using Pat.Subscriber.IntegrationTests.Helpers;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace Pat.Subscriber.IntegrationTests
 {
     public class SubscriberFixture : IDisposable
     {
         public IGenericServiceProvider ServiceProvider { get; }
         public bool IntegrationTest { get; }
+        public bool AppVeyorCIBuild { get; }
 
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Task _subscriberTask;
@@ -23,6 +24,13 @@ namespace PB.ITOps.Messaging.PatLite.IntegrationTests
             var configuration = configurationBuilder.Build();
 
             IntegrationTest = bool.Parse(configuration["SubscriberTests:IntegrationTest"]);
+
+            AppVeyorCIBuild = bool.Parse(Environment.GetEnvironmentVariable("APPVEYOR") ?? "false");
+
+            if (AppVeyorCIBuild)
+            {
+                return;
+            }
 
             if (bool.Parse(configuration["SubscriberTests:UseStructureMap"]))
             {

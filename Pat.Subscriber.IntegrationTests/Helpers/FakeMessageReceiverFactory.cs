@@ -1,7 +1,7 @@
 ﻿using log4net;
 using Microsoft.Azure.ServiceBus.Core;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class FakeMessageReceiverFactory: MessageReceiverFactory
     {

@@ -1,6 +1,6 @@
 ﻿using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
     public class StructureMapServiceProvider : IGenericServiceProvider
     {

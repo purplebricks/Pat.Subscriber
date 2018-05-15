@@ -1,8 +1,8 @@
 using System;
-using PB.ITOps.Messaging.PatLite.CicuitBreaker;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
+using Pat.Subscriber.CicuitBreaker;
+using Pat.Subscriber.Deserialiser;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public interface IPatLiteOptionsBuilder
     {

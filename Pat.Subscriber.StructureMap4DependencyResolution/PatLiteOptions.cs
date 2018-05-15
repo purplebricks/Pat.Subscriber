@@ -1,8 +1,8 @@
 using System;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
+using Pat.Subscriber.Deserialiser;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public class PatLiteOptions
     {

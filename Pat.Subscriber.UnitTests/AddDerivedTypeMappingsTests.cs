@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Reflection;
-using PB.ITOps.Messaging.PatLite.MessageMapping;
-using PB.ITOps.Messaging.PatLite.UnitTests.Events;
-using PB.ITOps.Messaging.PatLite.UnitTests.Handlers;
+using Pat.Subscriber.MessageMapping;
+using Pat.Subscriber.UnitTests.Events;
+using Pat.Subscriber.UnitTests.Handlers;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public class AddDerivedTypeMappingsTests
     {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.MessageProcessing;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public class MessagePipelineDependencyBuilder
     {

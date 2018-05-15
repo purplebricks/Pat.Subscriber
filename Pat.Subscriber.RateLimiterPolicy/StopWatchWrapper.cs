@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
+namespace Pat.Subscriber.RateLimiterPolicy
 {
     public class StopWatchWrapper : ITimer
     {

@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public class SubscriberHelperTests
     {

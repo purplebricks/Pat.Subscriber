@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 using log4net;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
-using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
-using PB.ITOps.Messaging.PatLite.StructureMap4;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.IntegrationTests.DependencyResolution;
+using Pat.Subscriber.IntegrationTests.Helpers;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.StructureMap4DependencyResolution;
+using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace Pat.Subscriber.IntegrationTests
 {
     public class StructureMapSubscriberTests
     {

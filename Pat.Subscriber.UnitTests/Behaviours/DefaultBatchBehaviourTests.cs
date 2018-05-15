@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Pat.Subscriber.BatchProcessing;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests.Policies
+namespace Pat.Subscriber.UnitTests.Behaviours
 {
     public class DefaultBatchBehaviourTests
     {

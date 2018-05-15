@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public static class NSubstituteHelper
     {

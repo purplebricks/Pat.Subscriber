@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy
+namespace Pat.Subscriber.RateLimiterPolicy
 {
     public class RateLimiterMessageProcessingBehaviour : IMessageProcessingBehaviour
     {

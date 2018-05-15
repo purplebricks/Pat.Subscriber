@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
+﻿namespace Pat.Subscriber.RateLimiterPolicy.UnitTests
 {
     public class TestTimer : ITimer
     {

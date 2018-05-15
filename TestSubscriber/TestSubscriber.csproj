@@ -3,17 +3,21 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net462</TargetFramework>
     <LangVersion>7.1</LangVersion>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="PB.ITOps.Messaging.DataProtection" Version="1.0.4" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender" Version="2.0.34" />
-    <PackageReference Include="PB.ITOps.Messaging.PatSender.Encryption" Version="2.0.34" />
+    <PackageReference Include="Pat.DataProtection" Version="1.0.2" />
+    <PackageReference Include="Pat.Sender" Version="2.0.9" />
+    <PackageReference Include="Pat.Sender.DataProtectionEncryption" Version="2.0.3" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.Encryption\PB.ITOps.Messaging.PatLite.Encryption.csproj" />
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj" />
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.RateLimiterPolicy\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.csproj" />
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.StructureMap4\PB.ITOps.Messaging.PatLite.StructureMap4.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution\Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.DataProtectionDecryption.StructureMap4DependencyResolution\Pat.Subscriber.DataProtectionDecryption.StructureMap4DependencyResolution.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.DataProtectionDecryption\Pat.Subscriber.DataProtectionDecryption.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.NetCoreDependencyResolution\Pat.Subscriber.NetCoreDependencyResolution.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.StructureMap4DependencyResolution\Pat.Subscriber.StructureMap4DependencyResolution.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.Telemetry.StatsD\Pat.Subscriber.Telemetry.StatsD.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.RateLimiterPolicy\Pat.Subscriber.RateLimiterPolicy.csproj" />
   </ItemGroup>
 </Project>

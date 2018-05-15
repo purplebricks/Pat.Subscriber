@@ -8,7 +8,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber\Pat.Subscriber.csproj" />
     <ProjectReference Include="..\TestSubscriber\TestSubscriber.csproj" />
   </ItemGroup>
 </Project>

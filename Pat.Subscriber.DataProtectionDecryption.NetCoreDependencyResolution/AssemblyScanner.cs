@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public class AssemblyScanner
     {

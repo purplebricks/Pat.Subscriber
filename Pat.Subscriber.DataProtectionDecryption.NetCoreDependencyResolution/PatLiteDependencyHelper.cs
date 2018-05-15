@@ -3,13 +3,13 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.IoC;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
-using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.IoC;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.Telemetry.StatsD;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     /// <summary>
     /// Helper class to aid registering of PatLite dependencies in Net Core Dependency Injection

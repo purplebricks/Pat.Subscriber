@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
-    <PackageId>PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution</PackageId>
     <Description>Purplebricks message subscriber infrastructure: dot net core dependency resolution</Description>
     <Company>Purplebricks</Company>
     <Version>2.0.0</Version>
@@ -16,7 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.MonitoringPolicy\PB.ITOps.Messaging.PatLite.MonitoringPolicy.csproj" />
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite\PB.ITOps.Messaging.PatLite.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.Telemetry.StatsD\Pat.Subscriber.Telemetry.StatsD.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber\Pat.Subscriber.csproj" />
   </ItemGroup>
 </Project>

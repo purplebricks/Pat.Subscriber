@@ -1,7 +1,7 @@
-﻿using PB.ITOps.Messaging.PatLite.BatchProcessing;
+﻿using Pat.Subscriber.BatchProcessing;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public static class BatchBehaviourPipelineHelper
     {

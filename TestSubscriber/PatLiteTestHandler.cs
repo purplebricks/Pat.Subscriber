@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite;
-using PB.ITOps.Messaging.PatSender;
+using Pat.Sender;
+using Pat.Subscriber;
 
 namespace TestSubscriber
 {

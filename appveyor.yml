@@ -7,8 +7,8 @@ branches:
 clone_depth: 1
 image: Visual Studio 2017
 build_script:  
-- dotnet build -c Release Pat.Subscriber\Pat.Subscriber.csproj
-- dotnet pack -c Release Pat.Subscriber\Pat.Subscriber.csproj
+- dotnet build -c Release
+- dotnet pack -c Release
 test:
   assemblies:
     - '**\*tests.dll'

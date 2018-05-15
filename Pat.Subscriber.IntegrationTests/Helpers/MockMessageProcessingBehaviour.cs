@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class MockMessageProcessingBehaviour : IMessageProcessingBehaviour
     {

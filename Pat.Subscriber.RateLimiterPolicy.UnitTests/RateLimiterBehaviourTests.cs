@@ -2,10 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Pat.Subscriber.BatchProcessing;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.RateLimiterPolicy.UnitTests
+namespace Pat.Subscriber.RateLimiterPolicy.UnitTests
 {
     public class RateLimiterBehaviourTests
     {

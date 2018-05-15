@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net47</TargetFramework>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NSubstitute" Version="3.1.0" />
@@ -8,6 +9,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PB.ITOps.Messaging.PatLite.RateLimiterPolicy\PB.ITOps.Messaging.PatLite.RateLimiterPolicy.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber.RateLimiterPolicy\Pat.Subscriber.RateLimiterPolicy.csproj" />
   </ItemGroup>
 </Project>

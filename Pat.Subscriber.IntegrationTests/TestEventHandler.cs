@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
+using Pat.Subscriber.IntegrationTests.Helpers;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace Pat.Subscriber.IntegrationTests
 {
     public class TestEventHandler: IHandleEvent<TestEvent>
     {

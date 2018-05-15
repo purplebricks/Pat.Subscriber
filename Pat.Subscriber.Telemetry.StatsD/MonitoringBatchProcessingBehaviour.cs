@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
+using Pat.Subscriber.BatchProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
+namespace Pat.Subscriber.Telemetry.StatsD
 {
     public class MonitoringBatchProcessingBehaviour: IBatchProcessingBehaviour
     {

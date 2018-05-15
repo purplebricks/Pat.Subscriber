@@ -4,11 +4,11 @@ using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatSender;
+using Pat.Sender;
+using Pat.Subscriber.IntegrationTests.Helpers;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
     public static class StructureMapExtensions
     {

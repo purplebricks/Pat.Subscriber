@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.Azure.ServiceBus;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Extensions;
-using PB.ITOps.Messaging.PatSender.MessageGeneration;
+using Pat.Sender;
+using Pat.Sender.Extensions;
+using Pat.Sender.MessageGeneration;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class MessageHelper
     {

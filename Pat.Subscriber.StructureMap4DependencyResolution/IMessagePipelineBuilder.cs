@@ -1,6 +1,6 @@
-﻿using PB.ITOps.Messaging.PatLite.MessageProcessing;
+﻿using Pat.Subscriber.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public interface IMessagePipelineBuilder: IPatLiteRegistryBuilder
     {

@@ -1,7 +1,7 @@
-using PB.ITOps.Messaging.PatLite.MessageMapping;
+using Pat.Subscriber.MessageMapping;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public class MessageMappingTests
     {

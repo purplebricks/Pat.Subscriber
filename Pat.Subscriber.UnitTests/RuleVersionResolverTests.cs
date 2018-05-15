@@ -1,9 +1,9 @@
-﻿using PB.ITOps.Messaging.PatLite.SubscriberRules;
-using System;
+﻿using System;
 using System.Linq;
+using Pat.Subscriber.SubscriberRules;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests
+namespace Pat.Subscriber.UnitTests
 {
     public class RuleVersionResolverTests
     {

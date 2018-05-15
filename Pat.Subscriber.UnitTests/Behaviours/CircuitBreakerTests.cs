@@ -5,12 +5,12 @@ using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.CicuitBreaker;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.CicuitBreaker;
+using Pat.Subscriber.MessageProcessing;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.UnitTests.Behaviours
+namespace Pat.Subscriber.UnitTests.Behaviours
 {
     public class MockHandleMessageBehaviour : IMessageProcessingBehaviour
     {

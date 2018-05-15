@@ -1,17 +1,17 @@
 ﻿using System;
 using log4net;
 using Microsoft.Extensions.Configuration;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.Encryption;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
-using PB.ITOps.Messaging.PatLite.StructureMap4;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Correlation;
+using Pat.DataProtection;
+using Pat.Sender;
+using Pat.Sender.Correlation;
+using Pat.Subscriber.DataProtectionDecryption;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.IntegrationTests.Helpers;
+using Pat.Subscriber.StructureMap4DependencyResolution;
+using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
     public class StructureMapIoC
     {

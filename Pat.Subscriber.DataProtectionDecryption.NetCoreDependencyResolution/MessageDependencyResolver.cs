@@ -1,8 +1,8 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.IoC;
+using Pat.Subscriber.IoC;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public class MessageDependencyResolver : MessageDependencyScope, IMessageDependencyResolver
     {

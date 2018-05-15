@@ -1,8 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.MessageProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public static class MessageBehaviourPipelineHelper
     {

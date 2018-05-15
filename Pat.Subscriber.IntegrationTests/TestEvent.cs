@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+﻿namespace Pat.Subscriber.IntegrationTests
 {
     public class TestEvent
     {

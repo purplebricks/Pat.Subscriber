@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
+namespace Pat.Subscriber.Telemetry.StatsD
 {
     public interface IStatisticsReporter
     {

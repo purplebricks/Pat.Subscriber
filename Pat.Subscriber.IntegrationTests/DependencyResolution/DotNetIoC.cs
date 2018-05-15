@@ -2,19 +2,19 @@
 using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.Encryption;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
-using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
-using PB.ITOps.Messaging.PatSender;
-using PB.ITOps.Messaging.PatSender.Encryption;
-using PB.ITOps.Messaging.PatSender.MessageGeneration;
-using IMessageSender = PB.ITOps.Messaging.PatSender.IMessageSender;
-using MessageSender = PB.ITOps.Messaging.PatSender.MessageSender;
+using Pat.DataProtection;
+using Pat.Sender;
+using Pat.Sender.DataProtectionEncryption;
+using Pat.Sender.MessageGeneration;
+using Pat.Subscriber.DataProtectionDecryption;
+using Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.IntegrationTests.Helpers;
+using Pat.Subscriber.Telemetry.StatsD;
+using IMessageSender = Pat.Sender.IMessageSender;
+using MessageSender = Pat.Sender.MessageSender;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
 
     public class DotNetIoC

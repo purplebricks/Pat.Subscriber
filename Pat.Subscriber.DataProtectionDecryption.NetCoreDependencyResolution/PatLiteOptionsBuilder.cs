@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.CicuitBreaker;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.CicuitBreaker;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.Telemetry.StatsD;
 
-namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public class PatLiteOptionsBuilder : IMessagePipelineBuilder, IBatchPipelineBuilder
     {
@@ -19,9 +20,9 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
         {
             _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
         }
 
@@ -85,11 +86,11 @@ namespace PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution
             _messagePipelineBehaviourTypes.Clear();
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(CircuitBreakerMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
             _batchPipelineBehaviourTypes.Clear();
             _batchPipelineBehaviourTypes.Add(typeof(CircuitBreakerBatchProcessingBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
             _circuitBreakerOptions = circuitBreakerOptions;
             return this;

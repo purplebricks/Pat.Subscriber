@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.Deserialiser;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public class PatLiteRegistryBuilder: IMessagePipelineBuilder, IBatchPipelineBuilder
     {
@@ -17,10 +18,10 @@ namespace PB.ITOps.Messaging.PatLite.StructureMap4
         public PatLiteRegistryBuilder(SubscriberConfiguration subscriberConfiguration)
         {
             _subscriberConfiguration = subscriberConfiguration;
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringPolicy.MonitoringBatchProcessingBehaviour));
+            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
         }
 

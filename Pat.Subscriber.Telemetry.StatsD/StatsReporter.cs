@@ -1,7 +1,7 @@
 ﻿using System;
 using StatsdClient;
 
-namespace PB.ITOps.Messaging.PatLite.MonitoringPolicy
+namespace Pat.Subscriber.Telemetry.StatsD
 {
     public class StatisticsReporter : IStatisticsReporter
     {

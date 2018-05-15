@@ -1,10 +1,9 @@
 ﻿using System;
-using PB.ITOps.Messaging.DataProtection;
-using PB.ITOps.Messaging.PatLite.Deserialiser;
-using PB.ITOps.Messaging.PatLite.Encryption;
+using Pat.DataProtection;
+using Pat.Subscriber.Deserialiser;
 using StructureMap;
 
-namespace PB.ITOps.Messaging.PatLite.Encyption.StructureMap
+namespace Pat.Subscriber.DataProtectionDecryption.StructureMap4DependencyResolution
 {
     public static class EncryptionExtensions
     {

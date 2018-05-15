@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution
+﻿namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 {
     public interface IGenericServiceProvider
     {

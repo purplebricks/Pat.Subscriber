@@ -1,4 +1,4 @@
-﻿namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+﻿namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class CapturedMessage<T>
     {

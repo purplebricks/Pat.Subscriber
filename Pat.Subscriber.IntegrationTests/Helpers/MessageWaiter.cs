@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers
+namespace Pat.Subscriber.IntegrationTests.Helpers
 {
     public class MessageWaiter<T>
     {

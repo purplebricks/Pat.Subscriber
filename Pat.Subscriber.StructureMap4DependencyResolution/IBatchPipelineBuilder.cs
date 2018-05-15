@@ -1,6 +1,6 @@
-﻿using PB.ITOps.Messaging.PatLite.BatchProcessing;
+﻿using Pat.Subscriber.BatchProcessing;
 
-namespace PB.ITOps.Messaging.PatLite.StructureMap4
+namespace Pat.Subscriber.StructureMap4DependencyResolution
 {
     public interface IBatchPipelineBuilder: IPatLiteRegistryBuilder
     {

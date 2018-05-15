@@ -6,15 +6,15 @@ using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using PB.ITOps.Messaging.PatLite.BatchProcessing;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.DependencyResolution;
-using PB.ITOps.Messaging.PatLite.IntegrationTests.Helpers;
-using PB.ITOps.Messaging.PatLite.MessageProcessing;
-using PB.ITOps.Messaging.PatLite.MonitoringPolicy;
-using PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution;
+using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution;
+using Pat.Subscriber.IntegrationTests.DependencyResolution;
+using Pat.Subscriber.IntegrationTests.Helpers;
+using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.Telemetry.StatsD;
 using Xunit;
 
-namespace PB.ITOps.Messaging.PatLite.IntegrationTests
+namespace Pat.Subscriber.IntegrationTests
 {
     public class DotNetIocSubscriberTests
     {

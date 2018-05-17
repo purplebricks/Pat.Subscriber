@@ -1,6 +1,6 @@
 using Pat.Subscriber.MessageProcessing;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public interface IMessagePipelineBuilder : IPatLiteOptionsBuilder
     {

@@ -1,7 +1,7 @@
 using System;
 using Pat.Subscriber.Deserialiser;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public class PatLiteOptions
     {

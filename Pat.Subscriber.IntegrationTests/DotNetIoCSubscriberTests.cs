@@ -7,10 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Pat.Subscriber.BatchProcessing;
-using Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution;
 using Pat.Subscriber.IntegrationTests.DependencyResolution;
 using Pat.Subscriber.IntegrationTests.Helpers;
 using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.NetCoreDependencyResolution;
 using Pat.Subscriber.Telemetry.StatsD;
 using Xunit;
 

@@ -2,7 +2,7 @@ using System;
 using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public interface IPatLiteOptionsBuilder
     {

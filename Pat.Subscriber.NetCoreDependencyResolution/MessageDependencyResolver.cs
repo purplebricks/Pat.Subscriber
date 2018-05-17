@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Pat.Subscriber.IoC;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public class MessageDependencyResolver : MessageDependencyScope, IMessageDependencyResolver
     {

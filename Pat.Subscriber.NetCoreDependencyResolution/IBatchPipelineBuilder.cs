@@ -1,6 +1,6 @@
 using Pat.Subscriber.BatchProcessing;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public interface IBatchPipelineBuilder : IPatLiteOptionsBuilder
     {

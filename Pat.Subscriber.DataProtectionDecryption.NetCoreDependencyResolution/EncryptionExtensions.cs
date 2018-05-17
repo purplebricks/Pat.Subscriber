@@ -1,10 +1,9 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Pat.DataProtection;
-using Pat.Subscriber.DataProtectionDecryption;
 using Pat.Subscriber.Deserialiser;
 
-namespace Pat.Subscriber.NetCoreDependencyResolution
+namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
 {
     public static class EncryptionExtensions
     {

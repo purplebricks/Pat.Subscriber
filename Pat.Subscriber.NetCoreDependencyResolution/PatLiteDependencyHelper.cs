@@ -9,7 +9,7 @@ using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
 using Pat.Subscriber.Telemetry.StatsD;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     /// <summary>
     /// Helper class to aid registering of PatLite dependencies in Net Core Dependency Injection

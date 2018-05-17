@@ -1,22 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
-    <Description>Purplebricks message subscriber infrastructure: Encryption with netcore DI support</Description>
+    <Description>Purplebricks message subscriber infrastructure: dot net core dependency resolution</Description>
     <Company>Purplebricks</Company>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Pat.Subscriber.DataProtectionDecryption\Pat.Subscriber.DataProtectionDecryption.csproj" />
-  </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\net462\PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'NET451'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.1.1" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\Pat.Subscriber.Telemetry.StatsD\Pat.Subscriber.Telemetry.StatsD.csproj" />
+    <ProjectReference Include="..\Pat.Subscriber\Pat.Subscriber.csproj" />
+  </ItemGroup>
 </Project>

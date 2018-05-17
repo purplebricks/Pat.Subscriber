@@ -6,7 +6,7 @@ using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.MessageProcessing;
 using Pat.Subscriber.Telemetry.StatsD;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public class PatLiteOptionsBuilder : IMessagePipelineBuilder, IBatchPipelineBuilder
     {

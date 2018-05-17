@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Pat.Subscriber.BatchProcessing;
 
-namespace Pat.Subscriber.DataProtectionDecryption.NetCoreDependencyResolution
+namespace Pat.Subscriber.NetCoreDependencyResolution
 {
     public class BatchPipelineDependencyBuilder
     {

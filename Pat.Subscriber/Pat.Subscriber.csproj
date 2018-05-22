@@ -6,7 +6,7 @@
     <Summary>Purplebricks message subscriber infrastructure.</Summary>
     <Description>Purplebricks message subscriber infrastructure</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageIconUrl>https://www.purplebricks.co.uk/favicon-32x32.png</PackageIconUrl>
+    <PackageIconUrl>https://pbonlineassets.azureedge.net/web-images/favicons/favicon-96x96.png</PackageIconUrl>
     <PackageProjectUrl>http://purplebricks.io/pat/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/purplebricks/Pat.Subscriber/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>

@@ -1,9 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
-    <Description>Purplebricks message subscriber infrastructure: MonitoringPolicy</Description>
     <Company>Purplebricks</Company>
     <Version>1.0.0</Version>
+    <Summary>Purplebricks message subscriber infrastructure: StatsD Monitoring Behaviour</Summary>
+    <Description>Purplebricks message subscriber infrastructure: StatsD Monitoring Behaviour</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageIconUrl>https://www.purplebricks.co.uk/favicon-32x32.png</PackageIconUrl>
+    <PackageProjectUrl>http://purplebricks.io/pat/</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/purplebricks/Pat.Subscriber/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/purplebricks/Pat.Subscriber</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="StatsdClient" Version="3.0.86" />

@@ -28,7 +28,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 await next(messageContext).ConfigureAwait(false);
                 await messageContext.MessageReceiver.CompleteAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.Info($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCollelationId(message)}`: {message.ContentType}");
+                _log.Debug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCollelationId(message)}`: {message.ContentType}");
             }
             catch (SerializationException ex)
             {

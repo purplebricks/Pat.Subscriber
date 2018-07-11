@@ -4,6 +4,7 @@ using System.Reflection;
 using log4net;
 using Microsoft.Extensions.DependencyInjection;
 using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
@@ -40,7 +41,10 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
 
             return serviceCollection
                 .AddSingleton(options.SubscriberConfiguration)
-                .RegisterPatLite(options.BatchMessageProcessingBehaviourPipelineBuilder, options.MessageProcessingPipelineBuilder, options.MessageDeserialiser);
+                .RegisterPatLite(options.BatchMessageProcessingBehaviourPipelineBuilder, 
+                    options.MessageProcessingPipelineBuilder, 
+                    options.MessageDeserialiser,
+                    options.CircuitBreakerOptions);
         }
 
         /// <summary>
@@ -64,19 +68,25 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         /// <returns></returns>
         public static IServiceCollection AddPatLite(this IServiceCollection serviceCollection)
         {
-            return serviceCollection.RegisterPatLite(null, null, null);
+            return serviceCollection.RegisterPatLite(null, null, null, null);
         }
 
         private static IServiceCollection RegisterPatLite(
             this IServiceCollection serviceCollection,
             BatchPipelineDependencyBuilder batchMessageProcessingBehaviourBuilder, 
             MessagePipelineDependencyBuilder messagePipelineDependencyBuilder,
-            Func<IServiceProvider, IMessageDeserialiser> messageDeserialiser)
+            Func<IServiceProvider, IMessageDeserialiser> messageDeserialiser,
+            CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions circuitBreakerOptions)
         {
             messagePipelineDependencyBuilder?.RegisterTypes(serviceCollection);
             batchMessageProcessingBehaviourBuilder?.RegisterTypes(serviceCollection);
 
             var deserialisationResolver = messageDeserialiser ?? (provider => new NewtonsoftMessageDeserialiser());
+
+            if (circuitBreakerOptions != null)
+            {
+                serviceCollection.AddSingleton(circuitBreakerOptions);
+            }
 
             serviceCollection.AddTransient<IMessageDependencyResolver, MessageDependencyResolver>()
                 .AddTransient<IMessageProcessor, MessageProcessor>()

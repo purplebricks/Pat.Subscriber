@@ -1,4 +1,5 @@
 using System;
+using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 
 namespace Pat.Subscriber.NetCoreDependencyResolution
@@ -32,5 +33,11 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         /// by default NewtonsoftMessageDeserialiser will be used
         /// </summary>
         public Func<IServiceProvider, IMessageDeserialiser> MessageDeserialiser { get; set; }
+
+        /// <summary>
+        /// Optional
+        /// If a circuit breaker is used these are the options applied.
+        /// </summary>
+        public CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions CircuitBreakerOptions { get; set; }
     }
 }

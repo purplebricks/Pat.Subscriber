@@ -71,7 +71,8 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 SubscriberConfiguration = _subscriberConfiguration,
                 MessageProcessingPipelineBuilder = builder,
                 BatchMessageProcessingBehaviourPipelineBuilder = batchBuilder,
-                MessageDeserialiser = _messageDeserialiser
+                MessageDeserialiser = _messageDeserialiser,
+                CircuitBreakerOptions = _circuitBreakerOptions
             };
             return patliteOptions;
         }

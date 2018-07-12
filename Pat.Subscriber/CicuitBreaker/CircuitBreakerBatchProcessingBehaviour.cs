@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Pat.Subscriber.BatchProcessing;
@@ -33,7 +32,7 @@ namespace Pat.Subscriber.CicuitBreaker
         public CircuitState State { get; private set; }
         private readonly ILog _log;
         private readonly SubscriberConfiguration _config;
-        private readonly int _circuitTestInterval;
+        private readonly int _circuitTestIntervalInSeconds;
         public Func<Exception, bool> ShouldCircuitBreak { get; set; }
         public event CircuitBrokenHandler CircuitBroken;
         public event CircuitResetHandler CircuitReset;
@@ -44,7 +43,7 @@ namespace Pat.Subscriber.CicuitBreaker
             _log = log;
             _config = config;
             ShouldCircuitBreak = circuitBreakerOptions.ShouldCircuitBreak;
-            _circuitTestInterval = circuitBreakerOptions.CircuitTestIntervalInSeconds;
+            _circuitTestIntervalInSeconds = circuitBreakerOptions.CircuitTestIntervalInSeconds;
             State = CircuitState.Closed;
         }
 
@@ -114,7 +113,7 @@ namespace Pat.Subscriber.CicuitBreaker
             }
             else
             {
-                Task.Delay((int)_circuitTestInterval, context.TokenSource.Token).Wait();
+                Task.Delay(TimeSpan.FromSeconds(_circuitTestIntervalInSeconds), context.TokenSource.Token).Wait();
                 return TestCircuit(next, context);
             }
         }

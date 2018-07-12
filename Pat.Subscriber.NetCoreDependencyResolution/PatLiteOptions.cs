@@ -36,8 +36,8 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
 
         /// <summary>
         /// Optional
-        /// If a circuit breaker is used these are the options applied.
+        /// by default no exceptions cause circuit breaking.
         /// </summary>
-        public CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions CircuitBreakerOptions { get; set; }
+        public Func<IServiceProvider, CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions> CircuitBreakerOptions { get; set; }
     }
 }

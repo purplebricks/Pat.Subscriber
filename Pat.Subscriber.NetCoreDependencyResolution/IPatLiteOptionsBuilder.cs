@@ -10,8 +10,8 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         IBatchPipelineBuilder DefineBatchPipeline { get; }
         IPatLiteOptionsBuilder WithMessageDeserialiser(Func<IServiceProvider, IMessageDeserialiser> func);
 
-        IPatLiteOptionsBuilder UseDefaultPipelinesWithCircuitBreaker(
-            CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions circuitBreakerOptions);
+        IPatLiteOptionsBuilder UseDefaultPipelinesWithCircuitBreaker(Func<IServiceProvider, 
+            CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions> func);
         PatLiteOptions Build();
     }
 }

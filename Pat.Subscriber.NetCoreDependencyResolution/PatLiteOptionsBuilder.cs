@@ -14,7 +14,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         private readonly ICollection<Type> _messagePipelineBehaviourTypes = new List<Type>();
         private readonly ICollection<Type> _batchPipelineBehaviourTypes = new List<Type>();
         private Func<IServiceProvider, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
-        private CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions _circuitBreakerOptions;
+        private Func<IServiceProvider, CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions> _circuitBreakerOptions = provider => new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1, e => false);
 
         public PatLiteOptionsBuilder(SubscriberConfiguration subscriberConfiguration)
         {
@@ -82,7 +82,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             return instance.Build();
         }
 
-        public IPatLiteOptionsBuilder UseDefaultPipelinesWithCircuitBreaker(CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions circuitBreakerOptions)
+        public IPatLiteOptionsBuilder UseDefaultPipelinesWithCircuitBreaker(Func<IServiceProvider, CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions> func)
         {
             _messagePipelineBehaviourTypes.Clear();
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
@@ -93,7 +93,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             _batchPipelineBehaviourTypes.Add(typeof(CircuitBreakerBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
-            _circuitBreakerOptions = circuitBreakerOptions;
+            _circuitBreakerOptions = func;
             return this;
         }
     }

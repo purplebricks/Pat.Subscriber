@@ -76,7 +76,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             BatchPipelineDependencyBuilder batchMessageProcessingBehaviourBuilder, 
             MessagePipelineDependencyBuilder messagePipelineDependencyBuilder,
             Func<IServiceProvider, IMessageDeserialiser> messageDeserialiser,
-            CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions circuitBreakerOptions)
+            Func<IServiceProvider, CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions> circuitBreakerOptions)
         {
             messagePipelineDependencyBuilder?.RegisterTypes(serviceCollection);
             batchMessageProcessingBehaviourBuilder?.RegisterTypes(serviceCollection);

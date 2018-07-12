@@ -61,11 +61,13 @@ namespace Pat.Subscriber.UnitTests.Behaviours
             };
             _events = Substitute.For<ICircuitBreakerEvents>();
 
+            var circuitBreakerOptions = new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1, exception => false);
+            circuitBreakerOptions.CircuitBroken += _events.Broken;
+            circuitBreakerOptions.CircuitReset += _events.Reset;
+            circuitBreakerOptions.CircuitTest += _events.TestCircuit;
+
             _circuitBreakerBatchProcessingBehaviour = new CircuitBreakerBatchProcessingBehaviour(Substitute.For<ILog>(),
-                config, new CircuitBreakerBatchProcessingBehaviour.CircuitBreakerOptions(1, exception => false));
-            _circuitBreakerBatchProcessingBehaviour.CircuitBroken += _events.Broken;
-            _circuitBreakerBatchProcessingBehaviour.CircuitReset += _events.Reset;
-            _circuitBreakerBatchProcessingBehaviour.CircuitTest += _events.TestCircuit;
+                config, circuitBreakerOptions);
 
             _batchProcessingBehaviourPipeline = new BatchProcessingBehaviourPipeline()
                 .AddBehaviour(_circuitBreakerBatchProcessingBehaviour)

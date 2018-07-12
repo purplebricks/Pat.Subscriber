@@ -17,6 +17,9 @@ namespace Pat.Subscriber.CicuitBreaker
 
             public int CircuitTestIntervalInSeconds { get; }
             public Func<Exception, bool> ShouldCircuitBreak { get; }
+            public CircuitBrokenHandler CircuitBroken;
+            public CircuitResetHandler CircuitReset;
+            public CircuitTestHandler CircuitTest;
         }
 
         public delegate void CircuitBrokenHandler(object sender, EventArgs e);
@@ -34,9 +37,9 @@ namespace Pat.Subscriber.CicuitBreaker
         private readonly SubscriberConfiguration _config;
         private readonly int _circuitTestIntervalInSeconds;
         public Func<Exception, bool> ShouldCircuitBreak { get; set; }
-        public event CircuitBrokenHandler CircuitBroken;
-        public event CircuitResetHandler CircuitReset;
-        public event CircuitResetHandler CircuitTest;
+        private event CircuitBrokenHandler CircuitBroken;
+        private event CircuitResetHandler CircuitReset;
+        private event CircuitTestHandler CircuitTest;
 
         public CircuitBreakerBatchProcessingBehaviour(ILog log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
         {
@@ -45,6 +48,9 @@ namespace Pat.Subscriber.CicuitBreaker
             ShouldCircuitBreak = circuitBreakerOptions.ShouldCircuitBreak;
             _circuitTestIntervalInSeconds = circuitBreakerOptions.CircuitTestIntervalInSeconds;
             State = CircuitState.Closed;
+            CircuitBroken += circuitBreakerOptions.CircuitBroken;
+            CircuitReset += circuitBreakerOptions.CircuitReset;
+            CircuitTest += circuitBreakerOptions.CircuitTest;
         }
 
         private void OnCircuitBroken(EventArgs e)

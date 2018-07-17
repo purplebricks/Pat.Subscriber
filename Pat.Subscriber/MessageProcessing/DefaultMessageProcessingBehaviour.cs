@@ -39,11 +39,11 @@ namespace Pat.Subscriber.MessageProcessing
             }
             catch (Exception ex)
             {
-                await HandleUnhandledException(ex, messageContext);
+                await HandleException(ex, messageContext);
             }
         }
 
-        protected virtual Task HandleUnhandledException(Exception ex, MessageContext messageContext)
+        protected virtual Task HandleException(Exception ex, MessageContext messageContext)
         {
             _log.Info($"Message {messageContext.Message.MessageId} failed", ex);
 #if NET451
@@ -53,14 +53,14 @@ namespace Pat.Subscriber.MessageProcessing
 #endif
         }
 
-        private static string GetMessageType(Message message)
+        protected string GetMessageType(Message message)
         {
             return message.UserProperties.ContainsKey("MessageType")
                 ? message.UserProperties["MessageType"].ToString()
                 : "Unknown Message Type";
         }
 
-        private static string GetCollelationId(Message message)
+        protected string GetCollelationId(Message message)
         {
             return message.UserProperties.ContainsKey("PBCorrelationId")
                 ? message.UserProperties["PBCorrelationId"].ToString()

@@ -39,8 +39,18 @@ namespace Pat.Subscriber.MessageProcessing
             }
             catch (Exception ex)
             {
-                _log.Info($"Message {message.MessageId} failed", ex);
+                await HandleUnhandledException(ex, messageContext);
             }
+        }
+
+        protected virtual Task HandleUnhandledException(Exception ex, MessageContext messageContext)
+        {
+            _log.Info($"Message {messageContext.Message.MessageId} failed", ex);
+#if NET451
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
 
         private static string GetMessageType(Message message)

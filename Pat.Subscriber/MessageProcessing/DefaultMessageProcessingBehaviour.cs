@@ -30,24 +30,10 @@ namespace Pat.Subscriber.MessageProcessing
                 await messageContext.MessageReceiver.CompleteAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
                 _log.Debug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCollelationId(message)}`: {message.ContentType}");
             }
-            catch (SerializationException ex)
-            {
-                var messageType = GetMessageType(message);
-                var correlationId = GetCollelationId(message);
-                await messageContext.MessageReceiver.DeadLetterAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.Warn($"Unable to deserialise message body, message deadlettered. `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.", ex);
-            }
             catch (Exception ex)
             {
                 _log.Info($"Message {message.MessageId} failed", ex);
             }
-        }
-
-        private static string GetMessageType(Message message)
-        {
-            return message.UserProperties.ContainsKey("MessageType")
-                ? message.UserProperties["MessageType"].ToString()
-                : "Unknown Message Type";
         }
 
         private static string GetCollelationId(Message message)

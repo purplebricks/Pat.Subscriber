@@ -18,6 +18,7 @@ namespace Pat.Subscriber.DataProtectionDecryption
             _newtonsoftMessageDeserialiser = new NewtonsoftMessageDeserialiser();
         }
 
+        /// <inheritdoc />
         public object DeserialiseObject(string messageBody, Type messageType)
         {
             var unprotectedMessageBody = _protector.Unprotect(messageBody);

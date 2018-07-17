@@ -8,9 +8,9 @@ namespace Pat.Subscriber.MessageMapping
     public static class AssemblyScanner
     {
         /// <summary>
-        /// Scans the given list of assemblies and produces message-to-handler mappings for all classes that implement <see cref="IHandles{TMessage}"/>.
+        /// Scans the given list of assemblies and produces message-to-handler mappings for all classes that implement <see cref="IHandleEvent{TMessage}"/>.
         /// </summary>
-        /// <param name="assembliesToScanForHandlers"></param>
+        /// <param name="allTypes"></param>
         /// <returns>An enumerable set of message-to-handler mappings.</returns>
         public static IEnumerable<MessageTypeMapping> MessageHandlerMappingsIn(IEnumerable<Type> allTypes)
         {

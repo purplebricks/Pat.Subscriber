@@ -21,26 +21,31 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             Scope = scope;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             Scope?.Dispose();
         }
 
+        /// <inheritdoc/>
         public T GetService<T>()
         {
             return Provider.GetService<T>();
         }
 
+        /// <inheritdoc/>
         public object GetService(Type serviceType)
         {
             return Provider.GetService(serviceType);
         }
 
+        /// <inheritdoc/>
         public IEnumerable<object> GetServices(Type serviceType)
         {
             return Provider.GetServices(serviceType).Cast<object>();
         }
 
+        /// <inheritdoc/>
         public IEnumerable<T> GetServices<T>()
         {
             return Provider.GetServices<T>();

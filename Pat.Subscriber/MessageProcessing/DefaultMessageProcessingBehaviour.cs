@@ -28,12 +28,12 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 await next(messageContext).ConfigureAwait(false);
                 await messageContext.MessageReceiver.CompleteAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.Debug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCollelationId(message)}`: {message.ContentType}");
+                _log.Debug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCorrelationId(message)}`: {message.ContentType}");
             }
             catch (SerializationException ex)
             {
                 var messageType = GetMessageType(message);
-                var correlationId = GetCollelationId(message);
+                var correlationId = GetCorrelationId(message);
                 await messageContext.MessageReceiver.DeadLetterAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
                 _log.Warn($"Unable to deserialise message body, message deadlettered. `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.", ex);
             }
@@ -60,7 +60,7 @@ namespace Pat.Subscriber.MessageProcessing
                 : "Unknown Message Type";
         }
 
-        protected string GetCollelationId(Message message)
+        protected string GetCorrelationId(Message message)
         {
             return message.UserProperties.ContainsKey("PBCorrelationId")
                 ? message.UserProperties["PBCorrelationId"].ToString()

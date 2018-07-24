@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.IntegrationTests.DependencyResolution;
@@ -51,15 +52,13 @@ namespace Pat.Subscriber.IntegrationTests
             _configuration.GetSection("StatsD").Bind(statisticsConfiguration);
             _statisticsReporter = Substitute.For<IStatisticsReporter>();
 
-            var loggerName = "IntegrationLogger-DotNetIoC";
-            Logging.InitLogger(loggerName);
-
             var serviceProvider = serviceCollection
                 .AddSingleton(statisticsConfiguration)
                 .AddSingleton<MessageReceivedNotifier<TestEvent>>()
-                .AddSingleton(LogManager.GetLogger(loggerName, loggerName))
                 .AddSingleton(_statisticsReporter)
                 .AddHandlersFromAssemblyContainingType<DotNetIoC>()
+                .AddDefaultPatLogger()
+                .AddLogging(b => b.AddDebug())
                 .BuildServiceProvider();
 
             return serviceProvider;

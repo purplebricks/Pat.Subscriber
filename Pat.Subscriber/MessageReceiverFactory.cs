@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using log4net;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
 {
     public abstract class MessageReceiverFactory
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
 
         protected abstract IMessageReceiver CreateMessageReceiver(
@@ -15,7 +15,7 @@ namespace Pat.Subscriber
             string topicName,
             string subscriberName);
 
-        protected MessageReceiverFactory(ILog log, SubscriberConfiguration config)
+        protected MessageReceiverFactory(ILogger log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
@@ -42,13 +42,13 @@ namespace Pat.Subscriber
             {
                 if (!string.IsNullOrEmpty(connectionString))
                 {
-                    _log.Info($"Adding on subscription client {clientIndex} to list of source subscriptions");
+                    _log.LogInformation($"Adding on subscription client {clientIndex} to list of source subscriptions");
                     messageReceivers.Add(CreateMessageReceiver(connectionString,
                         _config.EffectiveTopicName, _config.SubscriberName));
                 }
                 else
                 {
-                    _log.Info($"Skipping subscription client {clientIndex}, connection string is null or empty");
+                    _log.LogInformation($"Skipping subscription client {clientIndex}, connection string is null or empty");
                 }
                 clientIndex++;
             }

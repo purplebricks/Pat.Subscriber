@@ -1,18 +1,18 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.SubscriberRules;
 
 namespace Pat.Subscriber
 {
     public class SubscriptionBuilder
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
         private readonly IRuleVersionResolver _subscriptionRuleVersionResolver;
 
-        public SubscriptionBuilder(ILog log, SubscriberConfiguration config, IRuleVersionResolver subscriptionRuleVersionResolver)
+        public SubscriptionBuilder(ILogger log, SubscriberConfiguration config, IRuleVersionResolver subscriptionRuleVersionResolver)
         {
             _log = log;
             _config = config;
@@ -26,25 +26,25 @@ namespace Pat.Subscriber
             {
                 if (!string.IsNullOrEmpty(connectionString))
                 {
-                    _log.Info($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
+                    _log.LogInformation($"Building subscription {clientIndex} on service bus {connectionString.RetrieveServiceBusAddress()}...");
                     try
                     {
                         await BuildSubscription(connectionString, messagesTypes, handlerFullName).ConfigureAwait(false);
                     }
                     catch (ServiceBusTimeoutException)
                     {
-                        _log.Fatal($"Service bus timeout, probable cause is a missing servicebus subscription called '{_config.SubscriberName}'. Subcriber will terminate.");
+                        _log.LogCritical($"Service bus timeout, probable cause is a missing servicebus subscription called '{_config.SubscriberName}'. Subcriber will terminate.");
                         return false;
                     }
                     catch (MessagingEntityNotFoundException)
                     {
-                        _log.Fatal($"Unable to find servicebus topic '{_config.EffectiveTopicName}' subscriber will terminate.");
+                        _log.LogCritical($"Unable to find servicebus topic '{_config.EffectiveTopicName}' subscriber will terminate.");
                         return false;
                     }
                 }
                 else
                 {
-                    _log.Info($"Skipping subscription {clientIndex}, connection string is null or empty");
+                    _log.LogInformation($"Skipping subscription {clientIndex}, connection string is null or empty");
                 }
             }
             return true;
@@ -62,7 +62,7 @@ namespace Pat.Subscriber
             var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
             var rulesCurrentlyDefinedInServiceBus = await client.GetRulesAsync().ConfigureAwait(false);
 
-            _log.Info($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
+            _log.LogInformation($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
             await ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus.ToArray(), messagesTypes).ConfigureAwait(false);
         }
     }

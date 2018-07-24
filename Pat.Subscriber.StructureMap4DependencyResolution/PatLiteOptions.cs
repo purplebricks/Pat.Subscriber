@@ -10,5 +10,6 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
         public BatchPipelineDependencyBuilder BatchMessageProcessingBehaviourDependencyBuilder { get; set; }
         public MessagePipelineDependencyBuilder MessageProcessingPipelineDependencyBuilder { get; set; }
         public Func<IContext, IMessageDeserialiser> MessageDeserialiser { get; set; }
+        public string RegisterDefaultLoggerWithName { get; set; }
     }
 }

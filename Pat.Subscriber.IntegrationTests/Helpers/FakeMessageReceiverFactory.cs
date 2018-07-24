@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber.IntegrationTests.Helpers
 {
@@ -7,7 +8,7 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
     {
         private readonly IMessageReceiver _messageReceiver;
 
-        public FakeMessageReceiverFactory(ILog log, SubscriberConfiguration config, IMessageReceiver fakeMessageReceiver) : base(log, config)
+        public FakeMessageReceiverFactory(ILogger log, SubscriberConfiguration config, IMessageReceiver fakeMessageReceiver) : base(log, config)
         {
             _messageReceiver = fakeMessageReceiver;
         }

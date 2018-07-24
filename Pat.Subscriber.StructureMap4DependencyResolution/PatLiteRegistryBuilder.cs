@@ -14,6 +14,7 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
         private readonly ICollection<Type> _batchPipelineBehaviourTypes = new List<Type>();
         private readonly SubscriberConfiguration _subscriberConfiguration;
         private Func<IContext, IMessageDeserialiser> _messageDeserialiser = provider => new NewtonsoftMessageDeserialiser();
+        private string _registerDefaultLoggerWithName;
 
         public PatLiteRegistryBuilder(SubscriberConfiguration subscriberConfiguration)
         {
@@ -61,6 +62,12 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             return this;
         }
 
+        public IPatLiteRegistryBuilder WithDefaultPatLogger(string categoryName = "Pat")
+        {
+            _registerDefaultLoggerWithName = categoryName;
+            return this;
+        }
+
         public PatLiteRegistry Build()
         {
             var builder = new MessagePipelineDependencyBuilder(_messagePipelineBehaviourTypes);
@@ -70,7 +77,8 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
                 SubscriberConfiguration = _subscriberConfiguration,
                 MessageProcessingPipelineDependencyBuilder = builder,
                 BatchMessageProcessingBehaviourDependencyBuilder = batchBuilder,
-                MessageDeserialiser = _messageDeserialiser
+                MessageDeserialiser = _messageDeserialiser,
+                RegisterDefaultLoggerWithName = _registerDefaultLoggerWithName
             };
             return new PatLiteRegistry(patliteOptions);
         }

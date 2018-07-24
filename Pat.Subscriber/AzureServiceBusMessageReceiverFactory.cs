@@ -1,12 +1,12 @@
-using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
 {
     public class AzureServiceBusMessageReceiverFactory : MessageReceiverFactory
     {
-        public AzureServiceBusMessageReceiverFactory(ILog log, SubscriberConfiguration config) : base(log, config)
+        public AzureServiceBusMessageReceiverFactory(ILogger log, SubscriberConfiguration config) : base(log, config)
         {
         }
 

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
 
@@ -12,11 +12,13 @@ namespace Pat.Subscriber
     {
         private readonly IMessageDependencyResolver _messageDependencyResolver;
         private readonly MessageProcessingBehaviourPipeline _pipeline;
+        private readonly ILogger logger;
 
-        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver, MessageProcessingBehaviourPipeline pipeline)
+        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver, MessageProcessingBehaviourPipeline pipeline, ILogger logger)
         {
             _messageDependencyResolver = messageDependencyResolver;
             _pipeline = pipeline;
+            this.logger = logger;
         }
 
         public async Task ProcessMessage(Message message, IMessageReceiver messageReceiver)
@@ -34,9 +36,10 @@ namespace Pat.Subscriber
                 ctx.DependencyScope = scope;
                 ctx.Message = message;
 
-                LogicalThreadContext.Properties["CorrelationId"] = ctx.CorrelationId;
-
-                await _pipeline.Invoke(ctx).ConfigureAwait(false);
+                using (logger.BeginScope(ctx.CorrelationId))
+                {
+                    await _pipeline.Invoke(ctx).ConfigureAwait(false);
+                }
             }
         }
     }

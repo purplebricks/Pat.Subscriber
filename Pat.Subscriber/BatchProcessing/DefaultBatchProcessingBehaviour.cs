@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber.BatchProcessing
 {
     public class DefaultBatchProcessingBehaviour : IBatchProcessingBehaviour
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
 
-        public DefaultBatchProcessingBehaviour(ILog log, SubscriberConfiguration config)
+        public DefaultBatchProcessingBehaviour(ILogger log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
@@ -29,12 +29,12 @@ namespace Pat.Subscriber.BatchProcessing
                 {
                     if (ex is ServiceBusCommunicationException)
                     {
-                        _log.Warn("MessagingCommunicationException was thrown, queue handler will retry to get messages from service bus soon.", ex);
+                        _log.LogWarning(ex, "MessagingCommunicationException was thrown, queue handler will retry to get messages from service bus soon.");
                         Thread.Sleep(2000);
                     }
                     else
                     {
-                        _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler", ex);
+                        _log.LogError(ex, $"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler");
                         context.TokenSource.Cancel();
                     }
                     return true;
@@ -42,12 +42,12 @@ namespace Pat.Subscriber.BatchProcessing
             }
             catch (ServiceBusCommunicationException)
             {
-                _log.Warn("MessagingCommunicationException was thrown, subscriber will retry to get messages from service bus soon.");
+                _log.LogWarning("MessagingCommunicationException was thrown, subscriber will retry to get messages from service bus soon.");
                 Thread.Sleep(2000);
             }
             catch (Exception exception)
             {
-                _log.Fatal($"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler", exception);
+                _log.LogError(exception, $"Unhandled non transient exception on queue {_config.SubscriberName}. Terminating queuehandler");
                 context.TokenSource.Cancel();
             }
         }

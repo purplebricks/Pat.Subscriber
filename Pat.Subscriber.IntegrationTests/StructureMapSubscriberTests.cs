@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.IntegrationTests.DependencyResolution;
@@ -82,7 +83,10 @@ namespace Pat.Subscriber.IntegrationTests
         {
             var container = SetupContainer(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration).Build());
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithDefaultPatLogger()
+                    .Build());
+                x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
             container.SetupTestMessage(_correlationId);
 
@@ -101,7 +105,10 @@ namespace Pat.Subscriber.IntegrationTests
         {
             var container = SetupContainer(x =>
             {
-                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration).Build());
+                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithDefaultPatLogger()
+                    .Build());
+                x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
             container.SetupTestMessage(_correlationId);
 
@@ -127,11 +134,13 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithDefaultPatLogger()
                     .DefineMessagePipeline
                         .With<DefaultMessageProcessingBehaviour>()
                         .With<MockMessageProcessingBehaviour>()
                         .With<InvokeHandlerBehaviour>()
                     .Build());
+                x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
             container.SetupTestMessage(_correlationId);
 
@@ -153,10 +162,12 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
+                    .WithDefaultPatLogger()
                     .DefineBatchPipeline
                         .With<MockBatchProcessingBehaviour>()
                         .With<DefaultBatchProcessingBehaviour>()
                     .Build());
+                x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
             container.Configure(x => x.For<MockBatchProcessingBehaviour>()
                 .Use(context => new MockBatchProcessingBehaviour(_correlationId)));

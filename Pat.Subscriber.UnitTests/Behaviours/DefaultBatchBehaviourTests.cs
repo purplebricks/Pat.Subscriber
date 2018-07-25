@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Subscriber.BatchProcessing;
 using Xunit;
@@ -10,12 +10,12 @@ namespace Pat.Subscriber.UnitTests.Behaviours
 {
     public class DefaultBatchBehaviourTests
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly BatchProcessingBehaviourPipeline _defaultBehaviour;
 
         public DefaultBatchBehaviourTests()
         {
-            _log = Substitute.For<ILog>();
+            _log = Substitute.For<ILogger>();
             _defaultBehaviour = new BatchProcessingBehaviourPipeline()
                 .AddBehaviour(new DefaultBatchProcessingBehaviour(_log, new SubscriberConfiguration
                 {
@@ -29,8 +29,13 @@ namespace Pat.Subscriber.UnitTests.Behaviours
             var ex = new Exception("TEST");
   
             await _defaultBehaviour.Invoke(() => throw ex, new CancellationTokenSource());
-            
-            _log.Received(1).Fatal(Arg.Is<string>(m => m.Contains("Unhandled non transient exception on queue")), ex);
+
+            _log.Received(1).Log(
+                LogLevel.Error,
+                0,
+                Arg.Is<object>(m => m.ToString().Contains("Unhandled non transient exception on queue")),
+                Arg.Any<Exception>(),
+                Arg.Any<Func<object, Exception, string>>());
         }
 
         [Fact]

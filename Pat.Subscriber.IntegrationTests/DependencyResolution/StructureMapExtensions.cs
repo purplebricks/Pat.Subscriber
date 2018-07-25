@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Sender;
 using Pat.Subscriber.IntegrationTests.Helpers;
@@ -24,7 +24,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             container.Configure(x =>
             {
                 x.For<MessageReceiverFactory>().Use(context => new FakeMessageReceiverFactory(
-                    context.GetInstance<ILog>(),
+                    context.GetInstance<ILogger>(),
                     context.GetInstance<SubscriberConfiguration>(),
                     messageReceiver));
                 x.For<MessageWaiter<TestEvent>>().Use(context => new MessageWaiter<TestEvent>(

@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using log4net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
@@ -71,6 +71,11 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             return serviceCollection.RegisterPatLite(null, null, null, null);
         }
 
+        public static IServiceCollection AddDefaultPatLogger(this IServiceCollection serviceCollection)
+        {
+            return serviceCollection.AddSingleton(s => s.GetRequiredService<ILoggerFactory>().CreateLogger("Pat"));
+        }
+
         private static IServiceCollection RegisterPatLite(
             this IServiceCollection serviceCollection,
             BatchPipelineDependencyBuilder batchMessageProcessingBehaviourBuilder, 
@@ -98,7 +103,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 .AddSingleton(provider => 
                     new MultipleBatchProcessor(
                         provider.GetService<BatchProcessor>(),
-                        provider.GetService<ILog>(),
+                        provider.GetService<ILogger>(),
                         provider.GetService<SubscriberConfiguration>().SubscriberName))
                 .AddSingleton<MessageReceiverFactory, AzureServiceBusMessageReceiverFactory>()
                 .AddSingleton<BatchFactory>()

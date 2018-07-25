@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
 
 namespace Pat.Subscriber
@@ -10,11 +10,11 @@ namespace Pat.Subscriber
     {
         private readonly BatchProcessingBehaviourPipeline _batchProcessingBehaviourPipeline;
         private readonly BatchFactory _batchFactory;
-        private readonly ILog _log;
+        private readonly ILogger _log;
 
         public BatchProcessor(BatchProcessingBehaviourPipeline batchProcessingBehaviourPipeline,
             BatchFactory batchFactory,
-            ILog log)
+            ILogger log)
         {
             _batchProcessingBehaviourPipeline = batchProcessingBehaviourPipeline;
             _batchFactory = batchFactory;
@@ -29,7 +29,7 @@ namespace Pat.Subscriber
                 await batch.ReceiveMessages(messageReceiver).ConfigureAwait(false);
                 if (batch.HasMessages)
                 {
-                    _log.Debug($"Message collection processing {batch.MessageCount} messages");
+                    _log.LogDebug($"Message collection processing {batch.MessageCount} messages");
                     await batch.ProcessMessages().ConfigureAwait(false);
                 }
             }, tokenSource);

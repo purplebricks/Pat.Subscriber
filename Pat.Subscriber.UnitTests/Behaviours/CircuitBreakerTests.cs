@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.CicuitBreaker;
@@ -66,18 +66,18 @@ namespace Pat.Subscriber.UnitTests.Behaviours
             circuitBreakerOptions.CircuitReset += _events.Reset;
             circuitBreakerOptions.CircuitTest += _events.TestCircuit;
 
-            _circuitBreakerBatchProcessingBehaviour = new CircuitBreakerBatchProcessingBehaviour(Substitute.For<ILog>(),
+            _circuitBreakerBatchProcessingBehaviour = new CircuitBreakerBatchProcessingBehaviour(Substitute.For<ILogger>(),
                 config, circuitBreakerOptions);
 
             _batchProcessingBehaviourPipeline = new BatchProcessingBehaviourPipeline()
                 .AddBehaviour(_circuitBreakerBatchProcessingBehaviour)
-                .AddBehaviour(new DefaultBatchProcessingBehaviour(Substitute.For<ILog>(), config));
+                .AddBehaviour(new DefaultBatchProcessingBehaviour(Substitute.For<ILogger>(), config));
 
             _mockHandleMessageBehaviour = new MockHandleMessageBehaviour();
             var circuitBreakerMessageProcessingBehaviour = new CircuitBreakerMessageProcessingBehaviour(_circuitBreakerBatchProcessingBehaviour);
             
             _messageProcessingPipeline = new MessageProcessingBehaviourPipeline()
-                .AddBehaviour(new DefaultMessageProcessingBehaviour(Substitute.For<ILog>(), config))
+                .AddBehaviour(new DefaultMessageProcessingBehaviour(Substitute.For<ILogger>(), config))
                 .AddBehaviour(circuitBreakerMessageProcessingBehaviour)
                 .AddBehaviour(_mockHandleMessageBehaviour);
 

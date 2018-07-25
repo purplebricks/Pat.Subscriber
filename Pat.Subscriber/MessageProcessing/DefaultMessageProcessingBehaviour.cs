@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using log4net;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber.MessageProcessing
 {
@@ -12,10 +12,10 @@ namespace Pat.Subscriber.MessageProcessing
     /// </summary>
     public class DefaultMessageProcessingBehaviour : IMessageProcessingBehaviour
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
 
-        public DefaultMessageProcessingBehaviour(ILog log, SubscriberConfiguration config)
+        public DefaultMessageProcessingBehaviour(ILogger log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;
@@ -28,14 +28,14 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 await next(messageContext).ConfigureAwait(false);
                 await messageContext.MessageReceiver.CompleteAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.Debug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCorrelationId(message)}`: {message.ContentType}");
+                _log.LogDebug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCorrelationId(message)}`: {message.ContentType}");
             }
             catch (SerializationException ex)
             {
                 var messageType = GetMessageType(message);
                 var correlationId = GetCorrelationId(message);
                 await messageContext.MessageReceiver.DeadLetterAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.Warn($"Unable to deserialise message body, message deadlettered. `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.", ex);
+                _log.LogWarning(ex, $"Unable to deserialise message body, message deadlettered. `{messageType}` correlation id `{correlationId}` on subscriber `{_config.SubscriberName}`.");
             }
             catch (Exception ex)
             {
@@ -45,12 +45,8 @@ namespace Pat.Subscriber.MessageProcessing
 
         protected virtual Task HandleException(Exception ex, MessageContext messageContext)
         {
-            _log.Info($"Message {messageContext.Message.MessageId} failed", ex);
-#if NET451
-            return Task.FromResult(0);
-#else
+            _log.LogInformation(ex, $"Message {messageContext.Message.MessageId} failed");
             return Task.CompletedTask;
-#endif
         }
 
         protected string GetMessageType(Message message)

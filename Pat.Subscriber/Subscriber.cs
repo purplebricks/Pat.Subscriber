@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using log4net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using Microsoft.Azure.ServiceBus.Core;
 using Pat.Subscriber.MessageMapping;
 using Pat.Subscriber.SubscriberRules;
+using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
 {
     public class Subscriber
     {
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
         private readonly MultipleBatchProcessor _multipleBatchProcessor;
         private readonly MessageReceiverFactory _messageReceiverFactory;
 
-        public Subscriber(ILog log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory)
+        public Subscriber(ILogger log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory)
         {
             _log = log;
             _config = config;
@@ -57,7 +57,7 @@ namespace Pat.Subscriber
             string handlerName = null;
             if (messagesTypes.Length == 0)
             {
-                _log.Warn("Subscriber does not handle any message types");
+                _log.LogWarning("Subscriber does not handle any message types");
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Pat.Subscriber
 
            var receivers = _messageReceiverFactory.CreateReceivers();
 
-            _log.Info("Listening for messages...");
+            _log.LogInformation("Listening for messages...");
 
             await _multipleBatchProcessor.ProcessMessages(receivers, tokenSource).ConfigureAwait(false);
         }

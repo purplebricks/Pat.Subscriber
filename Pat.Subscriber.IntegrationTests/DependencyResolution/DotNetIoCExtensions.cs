@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using log4net;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Pat.Sender;
 using Pat.Subscriber.IntegrationTests.Helpers;
@@ -28,7 +28,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             serviceCollection
                 .AddSingleton(messageReceiver)
                 .AddSingleton<MessageReceiverFactory>(provider => new FakeMessageReceiverFactory(
-                    provider.GetService<ILog>(),
+                    provider.GetService<ILogger>(),
                     provider.GetService<SubscriberConfiguration>(),
                     provider.GetService<IMessageReceiver>()))
                 .AddSingleton(provider => new MessageWaiter<TestEvent>(

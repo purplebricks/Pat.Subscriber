@@ -37,7 +37,8 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             {
                 x.AddRegistry(new PatLiteRegistry(new PatLiteOptions
                 {
-                    SubscriberConfiguration = subscriberConfiguration
+                    SubscriberConfiguration = subscriberConfiguration,
+                    RegisterDefaultLoggerWithName = "Pat"
                 }));
             });
 

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using log4net;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
 
 namespace Pat.Subscriber.CicuitBreaker
@@ -33,7 +33,7 @@ namespace Pat.Subscriber.CicuitBreaker
             Open
         }
         public CircuitState State { get; private set; }
-        private readonly ILog _log;
+        private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
         private readonly int _circuitTestIntervalInSeconds;
         public Func<Exception, bool> ShouldCircuitBreak { get; set; }
@@ -41,7 +41,7 @@ namespace Pat.Subscriber.CicuitBreaker
         private event CircuitResetHandler CircuitReset;
         private event CircuitTestHandler CircuitTest;
 
-        public CircuitBreakerBatchProcessingBehaviour(ILog log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
+        public CircuitBreakerBatchProcessingBehaviour(ILogger log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
         {
             _log = log;
             _config = config;
@@ -91,14 +91,14 @@ namespace Pat.Subscriber.CicuitBreaker
 
         public void BreakCircuit()
         {
-            _log.Warn($"Subscriber circuit breaker: circuit opened for subscriber '{_config.SubscriberName}'");
+            _log.LogWarning($"Subscriber circuit breaker: circuit opened for subscriber '{_config.SubscriberName}'");
             State = CircuitState.Open;
             OnCircuitBroken(EventArgs.Empty);
         }
 
         public void CloseCircuit()
         {
-            _log.Info($"Subscriber circuit breaker: circuit closed for subscriber '{_config.SubscriberName}'");
+            _log.LogInformation($"Subscriber circuit breaker: circuit closed for subscriber '{_config.SubscriberName}'");
             State = CircuitState.Closed;
             OnCircuitReset(EventArgs.Empty);
         }
@@ -106,7 +106,7 @@ namespace Pat.Subscriber.CicuitBreaker
         public Task TestCircuit(Func<BatchContext, Task> next, BatchContext context)
         {
             OnCircuitTest(EventArgs.Empty);
-            _log.Info($"Subscriber circuit breaker: testing circuit for subscriber '{_config.SubscriberName}'");
+            _log.LogInformation($"Subscriber circuit breaker: testing circuit for subscriber '{_config.SubscriberName}'");
             State = CircuitState.HalfOpen;
             return next(context);
         }

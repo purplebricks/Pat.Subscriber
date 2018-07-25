@@ -1,4 +1,4 @@
-﻿using log4net;
+﻿using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.IoC;
@@ -19,13 +19,17 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             });
 
             For<IMessageDependencyResolver>().Use<StructureMapDependencyResolver>();
-            For<ILog>().AlwaysUnique().Use(s => LogManager.GetLogger(s.RootType));
         }
 
         public PatLiteRegistry(PatLiteOptions options): this(options.BatchMessageProcessingBehaviourDependencyBuilder, options.MessageProcessingPipelineDependencyBuilder)
         {
             For<SubscriberConfiguration>().Use(options.SubscriberConfiguration);
             For<IMessageDeserialiser>().Use(context => options.MessageDeserialiser(context));
+
+            if (!string.IsNullOrEmpty(options.RegisterDefaultLoggerWithName))
+            {
+                For<ILogger>().Use(context => context.GetInstance<ILoggerFactory>().CreateLogger(options.RegisterDefaultLoggerWithName));
+            }
         }
 
         private PatLiteRegistry(BatchPipelineDependencyBuilder batchMessageProcessingBehaviourPipelineDependencyBuilder,

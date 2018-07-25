@@ -1,7 +1,7 @@
 ﻿using System;
-using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Pat.DataProtection;
 using Pat.Sender;
 using Pat.Sender.DataProtectionEncryption;
@@ -33,8 +33,6 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             var dataProtectionConfiguration = new DataProtectionConfiguration();
             configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
 
-            var loggerName = "IntegrationLogger";
-            Logging.InitLogger(loggerName);
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(senderSettings)
                 .AddSingleton(subscriberConfiguration)
@@ -52,14 +50,15 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
                         provider.GetRequiredService<IMessageSender>(),
                         provider.GetRequiredService<IMessageGenerator>(),
                         new MessageProperties(Guid.NewGuid().ToString())))
-                .AddSingleton(LogManager.GetLogger(loggerName, loggerName))
                 .AddTransient<IMessageSender, MessageSender>()
                 .AddTransient<IStatisticsReporter, StatisticsReporter>()
+                .AddDefaultPatLogger()
+                .AddLogging(b => b.AddDebug())
                 .AddPatLite(new PatLiteOptions
                 {
                     MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted
                         ? new EncryptedMessageDeserialiser(provider.GetService<DataProtectionConfiguration>())
-                        : (IMessageDeserialiser) new NewtonsoftMessageDeserialiser(),
+                        : (IMessageDeserialiser)new NewtonsoftMessageDeserialiser(),
                     SubscriberConfiguration = subscriberConfiguration
                 })
                 .AddHandlersFromAssemblyContainingType<DotNetIoC>();

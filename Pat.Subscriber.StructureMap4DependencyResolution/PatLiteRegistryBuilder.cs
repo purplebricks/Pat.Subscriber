@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.MessageProcessing;
@@ -21,9 +22,7 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
         }
 
         public IMessagePipelineBuilder With<T>() where T : IMessageProcessingBehaviour
@@ -68,8 +67,23 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             return this;
         }
 
+        private void EnsureTerminatingBehavioursAdded()
+        {
+            if (_batchPipelineBehaviourTypes.Count == 0 || _batchPipelineBehaviourTypes.Last() != typeof(DefaultBatchProcessingBehaviour))
+            {
+                _batchPipelineBehaviourTypes.Add(typeof(DefaultBatchProcessingBehaviour));
+            }
+
+            if (_messagePipelineBehaviourTypes.Count == 0 || _messagePipelineBehaviourTypes.Last() != typeof(InvokeHandlerBehaviour))
+            {
+                _messagePipelineBehaviourTypes.Add(typeof(InvokeHandlerBehaviour));
+            }
+        }
+
         public PatLiteRegistry Build()
         {
+            EnsureTerminatingBehavioursAdded();
+
             var builder = new MessagePipelineDependencyBuilder(_messagePipelineBehaviourTypes);
             var batchBuilder = new BatchPipelineDependencyBuilder(_batchPipelineBehaviourTypes);
             var patliteOptions = new PatLiteOptions

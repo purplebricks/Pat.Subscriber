@@ -8,7 +8,7 @@
         public int RateLimit { get; set; }
 
         /// <summary>
-        /// Resolution at which performance statistics used for rate limtting are agreegated
+        /// Resolution at which performance statistics used for rate limtting are aggregated
         /// </summary>
         public int IntervalInMilliSeconds { get; set; } = 5000;
 

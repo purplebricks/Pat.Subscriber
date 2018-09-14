@@ -69,7 +69,7 @@ namespace Pat.Subscriber.IntegrationTests
             Skip.If(_appVeyorCIBuild, "integration test not run on appveyor build agent");
 
             var correlationId = Guid.NewGuid().ToString();
-            var domainUnderTest = "Pat.ITOps.Messaging.PatLite.IntegrationTests.";
+            var domainUnderTest = "Pat.Subscriber.IntegrationTests.";
 
             var messageSender = GetService<TestMessageSender>();
             var messageWaiter = await messageSender.PublishMessage(new TestEvent(), new MessageProperties(correlationId)

@@ -1,4 +1,5 @@
 ﻿using System;
+using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,10 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 
             var dataProtectionConfiguration = new DataProtectionConfiguration();
             configuration.GetSection("DataProtection").Bind(dataProtectionConfiguration);
-
+            
+            var loggerName = "IntegrationLogger-DotNetIoC";
+            Logging.InitLogger(loggerName);
+            
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(senderSettings)
                 .AddSingleton(subscriberConfiguration)
@@ -54,6 +58,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
                 .AddTransient<IStatisticsReporter, StatisticsReporter>()
                 .AddDefaultPatLogger()
                 .AddLogging(b => b.AddDebug())
+                .AddTransient<ILog>(s => LogManager.GetLogger(loggerName, loggerName))
                 .AddPatLite(new PatLiteOptions
                 {
                     MessageDeserialiser = provider => provider.GetService<MessageContext>().MessageEncrypted

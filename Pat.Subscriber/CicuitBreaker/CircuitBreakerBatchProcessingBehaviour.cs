@@ -41,7 +41,7 @@ namespace Pat.Subscriber.CicuitBreaker
         private event CircuitResetHandler CircuitReset;
         private event CircuitTestHandler CircuitTest;
 
-        public CircuitBreakerBatchProcessingBehaviour(ILogger log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
+        public CircuitBreakerBatchProcessingBehaviour(ILogger<CircuitBreakerBatchProcessingBehaviour> log, SubscriberConfiguration config, CircuitBreakerOptions circuitBreakerOptions)
         {
             _log = log;
             _config = config;

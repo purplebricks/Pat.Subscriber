@@ -56,7 +56,6 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
                         new MessageProperties(Guid.NewGuid().ToString())))
                 .AddTransient<IMessageSender, MessageSender>()
                 .AddTransient<IStatisticsReporter, StatisticsReporter>()
-                .AddDefaultPatLogger()
                 .AddLogging(b => b.AddDebug())
                 .AddTransient<ILog>(s => LogManager.GetLogger(loggerName, loggerName))
                 .AddPatLite(new PatLiteOptions

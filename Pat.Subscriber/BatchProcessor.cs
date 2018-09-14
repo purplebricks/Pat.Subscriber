@@ -14,7 +14,7 @@ namespace Pat.Subscriber
 
         public BatchProcessor(BatchProcessingBehaviourPipeline batchProcessingBehaviourPipeline,
             BatchFactory batchFactory,
-            ILogger log)
+            ILogger<BatchProcessor> log)
         {
             _batchProcessingBehaviourPipeline = batchProcessingBehaviourPipeline;
             _batchFactory = batchFactory;

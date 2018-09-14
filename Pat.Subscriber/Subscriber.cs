@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
-using Microsoft.Azure.ServiceBus.Core;
 using Pat.Subscriber.MessageMapping;
-using Pat.Subscriber.SubscriberRules;
 using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
@@ -17,13 +14,15 @@ namespace Pat.Subscriber
         private readonly SubscriberConfiguration _config;
         private readonly MultipleBatchProcessor _multipleBatchProcessor;
         private readonly MessageReceiverFactory _messageReceiverFactory;
+        private readonly SubscriptionBuilder _subscriptionBuilder;
 
-        public Subscriber(ILogger log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory)
+        public Subscriber(ILogger<Subscriber> log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory, SubscriptionBuilder subscriptionBuilder)
         {
             _log = log;
             _config = config;
             _multipleBatchProcessor = multipleBatchProcessor;
             _messageReceiverFactory = messageReceiverFactory;
+            _subscriptionBuilder = subscriptionBuilder;
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace Pat.Subscriber
             }
 
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
-            var builder = new SubscriptionBuilder(_log, _config, new RuleVersionResolver(handlerAssemblies));
+            
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
 
             string handlerName = null;
@@ -65,7 +64,8 @@ namespace Pat.Subscriber
                 handlerName = handler.FullName;
             }
 
-            return await builder.Build(messagesTypes, handlerName);
+            _subscriptionBuilder.WithRuleVersionResolver(handlerAssemblies);
+            return await _subscriptionBuilder.Build(messagesTypes, handlerName);
         }
 
         /// <summary>

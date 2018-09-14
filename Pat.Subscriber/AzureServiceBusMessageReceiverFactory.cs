@@ -6,7 +6,7 @@ namespace Pat.Subscriber
 {
     public class AzureServiceBusMessageReceiverFactory : MessageReceiverFactory
     {
-        public AzureServiceBusMessageReceiverFactory(ILogger log, SubscriberConfiguration config) : base(log, config)
+        public AzureServiceBusMessageReceiverFactory(ILogger<AzureServiceBusMessageReceiverFactory> log, SubscriberConfiguration config) : base(log, config)
         {
         }
 

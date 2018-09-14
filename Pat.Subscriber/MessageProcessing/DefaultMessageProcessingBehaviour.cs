@@ -15,7 +15,7 @@ namespace Pat.Subscriber.MessageProcessing
         private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
 
-        public DefaultMessageProcessingBehaviour(ILogger log, SubscriberConfiguration config)
+        public DefaultMessageProcessingBehaviour(ILogger<DefaultMessageProcessingBehaviour> log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;

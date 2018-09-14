@@ -14,7 +14,7 @@ namespace Pat.Subscriber
         private readonly string _subscriberName;
         private readonly ILogger _log;
 
-        public MultipleBatchProcessor(BatchProcessor batchProcessor, ILogger log, string subscriberName)
+        public MultipleBatchProcessor(BatchProcessor batchProcessor, ILogger<MultipleBatchProcessor> log, string subscriberName)
         {
             _batchProcessor = batchProcessor;
             _log = log;

@@ -70,12 +70,7 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         {
             return serviceCollection.RegisterPatLite(null, null, null, null);
         }
-
-        public static IServiceCollection AddDefaultPatLogger(this IServiceCollection serviceCollection)
-        {
-            return serviceCollection.AddSingleton(s => s.GetRequiredService<ILoggerFactory>().CreateLogger("Pat"));
-        }
-
+        
         private static IServiceCollection RegisterPatLite(
             this IServiceCollection serviceCollection,
             BatchPipelineDependencyBuilder batchMessageProcessingBehaviourBuilder, 
@@ -103,9 +98,10 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 .AddSingleton(provider => 
                     new MultipleBatchProcessor(
                         provider.GetService<BatchProcessor>(),
-                        provider.GetService<ILogger>(),
+                        provider.GetService<ILogger<MultipleBatchProcessor>>(),
                         provider.GetService<SubscriberConfiguration>().SubscriberName))
                 .AddSingleton<MessageReceiverFactory, AzureServiceBusMessageReceiverFactory>()
+                .AddTransient<SubscriptionBuilder>()
                 .AddSingleton<BatchFactory>()
                 .AddSingleton<BatchProcessor>()
                 .AddSingleton(provider => new BatchConfiguration(

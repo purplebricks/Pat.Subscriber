@@ -14,7 +14,7 @@ namespace Pat.Subscriber
         private readonly MessageProcessingBehaviourPipeline _pipeline;
         private readonly ILogger logger;
 
-        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver, MessageProcessingBehaviourPipeline pipeline, ILogger logger)
+        public MessageProcessor(IMessageDependencyResolver messageDependencyResolver, MessageProcessingBehaviourPipeline pipeline, ILogger<MessageProcessor> logger)
         {
             _messageDependencyResolver = messageDependencyResolver;
             _pipeline = pipeline;

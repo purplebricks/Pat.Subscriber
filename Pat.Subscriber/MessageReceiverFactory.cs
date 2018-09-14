@@ -15,7 +15,7 @@ namespace Pat.Subscriber
             string topicName,
             string subscriberName);
 
-        protected MessageReceiverFactory(ILogger log, SubscriberConfiguration config)
+        protected MessageReceiverFactory(ILogger<MessageReceiverFactory> log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;

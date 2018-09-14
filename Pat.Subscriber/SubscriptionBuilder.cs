@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging;
@@ -9,14 +10,15 @@ namespace Pat.Subscriber
     public class SubscriptionBuilder
     {
         private readonly ILogger _log;
+        private readonly ILogger<RuleApplier> _ruleApplierLog;
         private readonly SubscriberConfiguration _config;
-        private readonly IRuleVersionResolver _subscriptionRuleVersionResolver;
+        private IRuleVersionResolver _subscriptionRuleVersionResolver;
 
-        public SubscriptionBuilder(ILogger log, SubscriberConfiguration config, IRuleVersionResolver subscriptionRuleVersionResolver)
+        public SubscriptionBuilder(ILogger<SubscriptionBuilder> log, ILogger<RuleApplier> ruleApplierLog, SubscriberConfiguration config)
         {
             _log = log;
+            _ruleApplierLog = ruleApplierLog;
             _config = config;
-            _subscriptionRuleVersionResolver = subscriptionRuleVersionResolver;
         }
 
         public async Task<bool> Build(string[] messagesTypes, string handlerFullName)
@@ -56,7 +58,7 @@ namespace Pat.Subscriber
 
             var client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
          
-            var ruleApplier = new RuleApplier(_log, client);
+            var ruleApplier = new RuleApplier(_ruleApplierLog, client);
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
 
             var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
@@ -64,6 +66,12 @@ namespace Pat.Subscriber
 
             _log.LogInformation($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");
             await ruleBuilder.ApplyRuleChanges(rulesForCurrentSoftwareVersion, rulesCurrentlyDefinedInServiceBus.ToArray(), messagesTypes).ConfigureAwait(false);
+        }
+
+        public SubscriptionBuilder WithRuleVersionResolver(Assembly[] handlerAssemblies)
+        {
+            _subscriptionRuleVersionResolver = new RuleVersionResolver(handlerAssemblies);
+            return this;
         }
     }
 }

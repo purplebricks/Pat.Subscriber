@@ -10,12 +10,12 @@ namespace Pat.Subscriber.UnitTests.Behaviours
 {
     public class DefaultBatchBehaviourTests
     {
-        private readonly ILogger _log;
+        private readonly ILogger<DefaultBatchProcessingBehaviour> _log;
         private readonly BatchProcessingBehaviourPipeline _defaultBehaviour;
 
         public DefaultBatchBehaviourTests()
         {
-            _log = Substitute.For<ILogger>();
+            _log = Substitute.For<ILogger<DefaultBatchProcessingBehaviour>>();
             _defaultBehaviour = new BatchProcessingBehaviourPipeline()
                 .AddBehaviour(new DefaultBatchProcessingBehaviour(_log, new SubscriberConfiguration
                 {

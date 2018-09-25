@@ -24,7 +24,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             container.Configure(x =>
             {
                 x.For<MessageReceiverFactory>().Use(context => new FakeMessageReceiverFactory(
-                    context.GetInstance<ILogger>(),
+                    context.GetInstance<ILogger<FakeMessageReceiverFactory>>(),
                     context.GetInstance<SubscriberConfiguration>(),
                     messageReceiver));
                 x.For<MessageWaiter<TestEvent>>().Use(context => new MessageWaiter<TestEvent>(

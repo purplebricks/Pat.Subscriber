@@ -72,7 +72,6 @@ namespace Pat.Subscriber.IntegrationTests
 
                 x.For<IStatisticsReporter>().Use(_statisticsReporter);
                 x.For<MessageReceivedNotifier<TestEvent>>().Use(new MessageReceivedNotifier<TestEvent>());
-                x.For<ILog>().Use(LogManager.GetLogger(loggerName, loggerName));
             });
 
             return container;
@@ -84,7 +83,6 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
-                    .WithDefaultPatLogger()
                     .Build());
                 x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
@@ -106,7 +104,6 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
-                    .WithDefaultPatLogger()
                     .Build());
                 x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
             });
@@ -134,7 +131,6 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
-                    .WithDefaultPatLogger()
                     .DefineMessagePipeline
                         .With<DefaultMessageProcessingBehaviour>()
                         .With<MockMessageProcessingBehaviour>()
@@ -162,7 +158,6 @@ namespace Pat.Subscriber.IntegrationTests
             var container = SetupContainer(x =>
             {
                 x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
-                    .WithDefaultPatLogger()
                     .DefineBatchPipeline
                         .With<MockBatchProcessingBehaviour>()
                         .With<DefaultBatchProcessingBehaviour>()

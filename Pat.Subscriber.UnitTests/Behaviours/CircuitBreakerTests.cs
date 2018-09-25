@@ -66,18 +66,18 @@ namespace Pat.Subscriber.UnitTests.Behaviours
             circuitBreakerOptions.CircuitReset += _events.Reset;
             circuitBreakerOptions.CircuitTest += _events.TestCircuit;
 
-            _circuitBreakerBatchProcessingBehaviour = new CircuitBreakerBatchProcessingBehaviour(Substitute.For<ILogger>(),
+            _circuitBreakerBatchProcessingBehaviour = new CircuitBreakerBatchProcessingBehaviour(Substitute.For<ILogger<CircuitBreakerBatchProcessingBehaviour>>(),
                 config, circuitBreakerOptions);
 
             _batchProcessingBehaviourPipeline = new BatchProcessingBehaviourPipeline()
                 .AddBehaviour(_circuitBreakerBatchProcessingBehaviour)
-                .AddBehaviour(new DefaultBatchProcessingBehaviour(Substitute.For<ILogger>(), config));
+                .AddBehaviour(new DefaultBatchProcessingBehaviour(Substitute.For<ILogger<DefaultBatchProcessingBehaviour>>(), config));
 
             _mockHandleMessageBehaviour = new MockHandleMessageBehaviour();
             var circuitBreakerMessageProcessingBehaviour = new CircuitBreakerMessageProcessingBehaviour(_circuitBreakerBatchProcessingBehaviour);
             
             _messageProcessingPipeline = new MessageProcessingBehaviourPipeline()
-                .AddBehaviour(new DefaultMessageProcessingBehaviour(Substitute.For<ILogger>(), config))
+                .AddBehaviour(new DefaultMessageProcessingBehaviour(Substitute.For<ILogger<DefaultMessageProcessingBehaviour>>(), config))
                 .AddBehaviour(circuitBreakerMessageProcessingBehaviour)
                 .AddBehaviour(_mockHandleMessageBehaviour);
 

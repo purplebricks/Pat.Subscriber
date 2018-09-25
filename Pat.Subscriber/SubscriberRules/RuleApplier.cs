@@ -9,7 +9,7 @@ namespace Pat.Subscriber.SubscriberRules
         private readonly ILogger _log;
         private readonly SubscriptionClient _client;
 
-        public RuleApplier(ILogger log, SubscriptionClient client)
+        public RuleApplier(ILogger<RuleApplier> log, SubscriptionClient client)
         {
             _log = log;
             _client = client;

@@ -28,7 +28,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
             serviceCollection
                 .AddSingleton(messageReceiver)
                 .AddSingleton<MessageReceiverFactory>(provider => new FakeMessageReceiverFactory(
-                    provider.GetService<ILogger>(),
+                    provider.GetService<ILogger<FakeMessageReceiverFactory>>(),
                     provider.GetService<SubscriberConfiguration>(),
                     provider.GetService<IMessageReceiver>()))
                 .AddSingleton(provider => new MessageWaiter<TestEvent>(

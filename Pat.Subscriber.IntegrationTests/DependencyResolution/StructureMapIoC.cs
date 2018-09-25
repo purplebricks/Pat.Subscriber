@@ -1,6 +1,7 @@
 ﻿using System;
 using log4net;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Pat.DataProtection;
 using Pat.Sender;
 using Pat.Sender.Correlation;
@@ -59,6 +60,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
                 x.For<MessageReceivedNotifier<TestEvent>>().Use(new MessageReceivedNotifier<TestEvent>());
                 x.For<DataProtectionConfiguration>().Use(dataProtectionConfiguration);
                 x.For<ILog>().Use(LogManager.GetLogger(loggerName, loggerName));
+                x.For<ILoggerFactory>().Use(context => new LoggerFactory());
             });
 
             return container;

@@ -8,7 +8,7 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
     {
         private readonly IMessageReceiver _messageReceiver;
 
-        public FakeMessageReceiverFactory(ILogger log, SubscriberConfiguration config, IMessageReceiver fakeMessageReceiver) : base(log, config)
+        public FakeMessageReceiverFactory(ILogger<FakeMessageReceiverFactory> log, SubscriberConfiguration config, IMessageReceiver fakeMessageReceiver) : base(log, config)
         {
             _messageReceiver = fakeMessageReceiver;
         }

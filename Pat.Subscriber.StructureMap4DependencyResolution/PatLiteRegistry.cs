@@ -1,8 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
+using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
+using Pat.Subscriber.StructureMap4DependencyResolution.Logging;
+using Pat.Subscriber.SubscriberRules;
 using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
@@ -25,11 +30,7 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
         {
             For<SubscriberConfiguration>().Use(options.SubscriberConfiguration);
             For<IMessageDeserialiser>().Use(context => options.MessageDeserialiser(context));
-
-            if (!string.IsNullOrEmpty(options.RegisterDefaultLoggerWithName))
-            {
-                For<ILogger>().Use(context => context.GetInstance<ILoggerFactory>().CreateLogger(options.RegisterDefaultLoggerWithName));
-            }
+            For(typeof(ILogger<>)).Use(new LoggerInstanceFactory());
         }
 
         private PatLiteRegistry(BatchPipelineDependencyBuilder batchMessageProcessingBehaviourPipelineDependencyBuilder,
@@ -72,6 +73,7 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             For<BatchProcessor>().Use<BatchProcessor>();
             For<BatchFactory>().Use<BatchFactory>();
             For<MessageReceiverFactory>().Use<AzureServiceBusMessageReceiverFactory>();
+            For<SubscriptionBuilder>().Use<SubscriptionBuilder>();
             For<BatchConfiguration>().Use(context => new BatchConfiguration(
                     context.GetInstance<SubscriberConfiguration>().BatchSize,
                     context.GetInstance<SubscriberConfiguration>().ReceiveTimeoutSeconds));

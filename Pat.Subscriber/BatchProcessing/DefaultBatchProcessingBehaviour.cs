@@ -11,7 +11,7 @@ namespace Pat.Subscriber.BatchProcessing
         private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
 
-        public DefaultBatchProcessingBehaviour(ILogger log, SubscriberConfiguration config)
+        public DefaultBatchProcessingBehaviour(ILogger<DefaultBatchProcessingBehaviour> log, SubscriberConfiguration config)
         {
             _log = log;
             _config = config;

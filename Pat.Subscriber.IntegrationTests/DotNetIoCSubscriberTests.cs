@@ -56,7 +56,6 @@ namespace Pat.Subscriber.IntegrationTests
                 .AddSingleton<MessageReceivedNotifier<TestEvent>>()
                 .AddSingleton(_statisticsReporter)
                 .AddHandlersFromAssemblyContainingType<DotNetIoC>()
-                .AddDefaultPatLogger()
                 .AddLogging(b => b.AddDebug())
                 .BuildServiceProvider();
 

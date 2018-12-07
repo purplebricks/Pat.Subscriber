@@ -65,7 +65,7 @@ namespace Pat.Subscriber
             }
 
             _subscriptionBuilder.WithRuleVersionResolver(handlerAssemblies);
-            return await _subscriptionBuilder.Build(messagesTypes, handlerName);
+            return await _subscriptionBuilder.Build(messagesTypes, handlerName).ConfigureAwait(false);
         }
 
         /// <summary>

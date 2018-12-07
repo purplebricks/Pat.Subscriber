@@ -66,7 +66,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 try
                 {
-                    return await MessageAsStreamReaderStrategy(message.Clone());
+                    return await MessageAsStreamReaderStrategy(message.Clone()).ConfigureAwait(false);
                 }
                 catch (SerializationException)
                 {
@@ -86,7 +86,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 using (var reader = new StreamReader(messageStream))
                 {
-                    return await reader.ReadToEndAsync();
+                    return await reader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
         }

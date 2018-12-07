@@ -19,7 +19,7 @@ namespace Pat.Subscriber.Telemetry.StatsD
         {
             try
             {
-                await next(context);
+                await next(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

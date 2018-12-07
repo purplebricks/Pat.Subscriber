@@ -28,7 +28,7 @@ namespace Pat.Subscriber.UnitTests.Behaviours
         {
             try
             {
-                await next(messageContext);
+                await next(messageContext).ConfigureAwait(false);
             }
             catch
             {

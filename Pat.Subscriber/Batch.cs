@@ -25,9 +25,9 @@ namespace Pat.Subscriber
             ReceivedMessages = await _messageReceiver.GetMessages(_batchConfiguration.BatchSize, _batchConfiguration.ReceiveTimeoutSeconds).ConfigureAwait(false);
         }
 
-        public Task ProcessMessages()
+        public async Task ProcessMessages()
         {
-            return Task.WhenAll(ReceivedMessages.Select(m => _messageProcessor.ProcessMessage(m, _messageReceiver)).ToArray());
+            await Task.WhenAll(ReceivedMessages.Select(m => _messageProcessor.ProcessMessage(m, _messageReceiver)).ToArray()).ConfigureAwait(false);
         }
 
         public int MessageCount => ReceivedMessages.Count;

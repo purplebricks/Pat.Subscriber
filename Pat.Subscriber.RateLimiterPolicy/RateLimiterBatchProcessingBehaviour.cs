@@ -98,7 +98,7 @@ namespace Pat.Subscriber.RateLimiterPolicy
         {
             _timer.Start();
 
-            await next(context);
+            await next(context).ConfigureAwait(false);
 
             var currentInterval = _timer.ElapsedMilliseconds / _intervalInMilliSeconds;
 
@@ -125,7 +125,7 @@ namespace Pat.Subscriber.RateLimiterPolicy
                 var targetTime = messagesProcessedInLastInterval * targetTimePerMessage;
                 var delay = targetTime - elapsedTime;
                 OnThrottling(new ThrottlingEventArgs(delay));
-                await _throttler.Delay(delay);
+                await _throttler.Delay(delay).ConfigureAwait(false);
             }
         }
     }

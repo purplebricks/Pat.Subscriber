@@ -42,7 +42,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
 
                 var next = current;
-                current = m => behaviour.Invoke(next, m);
+                current = async m => await behaviour.Invoke(next, m).ConfigureAwait(false);
             }
             return current;
         }

@@ -21,7 +21,7 @@ namespace Pat.Subscriber.BatchProcessing
         {
             try
             {
-                await context.Action();
+                await context.Action().ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {

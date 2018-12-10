@@ -27,7 +27,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 _pipeline = BuildPipeline();
             }
-            await _pipeline(messageContext);
+            await _pipeline(messageContext).ConfigureAwait(false);
         }
 
         public void Build()

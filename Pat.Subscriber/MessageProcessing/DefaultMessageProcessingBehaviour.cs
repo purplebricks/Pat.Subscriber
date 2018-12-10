@@ -39,7 +39,7 @@ namespace Pat.Subscriber.MessageProcessing
             }
             catch (Exception ex)
             {
-                await HandleException(ex, messageContext);
+                await HandleException(ex, messageContext).ConfigureAwait(false);
             }
         }
 

@@ -32,7 +32,7 @@ namespace Pat.Subscriber.BatchProcessing
             {
                 Action = action,
                 TokenSource = tokenSource
-            });
+            }).ConfigureAwait(false);
         }
 
         public void Build()

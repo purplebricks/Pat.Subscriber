@@ -148,13 +148,13 @@ namespace Pat.Subscriber.SubscriberRules
             {
                 foreach (var newRule in GetNewRulesNotAlreadyPresent(newRules, newRulesAlreadyPresent.Select(x => x.RuleDescription.Name)))
                 {
-                    await _ruleApplier.AddRule(newRule);
+                    await _ruleApplier.AddRule(newRule).ConfigureAwait(false);
                 }
             }
 
             foreach (var existingRule in GetOutdatedExistingRules(existingRules, newRules))
             {
-                await _ruleApplier.RemoveRule(existingRule);
+                await _ruleApplier.RemoveRule(existingRule).ConfigureAwait(false);
             }
         }
 

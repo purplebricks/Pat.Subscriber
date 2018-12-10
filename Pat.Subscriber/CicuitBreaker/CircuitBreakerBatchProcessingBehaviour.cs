@@ -103,24 +103,24 @@ namespace Pat.Subscriber.CicuitBreaker
             OnCircuitReset(EventArgs.Empty);
         }
 
-        public Task TestCircuit(Func<BatchContext, Task> next, BatchContext context)
+        public async Task TestCircuit(Func<BatchContext, Task> next, BatchContext context)
         {
             OnCircuitTest(EventArgs.Empty);
             _log.LogInformation($"Subscriber circuit breaker: testing circuit for subscriber '{_config.SubscriberName}'");
             State = CircuitState.HalfOpen;
-            return next(context);
+            await next(context).ConfigureAwait(false);
         }
 
-        public Task Invoke(Func<BatchContext, Task> next, BatchContext context)
+        public async Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             if (State == CircuitState.Closed)
             {
-                return next(context);
+                await next(context).ConfigureAwait(false);
             }
             else
             {
-                Task.Delay(TimeSpan.FromSeconds(_circuitTestIntervalInSeconds), context.TokenSource.Token).Wait();
-                return TestCircuit(next, context);
+                await Task.Delay(TimeSpan.FromSeconds(_circuitTestIntervalInSeconds), context.TokenSource.Token).ConfigureAwait(false);
+                await TestCircuit(next, context).ConfigureAwait(false);
             }
         }
     }

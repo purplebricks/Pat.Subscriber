@@ -21,7 +21,7 @@ namespace Pat.Subscriber
             _subscriberName = subscriberName;
         }
 
-        public virtual Task ProcessMessages(IList<IMessageReceiver> messageReceivers,
+        public virtual async Task ProcessMessages(IList<IMessageReceiver> messageReceivers,
             CancellationTokenSource tokenSource)
         {
             var tasks = messageReceivers
@@ -45,7 +45,7 @@ namespace Pat.Subscriber
                         _log.LogInformation("Shutting down...");
                     }, tokenSource.Token));
 
-            return Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
         }
     }
 }

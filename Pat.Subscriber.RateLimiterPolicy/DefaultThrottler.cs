@@ -7,7 +7,7 @@ namespace Pat.Subscriber.RateLimiterPolicy
     {
         public async Task Delay(long milliseconds)
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(milliseconds));
+            await Task.Delay(TimeSpan.FromMilliseconds(milliseconds)).ConfigureAwait(false);
         }
     }
 }

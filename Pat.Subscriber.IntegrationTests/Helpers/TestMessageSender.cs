@@ -54,7 +54,7 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
                 _serviceProvider.GetService<MessageReceivedNotifier<T>>(),
                 capturedEvent => capturedEvent.CorrelationId == messageProperties.CorrelationIdProvider.CorrelationId);
 
-            await messagePublisher.PublishEvent(testMessage, messageProperties);
+            await messagePublisher.PublishEvent(testMessage, messageProperties).ConfigureAwait(false);
 
             return messageWaiter;
         }

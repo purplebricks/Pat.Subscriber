@@ -48,7 +48,7 @@ namespace Pat.Subscriber.Telemetry.StatsD
             {
                 try
                 {
-                    await next(messageContext);
+                    await next(messageContext).ConfigureAwait(false);
                     ReportStats(messageContext.Message, "Success");
                 }
                 catch (SerializationException ex)

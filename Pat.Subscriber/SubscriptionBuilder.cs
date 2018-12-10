@@ -35,7 +35,7 @@ namespace Pat.Subscriber
                     }
                     catch (ServiceBusTimeoutException)
                     {
-                        _log.LogCritical($"Service bus timeout, probable cause is a missing servicebus subscription called '{_config.SubscriberName}'. Subcriber will terminate.");
+                        _log.LogCritical($"Service bus timeout, probable cause is a missing servicebus subscription called '{_config.SubscriberName}'. Subscriber will terminate.");
                         return false;
                     }
                     catch (MessagingEntityNotFoundException)

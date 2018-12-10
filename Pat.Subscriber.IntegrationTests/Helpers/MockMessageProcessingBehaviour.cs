@@ -12,7 +12,7 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
         public async Task Invoke(Func<MessageContext, Task> next, MessageContext messageContext)
         {
             CalledForMessages.Add(messageContext.CorrelationId);
-            await next(messageContext);
+            await next(messageContext).ConfigureAwait(false);
         }
     }
 }

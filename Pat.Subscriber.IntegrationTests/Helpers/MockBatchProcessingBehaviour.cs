@@ -18,7 +18,7 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
         public async Task Invoke(Func<BatchContext, Task> next, BatchContext context)
         {
             CalledForMessages.Add(_correlationId);
-            await next(context);
+            await next(context).ConfigureAwait(false);
         }
     }
 }

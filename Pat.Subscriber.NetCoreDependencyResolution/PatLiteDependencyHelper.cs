@@ -115,8 +115,8 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(provider))
                 .AddSingleton(provider => messagePipelineDependencyBuilder != null ? messagePipelineDependencyBuilder.Build(provider) :
                     new MessageProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(provider)
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(provider)
+                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(provider)
                         .AddBehaviour<InvokeHandlerBehaviour>(provider))
                 .AddScoped(deserialisationResolver)
                 .AddSingleton<Subscriber>();

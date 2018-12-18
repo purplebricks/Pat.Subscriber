@@ -19,8 +19,8 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
         public PatLiteRegistryBuilder(SubscriberConfiguration subscriberConfiguration)
         {
             _subscriberConfiguration = subscriberConfiguration;
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
+            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
         }
 

@@ -56,8 +56,8 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             {
                 For<MessageProcessingBehaviourPipeline>().Use((ctx) =>
                     new MessageProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(ctx)
+                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<InvokeHandlerBehaviour>(ctx));
 
                 For<DefaultMessageProcessingBehaviour>().Use<DefaultMessageProcessingBehaviour>();

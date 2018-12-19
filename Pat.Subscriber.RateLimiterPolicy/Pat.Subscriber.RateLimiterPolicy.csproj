@@ -17,7 +17,7 @@
     <PackageReference Include="Nito.Collections.Deque" Version="1.0.4" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.2.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pat.Subscriber\Pat.Subscriber.csproj" />

@@ -40,13 +40,14 @@ namespace Pat.Subscriber.MessageProcessing
             catch (Exception ex)
             {
                 await HandleException(ex, messageContext).ConfigureAwait(false);
+                messageContext.MessageReceiver.AbandonAsync(message.SystemProperties.LockToken).ConfigureAwait(false);               
             }
         }
 
-        protected virtual Task HandleException(Exception ex, MessageContext messageContext)
+        protected virtual async Task HandleException(Exception ex, MessageContext messageContext)
         {
             _log.LogInformation(ex, $"Message {messageContext.Message.MessageId} failed");
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         protected string GetMessageType(Message message)

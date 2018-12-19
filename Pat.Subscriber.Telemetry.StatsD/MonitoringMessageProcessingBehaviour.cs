@@ -19,7 +19,7 @@ namespace Pat.Subscriber.Telemetry.StatsD
 
         private void ReportStats(Message message, string result)
         {
-            var fullTime = (int)(DateTime.UtcNow - message.ScheduledEnqueueTimeUtc).TotalSeconds;
+            var fullTime = DateTime.UtcNow - message.ScheduledEnqueueTimeUtc;
             var messageType = message.UserProperties["MessageType"];
             var bus = message.RetrieveServiceBusAddressWithOnlyLetters();
 
@@ -36,7 +36,7 @@ namespace Pat.Subscriber.Telemetry.StatsD
                 "CoreMessage=False," +
                 $"Result={result}," +
                 $"Bus={bus},",
-                Math.Max(0, fullTime));
+                fullTime);
         }
 
         public async Task Invoke(Func<MessageContext, Task> next, MessageContext messageContext)

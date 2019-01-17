@@ -6,7 +6,7 @@
     <Summary>Purplebricks message subscriber infrastructure: .Net Core dependency resolution helper</Summary>
     <Description>Purplebricks message subscriber infrastructure: .Net Core dependency resolution helper</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageIconUrl>https://pbonlineassets.azureedge.net/web-images/favicons/favicon-96x96.png</PackageIconUrl>
+    <PackageIconUrl>https://pbonlineassets.azureedge.net/web-images/marketing-global/favicons/v3/apple-touch-icon-152x152.png</PackageIconUrl>
     <PackageProjectUrl>http://purplebricks.io/pat/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/purplebricks/Pat.Subscriber/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>

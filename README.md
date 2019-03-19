@@ -13,4 +13,4 @@ Checkout our documentation at [http://purplebricks.io/pat/docs/pat-subscriber.ht
 
 Need a hand? Join our Slack community, we are more than happy to help!
 
-`opensource-pbtech.slack.com`
+[opensource-pbtech.slack.com](https://join.slack.com/t/opensource-pbtech/shared_invite/enQtNDM0NzM2NjYwMzIyLTY1ZWIyODkxZmRhNjJiZjI2MTA5OGM2Nzk2MTIwMjI3YTJmNmIxMDZhM2RiOTM1YjQ0NDRjZDFiZDU4YmEwNjE)

@@ -43,9 +43,9 @@ namespace Pat.Subscriber.MessageProcessing
             }
         }
 
-        protected virtual Task HandleException(Exception ex, MessageContext messageContext)
+        protected virtual Task HandleException(Exception exception, MessageContext messageContext)
         {
-            _log.LogInformation(ex, $"Message {messageContext.Message.MessageId} failed");
+            _log.LogError(exception, $"Message {messageContext.Message.MessageId} failed: {exception.Message}");
             return Task.CompletedTask;
         }
 

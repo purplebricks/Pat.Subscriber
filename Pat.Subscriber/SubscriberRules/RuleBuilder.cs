@@ -29,10 +29,10 @@ namespace Pat.Subscriber.SubscriberRules
 
             if (string.IsNullOrEmpty(syntheticFilter))
             {
-                return $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true')";
+                return $"(NOT EXISTS(Synthetic) OR (Synthetic <> 'true' AND Synthetic <> 'True' AND Synthetic <> 'TRUE'))";
             }
 
-            return $"(NOT EXISTS(Synthetic) OR Synthetic <> 'true' OR {syntheticFilter})";
+            return $"(NOT EXISTS(Synthetic) OR (Synthetic <> 'true' AND Synthetic <> 'True' AND Synthetic <> 'TRUE') OR {syntheticFilter})";
         }
 
         public List<string> GenerateMessageTypeFilterClause(IEnumerable<string> messagesTypeFilters, int initialFilterLength)

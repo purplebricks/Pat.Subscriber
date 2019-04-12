@@ -80,11 +80,11 @@ namespace Pat.Subscriber.UnitTests
         {
             var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
-
+            
             foreach (var rule in rules)
             {
                 var filter = ((SqlFilter)rule.Filter).SqlExpression;
-                Assert.Contains("(NOT EXISTS(Synthetic) OR Synthetic <> 'true' ", filter);
+                Assert.Contains("(NOT EXISTS(Synthetic) OR (Synthetic <> 'true' AND Synthetic <> 'True' AND Synthetic <> 'TRUE') ", filter);
             }
         }
 

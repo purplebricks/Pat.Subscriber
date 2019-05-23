@@ -5,9 +5,16 @@ using System.Threading.Tasks;
 using System.Reflection;
 using Pat.Subscriber.MessageMapping;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Pat.Subscriber
 {
+    public class CustomMessageMap
+    {
+        public string CustomMessageType { get; set; }
+        public Type OriginalMessageType { get; set; }
+        public Type HandlerType { get; set; }
+    }
     public class Subscriber
     {
         private readonly ILogger _log;
@@ -42,7 +49,7 @@ namespace Pat.Subscriber
         /// Creates relevant subscriptions.
         /// </summary>
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
-        public async Task<bool> Initialise(Assembly[] handlerAssemblies)
+        public async Task<bool> Initialise(Assembly[] handlerAssemblies, IList<CustomMessageMap> customMethodMap = null)
         {
             if (handlerAssemblies == null || handlerAssemblies.Length == 0)
             {
@@ -50,6 +57,7 @@ namespace Pat.Subscriber
             }
 
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
+            MessageMapper.AddCustomMessageMaps(customMethodMap);
             
             var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
 

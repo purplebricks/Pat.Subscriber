@@ -7,13 +7,13 @@ namespace Pat.Subscriber.MessageMapping
 {
     public class MessageMapper
     {
-        private static MessageTypeMapping[] _messageTypeMappings;
+        private static List<MessageTypeMapping> _messageTypeMappings;
 
         public static void MapMessageTypesToHandlers(Assembly[] handlerAssemblies)
         {
             var allTypes = AssemblyScanner.AllTypesInAssemblies(handlerAssemblies).ToArray();
             _messageTypeMappings = AssemblyScanner
-                .AddDerivedTypeMappings(AssemblyScanner.MessageHandlerMappingsIn(allTypes), allTypes).ToArray();
+                .AddDerivedTypeMappings(AssemblyScanner.MessageHandlerMappingsIn(allTypes), allTypes).ToList();
 
             var groupedMappings = _messageTypeMappings.GroupBy(g => g.MessageType);
             var multipleMessageHandler = groupedMappings.FirstOrDefault(g => g.Count() > 1);
@@ -37,6 +37,14 @@ namespace Pat.Subscriber.MessageMapping
         public static IEnumerable<Type> GetHandledTypes()
         {
             return _messageTypeMappings.Select(m => m.MessageType);
+        }
+
+        internal static void AddCustomMessageMaps(IList<CustomMessageMap> customMethodMap)
+        {
+            foreach (var map in customMethodMap ?? new List<CustomMessageMap>())
+            {
+                _messageTypeMappings.Add(new MessageTypeMapping(map.OriginalMessageType, map.CustomMessageType, map.HandlerType ));
+            }
         }
     }
 }

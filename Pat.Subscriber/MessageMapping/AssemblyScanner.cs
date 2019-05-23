@@ -18,6 +18,7 @@ namespace Pat.Subscriber.MessageMapping
             {
                 foreach (var messageType in AllMessageTypesHandledBy(possibleHandlerType))
                 {
+                    ///
                     yield return new MessageTypeMapping(messageType, possibleHandlerType);
                 }
             }
@@ -30,7 +31,15 @@ namespace Pat.Subscriber.MessageMapping
             => possibleHandlerType
                 .GetInterfaces()
                 .Where(IsHandlerInterface)
-                .Select(handlesInterface => handlesInterface.GenericTypeArguments[0]);
+                .SelectMany(NewMethod);
+
+        private static IEnumerable<Type> NewMethod(Type handlesInterface)
+        {
+            yield return handlesInterface.GenericTypeArguments[0];
+
+
+
+        }
 
         private static bool IsHandlerInterface(Type type)
             => type.IsConstructedGenericType
@@ -43,7 +52,7 @@ namespace Pat.Subscriber.MessageMapping
             {
                 var derivedTypes = allTypes.Where(t => mappedMessageType.MessageType.IsAssignableFrom(t) && t != mappedMessageType.MessageType).ToArray();
                 var newDerivedTypes = derivedTypes.Where(m => !messageTypes.Contains(m));
-                
+
                 foreach (var newDerivedType in newDerivedTypes)
                 {
                     yield return new MessageTypeMapping(newDerivedType, mappedMessageType.HandlerType);

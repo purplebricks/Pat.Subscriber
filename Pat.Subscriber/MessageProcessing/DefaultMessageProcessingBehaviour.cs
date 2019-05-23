@@ -28,7 +28,7 @@ namespace Pat.Subscriber.MessageProcessing
             {
                 await next(messageContext).ConfigureAwait(false);
                 await messageContext.MessageReceiver.CompleteAsync(message.SystemProperties.LockToken).ConfigureAwait(false);
-                _log.LogDebug($"{_config.SubscriberName} Success Handling Message {message.MessageId} correlation id `{GetCorrelationId(message)}`: {message.ContentType}");
+                _log.LogDebug($"{_config.SubscriberName} Success Handling Message with correlation id `{GetCorrelationId(message)}`: {message.ContentType}");
             }
             catch (SerializationException ex)
             {
@@ -39,13 +39,13 @@ namespace Pat.Subscriber.MessageProcessing
             }
             catch (Exception ex)
             {
-                await HandleException(ex, messageContext).ConfigureAwait(false);
+                await HandleException(ex, message).ConfigureAwait(false);
             }
         }
 
-        protected virtual Task HandleException(Exception exception, MessageContext messageContext)
+        protected virtual Task HandleException(Exception exception, Message message)
         {
-            _log.LogError(exception, $"Message {messageContext.Message.MessageId} failed: {exception.Message}");
+            _log.LogError(exception, $"Message with with correlation id `{GetCorrelationId(message)}` failed: {exception.Message}");
             return Task.CompletedTask;
         }
 

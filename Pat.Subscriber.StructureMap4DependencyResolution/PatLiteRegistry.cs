@@ -69,11 +69,11 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
                 For<MessageProcessingBehaviourPipeline>().Use(context => messageProcessingPipelineDependencyBuilder.Build(context));
             }
           
-            For<MultipleBatchProcessor>().Use<MultipleBatchProcessor>().Ctor<string>().Is(context => context.GetInstance<SubscriberConfiguration>().SubscriberName);
+            For<IMultipleBatchProcessor>().Use<MultipleBatchProcessor>().Ctor<string>().Is(context => context.GetInstance<SubscriberConfiguration>().SubscriberName);
             For<BatchProcessor>().Use<BatchProcessor>();
             For<BatchFactory>().Use<BatchFactory>();
-            For<MessageReceiverFactory>().Use<AzureServiceBusMessageReceiverFactory>();
-            For<SubscriptionBuilder>().Use<SubscriptionBuilder>();
+            For<IMessageReceiverFactory>().Use<AzureServiceBusMessageReceiverFactory>();
+            For<ISubscriptionBuilder>().Use<SubscriptionBuilder>();
             For<BatchConfiguration>().Use(context => new BatchConfiguration(
                     context.GetInstance<SubscriberConfiguration>().BatchSize,
                     context.GetInstance<SubscriberConfiguration>().ReceiveTimeoutSeconds));

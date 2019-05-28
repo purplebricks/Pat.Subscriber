@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
 {
-    public class MultipleBatchProcessor
+    public class MultipleBatchProcessor : IMultipleBatchProcessor
     {
         private readonly BatchProcessor _batchProcessor;
         private readonly string _subscriberName;

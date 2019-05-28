@@ -95,13 +95,13 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 .AddScoped<MonitoringMessageProcessingBehaviour>()
                 .AddScoped<MonitoringBatchProcessingBehaviour>()
                 .AddScoped<DefaultBatchProcessingBehaviour>()
-                .AddSingleton(provider => 
+                .AddSingleton<IMultipleBatchProcessor>(provider => 
                     new MultipleBatchProcessor(
                         provider.GetService<BatchProcessor>(),
                         provider.GetService<ILogger<MultipleBatchProcessor>>(),
                         provider.GetService<SubscriberConfiguration>().SubscriberName))
-                .AddSingleton<MessageReceiverFactory, AzureServiceBusMessageReceiverFactory>()
-                .AddTransient<SubscriptionBuilder>()
+                .AddSingleton<IMessageReceiverFactory, AzureServiceBusMessageReceiverFactory>()
+                .AddTransient<ISubscriptionBuilder, SubscriptionBuilder>()
                 .AddSingleton<BatchFactory>()
                 .AddSingleton<BatchProcessor>()
                 .AddSingleton(provider => new BatchConfiguration(

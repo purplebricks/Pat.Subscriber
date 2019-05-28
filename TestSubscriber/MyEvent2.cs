@@ -9,4 +9,9 @@ namespace TestSubscriber
     {
 
     }
+
+    public class MyEvent3
+    {
+
+    }
 }

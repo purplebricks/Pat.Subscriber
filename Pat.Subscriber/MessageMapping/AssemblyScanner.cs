@@ -27,11 +27,13 @@ namespace Pat.Subscriber.MessageMapping
             => assembliesToScan.SelectMany(assembly => assembly.DefinedTypes.Select(x => x.AsType()));
 
         public static IEnumerable<Type> AllMessageTypesHandledBy(Type possibleHandlerType)
-            => possibleHandlerType
+        {
+            return possibleHandlerType
                 .GetInterfaces()
                 .Where(IsHandlerInterface)
-                .Select(handlesInterface => handlesInterface.GenericTypeArguments[0]);
-
+                .Select(t => t.GenericTypeArguments[0]);
+        }
+        
         private static bool IsHandlerInterface(Type type)
             => type.IsConstructedGenericType
                && type.GetGenericTypeDefinition() == typeof(IHandleEvent<>);
@@ -43,7 +45,7 @@ namespace Pat.Subscriber.MessageMapping
             {
                 var derivedTypes = allTypes.Where(t => mappedMessageType.MessageType.IsAssignableFrom(t) && t != mappedMessageType.MessageType).ToArray();
                 var newDerivedTypes = derivedTypes.Where(m => !messageTypes.Contains(m));
-                
+
                 foreach (var newDerivedType in newDerivedTypes)
                 {
                     yield return new MessageTypeMapping(newDerivedType, mappedMessageType.HandlerType);

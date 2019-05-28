@@ -23,7 +23,7 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
 
             container.Configure(x =>
             {
-                x.For<MessageReceiverFactory>().Use(context => new FakeMessageReceiverFactory(
+                x.For<IMessageReceiverFactory>().Use(context => new FakeMessageReceiverFactory(
                     context.GetInstance<ILogger<FakeMessageReceiverFactory>>(),
                     context.GetInstance<SubscriberConfiguration>(),
                     messageReceiver));

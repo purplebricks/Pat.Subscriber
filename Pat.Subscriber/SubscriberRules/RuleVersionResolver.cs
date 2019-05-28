@@ -16,6 +16,11 @@ namespace Pat.Subscriber.SubscriberRules
         public Version GetVersion()
         {
             var entryAssembly = Assembly.GetEntryAssembly();
+            return GetVersion(entryAssembly);
+        }
+
+        public Version GetVersion(Assembly entryAssembly)
+        {
             if (entryAssembly != null)
             {
                 return entryAssembly.GetName().Version;

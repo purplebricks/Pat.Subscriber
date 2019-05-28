@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
 {
-    public abstract class MessageReceiverFactory
+    public abstract class MessageReceiverFactory : IMessageReceiverFactory
     {
         private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;

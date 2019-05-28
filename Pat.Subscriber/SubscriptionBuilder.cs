@@ -7,7 +7,7 @@ using Pat.Subscriber.SubscriberRules;
 
 namespace Pat.Subscriber
 {
-    public class SubscriptionBuilder
+    public class SubscriptionBuilder : ISubscriptionBuilder
     {
         private readonly ILogger _log;
         private readonly ILogger<RuleApplier> _ruleApplierLog;

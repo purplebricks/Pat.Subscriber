@@ -14,15 +14,15 @@ namespace TestSubscriber
     {
         private readonly IMessagePublisher _messagePublisher;
 
-        public PatLiteTestHandler(IMessagePublisher messagePublisher)
+        public PatLiteTestHandler()
         {
-            _messagePublisher = messagePublisher;
         }
 
-        public async Task HandleAsync(MyEvent1 message)
+        public Task HandleAsync(MyEvent1 message)
         {
             Console.WriteLine("HandleAsync:MyEvent1");
-            await _messagePublisher.PublishEvent(new EventToPublish());
+
+            return Task.CompletedTask;
         }
 
         public Task HandleAsync(MyEvent2 message)

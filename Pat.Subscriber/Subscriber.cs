@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using Pat.Subscriber.MessageMapping;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Pat.Subscriber
 {
@@ -12,11 +13,11 @@ namespace Pat.Subscriber
     {
         private readonly ILogger _log;
         private readonly SubscriberConfiguration _config;
-        private readonly MultipleBatchProcessor _multipleBatchProcessor;
-        private readonly MessageReceiverFactory _messageReceiverFactory;
-        private readonly SubscriptionBuilder _subscriptionBuilder;
+        private readonly IMultipleBatchProcessor _multipleBatchProcessor;
+        private readonly IMessageReceiverFactory _messageReceiverFactory;
+        private readonly ISubscriptionBuilder _subscriptionBuilder;
 
-        public Subscriber(ILogger<Subscriber> log,  SubscriberConfiguration config, MultipleBatchProcessor multipleBatchProcessor, MessageReceiverFactory messageReceiverFactory, SubscriptionBuilder subscriptionBuilder)
+        public Subscriber(ILogger<Subscriber> log,  SubscriberConfiguration config, IMultipleBatchProcessor multipleBatchProcessor, IMessageReceiverFactory messageReceiverFactory, ISubscriptionBuilder subscriptionBuilder)
         {
             _log = log;
             _config = config;
@@ -42,7 +43,7 @@ namespace Pat.Subscriber
         /// Creates relevant subscriptions.
         /// </summary>
         /// <param name="handlerAssemblies">Assemblies containing handles, defaults to <code>Assembly.GetCallingAssembly()</code></param>
-        public async Task<bool> Initialise(Assembly[] handlerAssemblies)
+        public async Task<bool> Initialise(Assembly[] handlerAssemblies, CustomMessageTypeMap[] customMethodMap = null)
         {
             if (handlerAssemblies == null || handlerAssemblies.Length == 0)
             {
@@ -50,8 +51,8 @@ namespace Pat.Subscriber
             }
 
             MessageMapper.MapMessageTypesToHandlers(handlerAssemblies);
-            
-            var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
+
+            var messagesTypes = ConfigureMessageTypes(customMethodMap);
 
             string handlerName = null;
             if (messagesTypes.Length == 0)
@@ -66,6 +67,23 @@ namespace Pat.Subscriber
 
             _subscriptionBuilder.WithRuleVersionResolver(handlerAssemblies);
             return await _subscriptionBuilder.Build(messagesTypes, handlerName).ConfigureAwait(false);
+        }
+
+        private static string[] ConfigureMessageTypes(CustomMessageTypeMap[] customMethodMap)
+        {
+            var messagesTypes = MessageMapper.GetHandledTypes().Select(t => t.FullName).ToArray();
+
+            if (customMethodMap != null)
+            {
+                MessageMapper.AddCustomMessageMaps(customMethodMap);
+                var customMessageTypes = customMethodMap.Select(m => m.MessageType);
+
+                messagesTypes = messagesTypes
+                    .Concat(customMessageTypes)
+                    .ToArray();
+            }
+
+            return messagesTypes;
         }
 
         /// <summary>
@@ -85,7 +103,7 @@ namespace Pat.Subscriber
                     $"Cannot support {_config.ConcurrentBatches} concurrent batches.");
             }
 
-           var receivers = _messageReceiverFactory.CreateReceivers();
+            var receivers = _messageReceiverFactory.CreateReceivers();
 
             _log.LogInformation("Listening for messages...");
 

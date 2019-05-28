@@ -23,11 +23,11 @@ namespace Pat.Subscriber.IntegrationTests.DependencyResolution
                 });
 
             serviceCollection.Remove(serviceCollection.First(s =>
-                s.Lifetime == ServiceLifetime.Singleton && s.ServiceType == typeof(MessageReceiverFactory)));
+                s.Lifetime == ServiceLifetime.Singleton && s.ServiceType == typeof(IMessageReceiverFactory)));
 
             serviceCollection
                 .AddSingleton(messageReceiver)
-                .AddSingleton<MessageReceiverFactory>(provider => new FakeMessageReceiverFactory(
+                .AddSingleton<IMessageReceiverFactory>(provider => new FakeMessageReceiverFactory(
                     provider.GetService<ILogger<FakeMessageReceiverFactory>>(),
                     provider.GetService<SubscriberConfiguration>(),
                     provider.GetService<IMessageReceiver>()))

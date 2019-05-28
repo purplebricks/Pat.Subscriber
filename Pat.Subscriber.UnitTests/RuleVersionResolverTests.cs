@@ -13,13 +13,13 @@ namespace Pat.Subscriber.UnitTests
             var assemblies = new[]
             {
                 typeof(NSubstitute.Arg).Assembly,
-                typeof(Xunit.AssemblyTraitAttribute).Assembly,
+                typeof(AssemblyTraitAttribute).Assembly,
                 typeof(int).Assembly
             };
             var expectedVersion = assemblies.Select(assembly => assembly.GetName().Version).Max();
 
             var resolver = new RuleVersionResolver(assemblies);
-            var actualVersion = resolver.GetVersion();
+            var actualVersion = resolver.GetVersion(null);
 
             Assert.Equal(expectedVersion, actualVersion);
         }
@@ -29,7 +29,7 @@ namespace Pat.Subscriber.UnitTests
         {
             var resolver = new RuleVersionResolver();
 
-            Assert.Throws<InvalidOperationException>(() => resolver.GetVersion());
+            Assert.Throws<InvalidOperationException>(() => resolver.GetVersion(null));
         }
     }
 }

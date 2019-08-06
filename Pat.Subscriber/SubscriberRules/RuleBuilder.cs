@@ -80,13 +80,25 @@ namespace Pat.Subscriber.SubscriberRules
             return $"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{subscriberName}')";
         }
 
-        public IEnumerable<RuleDescription> GenerateSubscriptionRules(IEnumerable<string> messagesTypeFilters, string handlerFullName)
+        public IEnumerable<RuleDescription> GenerateSubscriptionRules(IEnumerable<string> messagesTypeFilters, string handlerFullName, bool omitSpecificSubscriberFilter = false)
         {
-            var specificSubscriberOrAllRule = GenerateSubscriberFilterClause(_subscriberName);
-            var sythenticFilter = GenerateSyntheticFilterClause(handlerFullName);
+            var syntheticFilter = GenerateSyntheticFilterClause(handlerFullName);
 
-            // Get the length of the specific and synthetic rules
-            var filterLength = $" AND {specificSubscriberOrAllRule} AND {sythenticFilter}".Length;
+            var filterLength = 0;
+            var filter = "";
+
+            if (omitSpecificSubscriberFilter)
+            {
+                filter = $" AND {syntheticFilter}";
+                filterLength = filter.Length;
+            }
+            else
+            {
+                var specificSubscriberOrAllRule = GenerateSubscriberFilterClause(_subscriberName);
+                filter = $" AND {specificSubscriberOrAllRule} AND {syntheticFilter}";
+                filterLength = filter.Length;
+            }
+            
             var customMessageTypes = GenerateMessageTypeFilterClause(messagesTypeFilters, filterLength);
 
             var rules = new List<RuleDescription>();
@@ -96,7 +108,7 @@ namespace Pat.Subscriber.SubscriberRules
             {
                 rules.Add(new RuleDescription($"{count}_v_{_version.Major}_{_version.Minor}_{_version.Build}")
                 {
-                    Filter = new SqlFilter($"{item} AND {specificSubscriberOrAllRule} AND {sythenticFilter}")
+                    Filter = new SqlFilter($"{item} {filter}")
                 });
                 count++;
             }

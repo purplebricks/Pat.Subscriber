@@ -14,7 +14,7 @@ namespace Pat.Subscriber.IntegrationTests
         public bool IntegrationTest { get; }
         public bool AppVeyorCIBuild { get; }
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private readonly Task _subscriberTask;
 
         public SubscriberFixture()
@@ -63,7 +63,7 @@ namespace Pat.Subscriber.IntegrationTests
             }
 
             var subscriber = ServiceProvider.GetService<Subscriber>();
-            _cancellationTokenSource = new CancellationTokenSource();
+            
             if (subscriber.Initialise(new[] {typeof(SubscriberTests).Assembly}).GetAwaiter().GetResult())
             {
                 _subscriberTask = Task.Run(() => subscriber.ListenForMessages(_cancellationTokenSource));
@@ -73,7 +73,7 @@ namespace Pat.Subscriber.IntegrationTests
         public void Dispose()
         {
             _cancellationTokenSource.Cancel();
-            _subscriberTask.Wait();
+            _subscriberTask?.Wait();
         }
     }
 }

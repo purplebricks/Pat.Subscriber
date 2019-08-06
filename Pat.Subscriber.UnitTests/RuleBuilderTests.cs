@@ -14,13 +14,14 @@ namespace Pat.Subscriber.UnitTests
         private readonly RuleBuilder _ruleBuilder;
         private readonly IRuleApplier _ruleApplier;
         private readonly string _handlerName = "Pat.Domain.SubDomain.Handler";
+        private readonly string _subscriberName = "SubscriberName";
 
         public RuleBuilderTests()
         {
             _ruleApplier = Substitute.For<IRuleApplier>();
             var versionResolver = Substitute.For<IRuleVersionResolver>();
             versionResolver.GetVersion().Returns(new Version(1, 0, 0));
-            _ruleBuilder = new RuleBuilder(_ruleApplier, versionResolver, "SubscriberName");
+            _ruleBuilder = new RuleBuilder(_ruleApplier, versionResolver, _subscriberName);
         }
         [Fact]
         public void GenerateSubscriptionRule_ForSingleEvent()
@@ -38,19 +39,19 @@ namespace Pat.Subscriber.UnitTests
         public void GenerateSubscriptionRule_ForMultipleEvents()
         {
             var n = 10;
-            var messagesTypes = new List<string>(n);
+            var messageTypes = new List<string>(n);
             for (int i = 0; i < n; i++)
             {
-                messagesTypes.Add($"TestEvent{i}");
+                messageTypes.Add($"TestEvent{i}");
             }
 
-            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messageTypes, _handlerName);
 
             var filter = ((SqlFilter)rules.First().Filter).SqlExpression;
-            for (int i = 0; i < 10; i++)
+            Assert.All(messageTypes, messageType =>
             {
-                Assert.Contains($"'{messagesTypes[i]}'", filter);
-            }
+                Assert.Contains($"'{messageType}'", filter);
+            });
         }
 
         [Fact]
@@ -81,11 +82,11 @@ namespace Pat.Subscriber.UnitTests
             var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
             
-            foreach (var rule in rules)
+            Assert.All(rules, r =>
             {
-                var filter = ((SqlFilter)rule.Filter).SqlExpression;
+                var filter = ((SqlFilter)r.Filter).SqlExpression;
                 Assert.Contains("(NOT EXISTS(Synthetic) OR (Synthetic <> 'true' AND Synthetic <> 'True' AND Synthetic <> 'TRUE') ", filter);
-            }
+            });
         }
 
         [Fact]
@@ -95,13 +96,38 @@ namespace Pat.Subscriber.UnitTests
             var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
             var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerName);
 
-            foreach (var rule in rules)
+            Assert.All(rules, r =>
             {
-                var filter = ((SqlFilter)rule.Filter).SqlExpression;
+                var filter = ((SqlFilter)r.Filter).SqlExpression;
                 Assert.Contains($"'{handlerName}.' like DomainUnderTest +'%'", filter);
-            }
+            });
         }
 
+        [Fact]
+        public void GenerateSubscriptionRule_ContainsSpecificSubscriberCheck()
+        {
+            var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName);
+
+            Assert.All(rules, r =>
+            {
+                var filter = ((SqlFilter)r.Filter).SqlExpression;
+                Assert.Contains($"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{_subscriberName}')", filter);
+            });
+        }
+
+        [Fact]
+        public void GenerateSubscriptionRule_DoesNotContainSpecificSubscriberCheck_WhenOmitSpecificSubscriberFilterIsTrue()
+        {
+            var messagesTypes = CreateEnoughMessageTypesToSpanMultipleRules();
+            var rules = _ruleBuilder.GenerateSubscriptionRules(messagesTypes, _handlerName, omitSpecificSubscriberFilter:true);
+
+            Assert.All(rules, r =>
+            {
+                var filter = ((SqlFilter)r.Filter).SqlExpression;
+                Assert.DoesNotContain($"(NOT EXISTS(SpecificSubscriber) OR SpecificSubscriber = '{_subscriberName}')", filter);
+            });
+        }
         [Fact]
         public void GeneratesMultipleSubscriptionRules_WhenMaximumRuleLengthExceeded()
         {

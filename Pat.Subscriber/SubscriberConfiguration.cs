@@ -63,5 +63,10 @@ namespace Pat.Subscriber
         /// Amount of time in seconds receive should wait before timing out if no messages are available before returning 
         /// </summary>
         public int ReceiveTimeoutSeconds { get; set; }
+
+        /// <summary>
+        /// Only to be used by service tests to allow eavesdropping on outgoing commands.
+        /// </summary>
+        public bool OmitSpecificSubscriberFilter { get; set; }
     }
 }

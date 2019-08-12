@@ -61,7 +61,7 @@ namespace Pat.Subscriber
             var ruleApplier = new RuleApplier(_ruleApplierLog, client);
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
 
-            var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName).ToArray();
+            var rulesForCurrentSoftwareVersion = ruleBuilder.GenerateSubscriptionRules(messagesTypes, handlerFullName, _config.OmitSpecificSubscriberFilter).ToArray();
             var rulesCurrentlyDefinedInServiceBus = await client.GetRulesAsync().ConfigureAwait(false);
 
             _log.LogInformation($"Validating subscription '{_config.SubscriberName}' rules on topic '{topicName}'...");

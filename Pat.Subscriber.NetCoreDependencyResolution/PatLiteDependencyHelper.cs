@@ -88,13 +88,13 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 serviceCollection.AddSingleton(circuitBreakerOptions);
             }
 
-            serviceCollection.AddTransient<IMessageDependencyResolver, MessageDependencyResolver>()
-                .AddTransient<IMessageProcessor, MessageProcessor>()
-                .AddScoped<DefaultMessageProcessingBehaviour>()
-                .AddScoped<InvokeHandlerBehaviour>()
-                .AddScoped<MonitoringMessageProcessingBehaviour>()
-                .AddScoped<MonitoringBatchProcessingBehaviour>()
-                .AddScoped<DefaultBatchProcessingBehaviour>()
+            serviceCollection.AddSingleton<IMessageDependencyResolver, MessageDependencyResolver>()
+                .AddSingleton<IMessageProcessor, MessageProcessor>()
+                .AddSingleton<DefaultMessageProcessingBehaviour>()
+                .AddSingleton<InvokeHandlerBehaviour>()
+                .AddSingleton<MonitoringMessageProcessingBehaviour>()
+                .AddSingleton<MonitoringBatchProcessingBehaviour>()
+                .AddSingleton<DefaultBatchProcessingBehaviour>()
                 .AddSingleton<IMultipleBatchProcessor>(provider => 
                     new MultipleBatchProcessor(
                         provider.GetService<BatchProcessor>(),

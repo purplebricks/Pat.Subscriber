@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Logging;
 using Pat.Subscriber.SubscriberRules;
 
@@ -56,8 +58,19 @@ namespace Pat.Subscriber
         {
             var topicName = _config.EffectiveTopicName;
 
-            var client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
-         
+            SubscriptionClient client;
+            if (_config.TokenProvider != null)
+            {
+                ServiceBusConnectionStringBuilder builder = new ServiceBusConnectionStringBuilder(connectionString);
+                Console.WriteLine(builder.Endpoint);
+                client = new SubscriptionClient(builder.Endpoint, topicName, _config.SubscriberName, _config.TokenProvider);
+            }
+            else {
+                
+                client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
+            }
+            
+
             var ruleApplier = new RuleApplier(_ruleApplierLog, client);
             var ruleBuilder = new RuleBuilder(ruleApplier, _subscriptionRuleVersionResolver, _config.SubscriberName);
 

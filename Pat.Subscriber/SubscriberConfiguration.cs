@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Azure.ServiceBus.Primitives;
 
 namespace Pat.Subscriber
 {
@@ -68,5 +69,10 @@ namespace Pat.Subscriber
         /// Only to be used by service tests to allow eavesdropping on outgoing commands.
         /// </summary>
         public bool OmitSpecificSubscriberFilter { get; set; }
+
+        /// <summary>
+        /// Token Provider For Subscriber Authentication.
+        /// </summary>
+        public TokenProvider TokenProvider { get; set; }
     }
 }

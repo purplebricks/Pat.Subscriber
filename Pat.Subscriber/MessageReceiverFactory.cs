@@ -48,10 +48,8 @@ namespace Pat.Subscriber
                     _log.LogInformation($"Adding on subscription client {clientIndex} to list of source subscriptions");
                     if (_config.TokenProvider != null)
                     {
-
                         messageReceivers.Add(CreateMessageReceiver(connectionString,
                             _config.EffectiveTopicName, _config.SubscriberName, _config.TokenProvider));
-
                     }
                     else
                     {

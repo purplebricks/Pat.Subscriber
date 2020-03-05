@@ -62,7 +62,6 @@ namespace Pat.Subscriber
             if (_config.TokenProvider != null)
             {
                 ServiceBusConnectionStringBuilder builder = new ServiceBusConnectionStringBuilder(connectionString);
-                Console.WriteLine(builder.Endpoint);
                 client = new SubscriptionClient(builder.Endpoint, topicName, _config.SubscriberName, _config.TokenProvider);
             }
             else {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber
@@ -15,6 +16,8 @@ namespace Pat.Subscriber
             string topicName,
             string subscriberName);
 
+
+        protected abstract IMessageReceiver CreateMessageReceiver(string connectionString, string topicName, string subscriberName, ITokenProvider tokenProvider);
         protected MessageReceiverFactory(ILogger<MessageReceiverFactory> log, SubscriberConfiguration config)
         {
             _log = log;
@@ -43,8 +46,16 @@ namespace Pat.Subscriber
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.LogInformation($"Adding on subscription client {clientIndex} to list of source subscriptions");
-                    messageReceivers.Add(CreateMessageReceiver(connectionString,
-                        _config.EffectiveTopicName, _config.SubscriberName));
+                    if (_config.TokenProvider != null)
+                    {
+                        messageReceivers.Add(CreateMessageReceiver(connectionString,
+                            _config.EffectiveTopicName, _config.SubscriberName, _config.TokenProvider));
+                    }
+                    else
+                    {
+                        messageReceivers.Add(CreateMessageReceiver(connectionString,
+                            _config.EffectiveTopicName, _config.SubscriberName));
+                    }
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber.IntegrationTests.Helpers
@@ -14,6 +15,11 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
         }
 
         protected override IMessageReceiver CreateMessageReceiver(string connectionString, string topicName, string subscriberName)
+        {
+            return _messageReceiver;
+        }
+        
+        protected override IMessageReceiver CreateMessageReceiver(string connectionString, string topicName, string subscriberName, ITokenProvider tokenProvider)
         {
             return _messageReceiver;
         }

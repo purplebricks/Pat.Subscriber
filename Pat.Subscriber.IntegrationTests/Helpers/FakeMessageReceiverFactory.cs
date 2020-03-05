@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace Pat.Subscriber.IntegrationTests.Helpers

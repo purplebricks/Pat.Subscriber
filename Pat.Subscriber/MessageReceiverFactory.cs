@@ -46,7 +46,7 @@ namespace Pat.Subscriber
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     _log.LogInformation($"Adding on subscription client {clientIndex} to list of source subscriptions");
-                    if (_config.TokenProvider !=null)
+                    if (_config.TokenProvider != null)
                     {
 
                         messageReceivers.Add(CreateMessageReceiver(connectionString,

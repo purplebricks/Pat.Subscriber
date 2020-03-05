@@ -64,8 +64,8 @@ namespace Pat.Subscriber
                 ServiceBusConnectionStringBuilder builder = new ServiceBusConnectionStringBuilder(connectionString);
                 client = new SubscriptionClient(builder.Endpoint, topicName, _config.SubscriberName, _config.TokenProvider);
             }
-            else {
-                
+            else 
+            {    
                 client = new SubscriptionClient(connectionString, topicName, _config.SubscriberName);
             }
             

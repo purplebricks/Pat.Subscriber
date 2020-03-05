@@ -16,6 +16,7 @@ namespace Pat.Subscriber
             return new MessageReceiver(connectionString,
                 EntityNameHelper.FormatSubscriptionPath(topicName, subscriberName));
         }
+        
         protected override IMessageReceiver CreateMessageReceiver(string connectionString, string topicName, string subscriberName, ITokenProvider tokenProvider)
         {
             ServiceBusConnectionStringBuilder builder = new ServiceBusConnectionStringBuilder(connectionString);

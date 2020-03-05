@@ -17,5 +17,10 @@ namespace Pat.Subscriber.IntegrationTests.Helpers
         {
             return _messageReceiver;
         }
+        
+        protected override IMessageReceiver CreateMessageReceiver(string connectionString, string topicName, string subscriberName, ITokenProvider tokenProvider)
+        {
+            return _messageReceiver;
+        }
     }
 }

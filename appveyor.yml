@@ -1,4 +1,4 @@
-version: 3.0.{build}
+version: 4.0.{build}
 pull_requests:
   do_not_increment_build_number: true
 branches:
@@ -28,7 +28,7 @@ artifacts:
 deploy:
 - provider: NuGet
   api_key:
-    secure: WHsYehf5C3f3Q4NM3JTmU01N28Jrk3k5mUZTlCEX/LWti/fy9wVv8tn54lrhOmDY
+    secure: LGfVEbzpPcWLsXNsz+8wt/4MuIH6AciSjUnB4ysqZZsdzTgBWm620g3a7Am89d8y
   skip_symbols: false
   on:
     branch: master

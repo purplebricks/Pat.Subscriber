@@ -42,7 +42,7 @@ namespace Pat.Subscriber
                     }
                     catch (MessagingEntityNotFoundException)
                     {
-                        _log.LogCritical($"Unable to find servicebus topic '{_config.EffectiveTopicName}' subscriber will terminate.");
+                        _log.LogCritical($"Unable to find Service Bus subscription '{_config.SubscriberName}' for topic '{_config.EffectiveTopicName}'. Subscriber will terminate.");
                         return false;
                     }
                 }

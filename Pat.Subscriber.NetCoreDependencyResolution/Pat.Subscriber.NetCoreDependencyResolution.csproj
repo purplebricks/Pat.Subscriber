@@ -11,8 +11,15 @@
     <PackageLicenseUrl>https://github.com/purplebricks/Pat.Subscriber/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/purplebricks/Pat.Subscriber</RepositoryUrl>
+    <Configurations>Debug;Release;Emit-Local</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\net462\PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.xml</DocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Emit-Local|AnyCPU'">
     <DocumentationFile>bin\Debug\net462\PB.ITOps.Messaging.PatLite.Net.Core.DependencyResolution.xml</DocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

@@ -4,7 +4,6 @@ using System.Linq;
 using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.MessageProcessing;
-using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
 namespace Pat.Subscriber.StructureMap4DependencyResolution
@@ -20,8 +19,6 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
         {
             _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
         }
 
         public IMessagePipelineBuilder With<T>() where T : IMessageProcessingBehaviour

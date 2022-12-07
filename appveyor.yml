@@ -5,7 +5,7 @@ branches:
   only:
   - master
 clone_depth: 1
-image: Visual Studio 2017
+image: Visual Studio 2022
 build_script:  
 - dotnet build -c Release
 - dotnet pack -c Release

@@ -23,7 +23,7 @@ namespace Pat.Subscriber.UnitTests
             _multipleBatchProcessor = Substitute.For<IMultipleBatchProcessor>();
             _messageReceiverFactory = Substitute.For<IMessageReceiverFactory>();
             _subscriptionBuilder = Substitute.For<ISubscriptionBuilder>();
-            _logger = Substitute.For<ILogger<Subscriber>>();
+            _logger = Substitute.For<MockLogger<Subscriber>>();
             _subscriber = new Subscriber(_logger, _subscriberConfiguration, _multipleBatchProcessor, _messageReceiverFactory, _subscriptionBuilder);
         }
 

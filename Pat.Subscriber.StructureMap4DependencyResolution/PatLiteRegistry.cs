@@ -1,14 +1,9 @@
-﻿using System;
-using System.Linq.Expressions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Pat.Subscriber.BatchProcessing;
-using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
 using Pat.Subscriber.StructureMap4DependencyResolution.Logging;
-using Pat.Subscriber.SubscriberRules;
-using Pat.Subscriber.Telemetry.StatsD;
 using StructureMap;
 
 namespace Pat.Subscriber.StructureMap4DependencyResolution
@@ -42,7 +37,6 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
             {
                 For<BatchProcessingBehaviourPipeline>().Use((ctx) =>
                     new BatchProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringBatchProcessingBehaviour>(ctx)
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(ctx)
                 );
             }
@@ -57,7 +51,6 @@ namespace Pat.Subscriber.StructureMap4DependencyResolution
                 For<MessageProcessingBehaviourPipeline>().Use((ctx) =>
                     new MessageProcessingBehaviourPipeline()
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(ctx)
-                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(ctx)
                         .AddBehaviour<InvokeHandlerBehaviour>(ctx));
 
                 For<DefaultMessageProcessingBehaviour>().Use<DefaultMessageProcessingBehaviour>();

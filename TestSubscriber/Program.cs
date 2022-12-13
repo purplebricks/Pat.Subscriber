@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Pat.Subscriber;
 using Pat.Subscriber.MessageMapping;
 using Pat.Subscriber.NetCoreDependencyResolution;
-using Pat.Subscriber.Telemetry.StatsD;
+using System;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TestSubscriber
 {
@@ -53,8 +51,6 @@ namespace TestSubscriber
             var serviceProvider = new ServiceCollection()
                 .AddPatLite(subscriberConfiguration)
                 .AddLogging(b => b.AddConsole())
-                .AddTransient<IStatisticsReporter, StatisticsReporter>()
-                .AddSingleton(new StatisticsReporterConfiguration())
                 .AddHandlersFromAssemblyContainingType<PatLiteTestHandler>()
                 .BuildServiceProvider();
 

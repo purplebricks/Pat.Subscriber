@@ -5,7 +5,6 @@ using Pat.Subscriber.BatchProcessing;
 using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.MessageProcessing;
-using Pat.Subscriber.Telemetry.StatsD;
 
 namespace Pat.Subscriber.NetCoreDependencyResolution
 {
@@ -21,8 +20,6 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
         {
             _subscriberConfiguration = subscriberConfiguration;
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
         }
 
         public IMessagePipelineBuilder With<T>() where T : IMessageProcessingBehaviour
@@ -101,10 +98,8 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
             _messagePipelineBehaviourTypes.Clear();
             _messagePipelineBehaviourTypes.Add(typeof(DefaultMessageProcessingBehaviour));
             _messagePipelineBehaviourTypes.Add(typeof(CircuitBreakerMessageProcessingBehaviour));
-            _messagePipelineBehaviourTypes.Add(typeof(MonitoringMessageProcessingBehaviour));
             _batchPipelineBehaviourTypes.Clear();
             _batchPipelineBehaviourTypes.Add(typeof(CircuitBreakerBatchProcessingBehaviour));
-            _batchPipelineBehaviourTypes.Add(typeof(MonitoringBatchProcessingBehaviour));
             _circuitBreakerOptions = func;
             return this;
         }

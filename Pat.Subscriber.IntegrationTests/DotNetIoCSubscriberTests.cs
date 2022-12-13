@@ -81,26 +81,6 @@ namespace Pat.Subscriber.IntegrationTests
         }
 
         [Fact]
-        public async Task Given_AddPatLiteExtension_WhenHandlerProcessesMessage_ThenMonitoringIncrementsMessageProcessed()
-        {
-            var collection = new ServiceCollection()
-                .AddPatLite(_subscriberConfiguration);
-
-            collection.SetupTestMessage(_correlationId);
-            var serviceProvider = InitialiseIoC(collection);
-            var messageWaiter = serviceProvider.GetService<MessageWaiter<TestEvent>>();
-
-            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, serviceProvider);
-
-            Assert.True(messageWaiter.WaitOne()!=null, $"'{nameof(TestEvent)}' message never received for correlation id '{_correlationId}'");
-
-            _cancellationTokenSource.Cancel();
-            await subscriberListeningTask;
-
-            _statisticsReporter.Received().Increment(Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>());
-        }
-
-        [Fact]
         public async Task Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
         {
            var collection = new ServiceCollection()

@@ -99,32 +99,6 @@ namespace Pat.Subscriber.IntegrationTests
         }
 
         [Fact]
-        public async Task Given_DefaultPatLiteRegistryBuilder_WhenHandlerProcessesMessage_ThenMonitoringIncrementsMessageProcessed()
-        {
-            var container = SetupContainer(x =>
-            {
-                x.AddRegistry(new PatLiteRegistryBuilder(_subscriberConfiguration)
-                    .Build());
-                x.ForSingletonOf<ILoggerFactory>().Use(s => new LoggerFactory());
-            });
-            container.SetupTestMessage(_correlationId);
-
-            var messageWaiter = container.GetInstance<MessageWaiter<TestEvent>>();
-
-            var subscriberListeningTask = await StartSubscriber(_cancellationTokenSource, container);
-
-            Assert.NotNull(messageWaiter.WaitOne());
-
-            _cancellationTokenSource.Cancel();
-            await subscriberListeningTask;
-
-            _statisticsReporter.Received()
-                .Increment(
-                    Arg.Is<string>(e => e.Equals("MessageProcessed", StringComparison.InvariantCultureIgnoreCase)),
-                    Arg.Any<string>());
-        }
-
-        [Fact]
         public async Task
             Given_A_CustomMessageProcessingStepIsAdded_WhenMessageProcessingIsInvoked_ThenTheCustomStepIsCalled()
         {

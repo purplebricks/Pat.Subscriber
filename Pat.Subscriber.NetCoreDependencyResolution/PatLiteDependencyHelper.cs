@@ -8,7 +8,6 @@ using Pat.Subscriber.CicuitBreaker;
 using Pat.Subscriber.Deserialiser;
 using Pat.Subscriber.IoC;
 using Pat.Subscriber.MessageProcessing;
-using Pat.Subscriber.Telemetry.StatsD;
 
 namespace Pat.Subscriber.NetCoreDependencyResolution
 {
@@ -92,8 +91,6 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 .AddSingleton<IMessageProcessor, MessageProcessor>()
                 .AddSingleton<DefaultMessageProcessingBehaviour>()
                 .AddSingleton<InvokeHandlerBehaviour>()
-                .AddSingleton<MonitoringMessageProcessingBehaviour>()
-                .AddSingleton<MonitoringBatchProcessingBehaviour>()
                 .AddSingleton<DefaultBatchProcessingBehaviour>()
                 .AddSingleton<IMultipleBatchProcessor>(provider => 
                     new MultipleBatchProcessor(
@@ -111,12 +108,10 @@ namespace Pat.Subscriber.NetCoreDependencyResolution
                 .AddScoped(provider => new MessageContext())
                 .AddSingleton(provider => batchMessageProcessingBehaviourBuilder != null ? batchMessageProcessingBehaviourBuilder.Build(provider) :
                     new BatchProcessingBehaviourPipeline()
-                        .AddBehaviour<MonitoringBatchProcessingBehaviour>(provider)
                         .AddBehaviour<DefaultBatchProcessingBehaviour>(provider))
                 .AddSingleton(provider => messagePipelineDependencyBuilder != null ? messagePipelineDependencyBuilder.Build(provider) :
                     new MessageProcessingBehaviourPipeline()
                         .AddBehaviour<DefaultMessageProcessingBehaviour>(provider)
-                        .AddBehaviour<MonitoringMessageProcessingBehaviour>(provider)
                         .AddBehaviour<InvokeHandlerBehaviour>(provider))
                 .AddScoped(deserialisationResolver)
                 .AddSingleton<Subscriber>();

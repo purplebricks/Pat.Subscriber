@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher", "Publisher\Publ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pat.Subscriber.UnitTests", "Pat.Subscriber.UnitTests\Pat.Subscriber.UnitTests.csproj", "{5EA49378-3BD3-4008-9123-09E59BE53634}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pat.Subscriber.Telemetry.ApplicationInsights", "Pat.Subscriber.Telemetry.ApplicationInsights\Pat.Subscriber.Telemetry.ApplicationInsights.csproj", "{54817281-29CC-46DD-97CE-AFC36E00CC13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pat.Subscriber.Telemetry.AppInsights", "Pat.Subscriber.Telemetry.ApplicationInsights\Pat.Subscriber.Telemetry.AppInsights.csproj", "{54817281-29CC-46DD-97CE-AFC36E00CC13}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pat.Subscriber.Telemetry.StatsD", "Pat.Subscriber.Telemetry.StatsD\Pat.Subscriber.Telemetry.StatsD.csproj", "{B87790F3-2EAD-4EAB-ACE0-81F5472DC4A8}"
 EndProject
